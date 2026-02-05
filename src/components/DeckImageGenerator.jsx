@@ -1,93 +1,161 @@
-import React, { useRef, useImperativeHandle, forwardRef } from "react";
+import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import { getProxyImageUrl } from "../utils/apiConfig";
 
 const DeckImageGenerator = forwardRef((props, ref) => {
   const containerRef = useRef(null);
+  const [groupedCards, setGroupedCards] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(0);
 
-  // 外部から呼び出せる関数を定義
+  const { deckName, cards } = props;
+
+  // カードデータのグルーピング処理
+  useEffect(() => {
+    if (!cards || cards.length === 0) {
+      setGroupedCards([]);
+      return;
+    }
+
+    const map = new Map();
+    cards.forEach(url => {
+      if (map.has(url)) {
+        map.set(url, map.get(url) + 1);
+      } else {
+        map.set(url, 1);
+      }
+    });
+
+    const result = [];
+    map.forEach((count, url) => {
+      result.push({ url, count });
+    });
+    setGroupedCards(result);
+    setLoadedCount(0); // リセット
+  }, [cards]);
+
+  // 全画像の読み込み完了判定
+  const handleImageLoad = () => {
+    setLoadedCount(prev => prev + 1);
+  };
+
+  // 外部から呼び出せる関数
   useImperativeHandle(ref, () => ({
-    generateImage: async (deckName, cards) => {
+    generateImage: async () => {
       if (!containerRef.current) return;
-      
-      // 画像生成処理
+      if (loadedCount < groupedCards.length) {
+        if (!window.confirm("まだ画像が読み込み切れていませんが、保存しますか？")) return;
+      }
+
+      setIsGenerating(true);
       try {
-        // 一瞬だけ表示してレンダリングさせる必要があるため、親側で制御するか、
-        // ここでstyleを操作して可視化→画像化→非表示にする手もあるが、
-        // html2canvasは可視要素でないとうまく撮れないことが多い。
-        // 親側で「生成中はオーバーレイ表示」などにするのが一般的。
-        
+        // 解像度を抑えつつ生成 (scale: 1.5くらいで十分きれい)
         const canvas = await html2canvas(containerRef.current, {
-          useCORS: true, // 別ドメインの画像(proxy)を扱うために必須
-          scale: 2, // 高画質化
-          backgroundColor: "#000000"
+          useCORS: true,
+          scale: 1.5,
+          backgroundColor: "#1a1a1a" // 背景色
         });
         
-        // 画像ダウンロード
         const link = document.createElement("a");
         link.download = `${deckName || "deck"}.png`;
-        link.href = canvas.toDataURL("image/png");
+        link.href = canvas.toDataURL("image/png", 0.8); // 圧縮率0.8
         link.click();
       } catch (err) {
         console.error("Image generation failed:", err);
-        alert("画像の生成に失敗しました。\n・通信環境を確認してください\n・画像の読み込みが完了していない可能性があります");
+        alert("生成に失敗しました");
+      } finally {
+        setIsGenerating(false);
       }
     }
   }));
 
-  const { deckName, cards } = props;
-
-  // 40枚に満たない場合は空のスロットで埋める（一応）
-  const displayCards = [...(cards || [])];
-  while (displayCards.length < 40) {
-    displayCards.push(null);
-  }
+  if (!cards || cards.length === 0) return null;
 
   return (
-    <div style={{ position: "fixed", top: "-9999px", left: "-9999px" }}>
-    {/* 実際の生成用コンテナ (画面外には配置するが、display:noneだと撮れないので座標飛ばし) */}
+    <div style={{ 
+      position: "fixed", top: 0, left: 0, width: "100%", height: "100%", 
+      background: "rgba(0,0,0,0.8)", zIndex: 9999,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      visibility: props.visible ? "visible" : "hidden" 
+    }}>
+      <div style={{ color: "white", marginBottom: "10px", fontWeight: "bold" }}>
+        プレビュー ({loadedCount}/{groupedCards.length} 読込完了)
+      </div>
+
+      {/* 生成対象エリア */}
       <div 
         ref={containerRef}
         style={{ 
-          width: "1200px", // 高解像度向けに大きめに
+          width: "90%", maxWidth: "600px",
           background: "#121212", 
-          padding: "20px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          padding: "15px",
+          borderRadius: "8px",
+          boxShadow: "0 0 20px rgba(0,0,0,0.5)",
           fontFamily: "sans-serif",
           color: "white"
         }}
       >
-        <div style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "20px", borderBottom: "2px solid #007bff", paddingBottom: "10px", width: "100%", textAlign: "center" }}>
-          {deckName || "No Name Deck"}
+        <div style={{ 
+          fontSize: "1.2rem", fontWeight: "bold", marginBottom: "10px", 
+          borderBottom: "2px solid #007bff", paddingBottom: "5px",
+          display: "flex", justifyContent: "space-between", alignItems: "flex-end"
+        }}>
+          <span>{deckName || "Deck List"}</span>
+          <span style={{ fontSize: "0.8rem", color: "#aaa" }}>Total: {cards.length}</span>
         </div>
         
         <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(5, 1fr)", // 横5列
-          gap: "10px",
-          width: "100%"
+          display: "flex", 
+          flexWrap: "wrap",
+          gap: "8px",
+          justifyContent: "flex-start"
         }}>
-          {displayCards.map((url, i) => (
-            <div key={i} style={{ aspectRatio: "63/88", position: "relative" }}>
-              {url ? (
-                <img 
-                  src={getProxyImageUrl(url)} 
-                  alt="" 
-                  crossOrigin="anonymous" // これが重要
-                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "4px" }} 
-                />
-              ) : (
-                <div style={{ width: "100%", height: "100%", background: "#222", borderRadius: "4px", border: "1px dashed #444" }}></div>
-              )}
+          {groupedCards.map((item, i) => (
+            <div key={i} style={{ position: "relative", width: "18%", aspectRatio: "63/88" }}>
+              <img 
+                src={getProxyImageUrl(item.url)} 
+                alt="" 
+                crossOrigin="anonymous"
+                onLoad={handleImageLoad}
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "3px" }} 
+              />
+              <div style={{ 
+                position: "absolute", bottom: "0", right: "0", 
+                background: "rgba(0,0,0,0.7)", color: "#fff", 
+                fontSize: "0.8rem", fontWeight: "bold", 
+                padding: "1px 6px", borderTopLeftRadius: "4px",
+                border: "1px solid #555"
+              }}>
+                x{item.count}
+              </div>
             </div>
           ))}
         </div>
         
-        <div style={{ marginTop: "20px", fontSize: "1rem", color: "#888", alignSelf: "flex-end" }}>
+        <div style={{ marginTop: "10px", fontSize: "0.7rem", color: "#666", textAlign: "right" }}>
           Generated by Duema Online
         </div>
+      </div>
+
+      {/* 操作ボタン */}
+      <div style={{ marginTop: "20px", display: "flex", gap: "20px" }}>
+        <button 
+          onClick={props.onClose}
+          style={{ padding: "10px 20px", background: "#555", color: "white", border: "none", borderRadius: "5px" }}
+        >
+          閉じる
+        </button>
+        <button 
+          onClick={() => ref.current.generateImage()}
+          disabled={isGenerating || loadedCount < groupedCards.length}
+          style={{ 
+            padding: "10px 20px", 
+            background: isGenerating || loadedCount < groupedCards.length ? "#888" : "#007bff", 
+            color: "white", border: "none", borderRadius: "5px", fontWeight: "bold" 
+          }}
+        >
+          {isGenerating ? "生成中..." : loadedCount < groupedCards.length ? "読込中..." : "画像を保存"}
+        </button>
       </div>
     </div>
   );
