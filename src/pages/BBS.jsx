@@ -12,7 +12,6 @@ export default function BBS() {
     const q = query(collection(db, "bbs_posts"), orderBy("createdAt", "desc"), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // 表示は古い順にしたいのでreverse（descで取得してreverse）
       setPosts(docs.reverse());
     });
     return () => unsubscribe();
@@ -40,65 +39,104 @@ export default function BBS() {
   };
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "10px", background: "#efefef", minHeight: "100vh", color: "#000", fontFamily: "sans-serif" }}>
-      <h2 style={{ background: "#0000ff", color: "#fff", padding: "5px 10px", fontSize: "1.2rem", margin: "0 0 10px 0" }}>
-        なんJ風・DM掲示板
+    <div style={{ padding: "10px", background: "#121212", minHeight: "100vh", color: "#e0e0e0", fontFamily: "sans-serif" }}>
+      <h2 style={{ 
+        borderBottom: "1px solid #333", 
+        paddingBottom: "10px", 
+        fontSize: "1.2rem", 
+        marginBottom: "15px",
+        color: "#fff" 
+      }}>
+        掲示板
       </h2>
 
       {/* 投稿フォーム */}
-      <div style={{ background: "#fff", padding: "10px", marginBottom: "15px", border: "1px solid #ccc" }}>
-        <form onSubmit={handlePost}>
-          <div style={{ marginBottom: "5px" }}>
-            名前: <input 
+      <div style={{ background: "#1e1e1e", padding: "15px", marginBottom: "20px", borderRadius: "8px", border: "1px solid #333" }}>
+        <form onSubmit={handlePost} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div>
+            <label style={{ fontSize: "0.85rem", color: "#aaa", display: "block", marginBottom: "4px" }}>名前</label>
+            <input 
               type="text" 
               value={name} 
               onChange={(e) => setName(e.target.value)} 
-              style={{ width: "150px" }}
+              style={{ 
+                width: "100%", 
+                padding: "8px", 
+                background: "#2c2c2c", 
+                border: "1px solid #444", 
+                color: "#fff", 
+                borderRadius: "4px" 
+              }}
             />
           </div>
-          <div style={{ display: "flex", gap: "5px" }}>
+          <div>
+            <label style={{ fontSize: "0.85rem", color: "#aaa", display: "block", marginBottom: "4px" }}>メッセージ</label>
             <textarea 
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="ここに書き込むんやで"
-              style={{ flex: 1, height: "60px", padding: "5px" }}
+              placeholder="ここにメッセージを入力してください"
+              style={{ 
+                width: "100%", 
+                height: "80px", 
+                padding: "8px", 
+                background: "#2c2c2c", 
+                border: "1px solid #444", 
+                color: "#fff", 
+                borderRadius: "4px",
+                resize: "none"
+              }}
             />
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              style={{ width: "80px", cursor: "pointer" }}
-            >
-              書込
-            </button>
           </div>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            style={{ 
+              padding: "12px", 
+              background: isSubmitting ? "#555" : "#007bff", 
+              color: "white", 
+              border: "none", 
+              borderRadius: "4px", 
+              fontSize: "1rem", 
+              cursor: isSubmitting ? "default" : "pointer",
+              fontWeight: "bold"
+            }}
+          >
+            {isSubmitting ? "送信中..." : "書き込む"}
+          </button>
         </form>
       </div>
 
       {/* スレッド表示 */}
-      <div style={{ background: "#fff", padding: "10px", border: "1px solid #ccc" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
         {posts.length === 0 ? (
-          <p style={{ color: "#888" }}>まだ書き込みがないようやな。</p>
+          <p style={{ color: "#888", textAlign: "center", padding: "20px" }}>まだ投稿はありません。</p>
         ) : (
           posts.map((post, index) => (
-            <div key={post.id} style={{ marginBottom: "15px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
-              <div style={{ fontSize: "0.9rem", color: "#222", marginBottom: "3px" }}>
-                <span style={{ color: "green", fontWeight: "bold" }}>{index + 1}</span> : 
-                <span style={{ color: "blue", fontWeight: "bold", marginLeft: "5px" }}>{post.name}</span> : 
-                <span style={{ marginLeft: "10px", color: "#666" }}>
+            <div key={post.id} style={{ background: "#1e1e1e", padding: "12px", borderRadius: "8px", border: "1px solid #333" }}>
+              <div style={{ fontSize: "0.8rem", color: "#888", marginBottom: "6px", display: "flex", justifyContent: "space-between" }}>
+                <div>
+                  <span style={{ color: "#aaa", marginRight: "8px" }}>{index + 1}</span>
+                  <span style={{ color: "#4dabf7", fontWeight: "bold" }}>{post.name}</span>
+                </div>
+                <span>
                   {post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString() : "..."}
                 </span>
               </div>
-              <div style={{ whiteSpace: "pre-wrap", marginLeft: "20px", fontSize: "1rem", lineHeight: "1.4" }}>
+              <div style={{ 
+                whiteSpace: "pre-wrap", 
+                fontSize: "1rem", 
+                lineHeight: "1.5", 
+                color: "#eee",
+                wordBreak: "break-word"
+              }}>
                 {post.content}
               </div>
             </div>
           ))
         )}
       </div>
-
-      <div style={{ marginTop: "20px", textAlign: "center", fontSize: "0.8rem", color: "#666" }}>
-        (C) 島田商会掲示板システム
-      </div>
+      
+      <div style={{ height: "50px" }}></div>
     </div>
   );
 }
