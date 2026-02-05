@@ -87,6 +87,29 @@ export default function DeckList() {
     alert(`デッキ「${deck.name}」のデータをコピーしました！`);
   };
 
+  const handlePostToBBS = async (e, deck) => {
+    e.stopPropagation();
+    if (!window.confirm(`デッキ「${deck.name}」を掲示板に投稿しますか？`)) return;
+
+    try {
+      await addDoc(collection(db, "bbs_posts"), {
+        name: user.displayName || "名無しさん",
+        content: `【デッキ投稿】${deck.name}`,
+        deckData: {
+          name: deck.name,
+          cards: deck.cards
+        },
+        createdAt: new Date(), // BBS.jsxはserverTimestampを使っているが、ここではDateでも互換性あり(toDate()が動く)
+        userId: user.uid
+      });
+      alert("掲示板に投稿しました！");
+      navigate("/bbs");
+    } catch (err) {
+      console.error(err);
+      alert("投稿に失敗しました。");
+    }
+  };
+
   // --- ★データ管理（インポート・エクスポート） ---
   
   // 図鑑データの書き出し
@@ -247,6 +270,9 @@ export default function DeckList() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <button onClick={(e) => handlePostToBBS(e, deck)} className="btn btn-success" style={{ padding: "4px 8px", fontSize: "0.75rem" }}>
+                掲示板に投稿
+              </button>
               <button onClick={(e) => handleShare(e, deck)} className="btn btn-outline" style={{ padding: "4px 8px", fontSize: "0.75rem" }}>
                 共有
               </button>

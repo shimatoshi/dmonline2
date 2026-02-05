@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { getProxyImageUrl } from "../utils/apiConfig";
 
 export default function BBS() {
   const [posts, setPosts] = useState([]);
@@ -35,6 +36,25 @@ export default function BBS() {
       alert("投稿に失敗しました。");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleImportDeck = async (deckData) => {
+    if (!auth.currentUser) return;
+    if (!window.confirm(`デッキ「${deckData.name}」を自分のリストに保存しますか？`)) return;
+
+    try {
+      await addDoc(collection(db, "users", auth.currentUser.uid, "decks"), {
+        name: `${deckData.name} (掲示板より)`,
+        cards: deckData.cards,
+        tags: ["掲示板"],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      alert("自分のデッキリストに保存しました！");
+    } catch (err) {
+      console.error(err);
+      alert("保存に失敗しました。");
     }
   };
 
@@ -122,6 +142,45 @@ export default function BBS() {
                   {post.createdAt?.toDate ? post.createdAt.toDate().toLocaleString() : "..."}
                 </span>
               </div>
+              
+              {/* デッキデータがある場合 */}
+              {post.deckData && (
+                <div style={{ 
+                  background: "#2c2c2c", 
+                  padding: "10px", 
+                  borderRadius: "6px", 
+                  marginBottom: "10px", 
+                  borderLeft: "4px solid #007bff",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px"
+                }}>
+                  <div style={{ width: "40px", aspectRatio: "2/3", background: "#000", borderRadius: "2px", overflow: "hidden" }}>
+                    {post.deckData.cards && post.deckData.cards[0] && (
+                      <img src={getProxyImageUrl(post.deckData.cards[0])} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "0.9rem", fontWeight: "bold", color: "#fff" }}>{post.deckData.name}</div>
+                    <div style={{ fontSize: "0.75rem", color: "#aaa" }}>{post.deckData.cards?.length || 0}枚のデッキ</div>
+                  </div>
+                  <button 
+                    onClick={() => handleImportDeck(post.deckData)}
+                    style={{ 
+                      padding: "6px 12px", 
+                      background: "#28a745", 
+                      color: "white", 
+                      border: "none", 
+                      borderRadius: "4px", 
+                      fontSize: "0.75rem",
+                      cursor: "pointer"
+                    }}
+                  >
+                    コピーして保存
+                  </button>
+                </div>
+              )}
+
               <div style={{ 
                 whiteSpace: "pre-wrap", 
                 fontSize: "1rem", 
