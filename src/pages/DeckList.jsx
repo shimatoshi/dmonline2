@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebase";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, addDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { getProxyImageUrl } from "../utils/apiConfig";
+import DeckImageGenerator from "../components/DeckImageGenerator";
 
 export default function DeckList() {
   const [decks, setDecks] = useState([]);
@@ -12,6 +13,10 @@ export default function DeckList() {
   // インポート/エクスポート用
   const [showDataMenu, setShowDataMenu] = useState(false);
   const [importText, setImportText] = useState("");
+  
+  // 画像生成用
+  const generatorRef = useRef(null);
+  const [targetDeckForImage, setTargetDeckForImage] = useState({ name: "", cards: [] });
 
   const navigate = useNavigate();
   const user = auth.currentUser;
@@ -112,6 +117,28 @@ export default function DeckList() {
     } catch (err) {
       console.error(err);
       alert("投稿に失敗しました。");
+    }
+  };
+
+  const handleGenerateImage = async (e, deck) => {
+    e.stopPropagation();
+    if (!deck.cards || deck.cards.length === 0) {
+      alert("カードがないデッキは画像化できません");
+      return;
+    }
+    
+    // 生成用コンポーネントにデータを渡す
+    setTargetDeckForImage({ name: deck.name, cards: deck.cards });
+    
+    // 画像読み込み待ち（簡易的に1.5秒待つ）
+    // 完全にやるならonLoadを監視するが、まずはこれで
+    const confirmMsg = "画像を生成します。しばらくお待ちください...";
+    if (window.confirm(confirmMsg)) {
+      setTimeout(() => {
+        if (generatorRef.current) {
+          generatorRef.current.generateImage(deck.name, deck.cards);
+        }
+      }, 1500);
     }
   };
 
@@ -278,6 +305,9 @@ export default function DeckList() {
               <button onClick={(e) => handlePostToBBS(e, deck)} className="btn btn-success" style={{ padding: "4px 8px", fontSize: "0.75rem" }}>
                 掲示板に投稿
               </button>
+              <button onClick={(e) => handleGenerateImage(e, deck)} className="btn btn-primary" style={{ padding: "4px 8px", fontSize: "0.75rem" }}>
+                画像保存
+              </button>
               <button onClick={(e) => handleShare(e, deck)} className="btn btn-outline" style={{ padding: "4px 8px", fontSize: "0.75rem" }}>
                 共有
               </button>
@@ -288,6 +318,8 @@ export default function DeckList() {
           </div>
         ))}
       </div>
+
+      <DeckImageGenerator ref={generatorRef} deckName={targetDeckForImage.name} cards={targetDeckForImage.cards} />
     </div>
   );
 }
