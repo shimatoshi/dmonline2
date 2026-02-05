@@ -8,6 +8,7 @@ import Lobby from "./pages/Lobby";
 import DeckList from "./pages/DeckList";
 import DeckBuilder from "./pages/DeckBuilder";
 import BBS from "./pages/BBS";
+import BBSThread from "./pages/BBSThread"; // 追加
 import GameTable from "./pages/GameTable";
 import Profile from "./pages/Profile"; // 追加
 
@@ -42,6 +43,7 @@ function App() {
         <nav style={{ fontSize: "0.85rem", display: "flex", gap: "12px", alignItems: "center" }}>
           <Link to="/" style={{ color: "#e0e0e0", textDecoration: "none" }}>ロビー</Link>
           <Link to="/decks" style={{ color: "#e0e0e0", textDecoration: "none" }}>デッキ</Link>
+          <Link to="/bbs" style={{ color: "#e0e0e0", textDecoration: "none" }}>掲示板</Link>
           <Link to="/profile" style={{ color: "#e0e0e0", textDecoration: "none" }}>設定</Link>
           <button onClick={handleLogout} style={{ background: "#333", color: "#aaa", border: "1px solid #555", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontSize: "0.75rem" }}>ログアウト</button>
         </nav>
@@ -54,6 +56,7 @@ function App() {
         <Route path="/deck/edit/:deckId" element={<DeckBuilder />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/bbs" element={<BBS />} />
+        <Route path="/bbs/thread/:threadId" element={<BBSThread />} />
         <Route path="/game/:roomId" element={<GameTable />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

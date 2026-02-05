@@ -89,21 +89,26 @@ export default function DeckList() {
 
   const handlePostToBBS = async (e, deck) => {
     e.stopPropagation();
-    if (!window.confirm(`デッキ「${deck.name}」を掲示板に投稿しますか？`)) return;
+    if (!window.confirm(`デッキ「${deck.name}」を掲示板に投稿しますか？\n（新しいスレッドが作成されます）`)) return;
 
     try {
-      await addDoc(collection(db, "bbs_posts"), {
-        name: user.displayName || "名無しさん",
-        content: `【デッキ投稿】${deck.name}`,
+      // スレッドを作成
+      const docRef = await addDoc(collection(db, "bbs_threads"), {
+        title: `【デッキ】${deck.name}`,
+        authorName: user.displayName || "名無しさん",
+        authorId: user.uid,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        responseCount: 0,
+        comment: "デッキを投稿しました。", // 初期コメント
         deckData: {
           name: deck.name,
           cards: deck.cards
-        },
-        createdAt: new Date(), // BBS.jsxはserverTimestampを使っているが、ここではDateでも互換性あり(toDate()が動く)
-        userId: user.uid
+        }
       });
+
       alert("掲示板に投稿しました！");
-      navigate("/bbs");
+      navigate(`/bbs/thread/${docRef.id}`);
     } catch (err) {
       console.error(err);
       alert("投稿に失敗しました。");
