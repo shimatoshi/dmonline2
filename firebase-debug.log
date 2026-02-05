@@ -1,0 +1,26 @@
+[debug] [2026-02-02T00:50:42.813Z] ----------------------------------------------------------------------
+[debug] [2026-02-02T00:50:42.818Z] Command:       /data/data/com.termux/files/usr/bin/node /data/data/com.termux/files/usr/bin/firebase login:ci --no-localhost
+[debug] [2026-02-02T00:50:42.819Z] CLI Version:   15.5.1
+[debug] [2026-02-02T00:50:42.819Z] Platform:      android
+[debug] [2026-02-02T00:50:42.820Z] Node Version:  v24.13.0
+[debug] [2026-02-02T00:50:42.820Z] Time:          Mon Feb 02 2026 09:50:42 GMT+0900 (Japan Standard Time)
+[debug] [2026-02-02T00:50:42.820Z] ----------------------------------------------------------------------
+[debug] 
+[warn] ⚠  Authenticating with a `login:ci` token is deprecated and will be removed in a future major version of `firebase-tools`. Instead, use a service account key with `GOOGLE_APPLICATION_CREDENTIALS`: https://cloud.google.com/docs/authentication/getting-started 
+[debug] [2026-02-02T00:50:43.251Z] >>> [apiv2][query] POST https://auth.firebase.tools/attest [none]
+[debug] [2026-02-02T00:50:43.251Z] >>> [apiv2][body] POST https://auth.firebase.tools/attest {"session_id":"14312c1f-47ac-403e-ba16-fe53035176a6"}
+[debug] [2026-02-02T00:50:51.675Z] <<< [apiv2][status] POST https://auth.firebase.tools/attest 200
+[debug] [2026-02-02T00:50:51.675Z] <<< [apiv2][body] POST https://auth.firebase.tools/attest {"token":"1fzEjw7Wb-0OKZ4pAIRatshl9TgVtyK_MXKsdsFsrd8"}
+[info] 
+[info] To sign in to the Firebase CLI:
+[info] 
+[info] 1. Take note of your session ID:
+[info] 
+[info]    14312
+[info] 
+[info] 2. Visit the URL below on any device and follow the instructions to get your code:
+[info] 
+[info]    https://auth.firebase.tools/login?code_challenge=I5AKOHn68gUPR-gK3HHxyjL-z-3ueTmkoY5G3Qm4YCU&session=14312c1f-47ac-403e-ba16-fe53035176a6&attest=1fzEjw7Wb-0OKZ4pAIRatshl9TgVtyK_MXKsdsFsrd8
+[info] 
+[info] 3. Paste or enter the authorization code below once you have it:
+[info] 

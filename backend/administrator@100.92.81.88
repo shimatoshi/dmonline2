@@ -1,0 +1,259 @@
+# -*- coding: utf-8 -*-
+import sqlite3
+import os
+import json
+import requests
+import re
+import sys
+import io
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+
+# --- 文字化け対策 (Windowsコンソール用) ---
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+# --- 設定 ---
+DB_PATH = 'dm_cards.db'
+IMAGE_DIR = 'images'
+PORT = 8000
+
+app = Flask(__name__)
+# JSONレスポンスで日本語がUnicodeエスケープ(\uXXXX)されるのを防ぐ
+app.config['JSON_AS_ASCII'] = False
+CORS(app)
+
+# --- データベース初期化 ---
+def init_db():
+    if not os.path.exists(IMAGE_DIR):
+        os.makedirs(IMAGE_DIR)
+        
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # カード情報テーブル
+    # id: 管理用ID
+    # name: カード名
+    # source_url: 元画像URL (ユニークキー)
+    # local_path: 保存した画像のパス
+    # cost, civilization, race: スペック情報
+    # tags: 検索用タグ (JSON配列)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS cards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            source_url TEXT UNIQUE,
+            local_path TEXT,
+            cost TEXT,
+            civilization TEXT,
+            race TEXT,
+            text TEXT,
+            tags TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+    print(f"[*] Database initialized: {DB_PATH}")
+
+# --- 画像ダウンロード関数 ---
+def download_image(url):
+    """画像をDLしてローカルパスを返す。失敗したらNone"""
+    if not url: return None
+    try:
+        # URLからファイル名を生成（適当な名前にならないようハッシュ化するか、元の名前を使う）
+        filename = os.path.basename(url.split('?')[0])
+        # 万が一ファイル名が取れない場合の保険
+        if not filename or len(filename) < 3:
+            filename = f"img_{hash(url)}.jpg"
+            
+        local_path = os.path.join(IMAGE_DIR, filename)
+        
+        # 既に存在すれば何もしない
+        if os.path.exists(local_path):
+            return local_path
+
+        print(f"[*] Downloading: {url}")
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers, stream=True)
+        if response.status_code == 200:
+            with open(local_path, 'wb') as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+            return local_path
+    except Exception as e:
+        print(f"[!] Error downloading image: {e}")
+    return None
+
+# --- API: カード一覧取得 (検索機能付き) ---
+@app.route('/api/cards', methods=['GET'])
+def get_cards():
+    keyword = request.args.get('q', '')
+    
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    
+    query = "SELECT * FROM cards WHERE 1=1"
+    params = []
+    
+    if keyword:
+        # 名前 または タグ に一致するものを検索
+        query += " AND (name LIKE ? OR tags LIKE ?)"
+        params.append(f'%{keyword}%')
+        params.append(f'%{keyword}%')
+        
+    query += " ORDER BY id DESC LIMIT 100"
+    
+    c.execute(query, params)
+    rows = c.fetchall()
+    conn.close()
+    
+    cards = []
+    for row in rows:
+        card = dict(row)
+        # タグのJSONパース処理
+        if card['tags']:
+            try:
+                card['tags'] = json.loads(card['tags'])
+            except:
+                card['tags'] = []
+        else:
+            card['tags'] = []
+        cards.append(card)
+        
+    return jsonify(cards)
+
+# --- API: 画像プロキシ & 自動登録 ---
+@app.route('/api/image', methods=['GET'])
+def proxy_image():
+    url = request.args.get('url')
+    if not url: return "URL required", 400
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # 1. DBにURLがあるか確認
+    c.execute("SELECT local_path FROM cards WHERE source_url = ?", (url,))
+    row = c.fetchone()
+    
+    local_path = None
+    
+    if row and row[0] and os.path.exists(row[0]):
+        # DBにあり、ファイルも実在する
+        local_path = row[0]
+    else:
+        # 2. なければダウンロード実行
+        local_path = download_image(url)
+        if local_path:
+            # DBに新規登録 (名前などは後で埋める運用)
+            c.execute("INSERT OR IGNORE INTO cards (source_url, local_path, name) VALUES (?, ?, ?)", 
+                      (url, local_path, 'AutoImport'))
+            conn.commit()
+
+    conn.close()
+
+    if local_path and os.path.exists(local_path):
+        return send_file(local_path, mimetype='image/jpeg')
+    else:
+        return "Image not found", 404
+
+# --- API: 図鑑データの一括インポート ---
+@app.route('/api/import', methods=['POST'])
+def import_cards():
+    """React側の図鑑JSONデータを受け取って取り込む"""
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    count = 0
+    
+    for item in data:
+        url = item.get('url')
+        if not url: continue
+
+        # 重複チェック
+        c.execute("SELECT id FROM cards WHERE source_url = ?", (url,))
+        if c.fetchone():
+            continue
+
+        local_path = download_image(url)
+        tags_json = json.dumps(item.get('tags', []), ensure_ascii=False)
+
+        c.execute('''
+            INSERT INTO cards (name, source_url, local_path, cost, tags)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (item.get('name', 'Unknown'), url, local_path, item.get('cost'), tags_json))
+        count += 1
+        
+    conn.commit()
+    conn.close()
+    return jsonify({"message": f"Imported {count} cards."})
+
+# --- API: テキスト形式のデッキ取り込み ---
+@app.route('/api/import/deck_text', methods=['POST'])
+def import_deck_text():
+    """ '4 x ボルメテウス' 形式のテキストを解析 """
+    raw_text = request.json.get('text', '')
+    if not raw_text:
+        return jsonify({"error": "No text provided"}), 400
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    deck_list = []
+    not_found_list = []
+
+    lines = raw_text.split('\n')
+    for line in lines:
+        line = line.strip()
+        if not line: continue
+
+        # 正規表現: 数字 + "x" (任意) + 名前
+        match = re.match(r'^(\d+)\s*x?\s*(.+)$', line)
+        
+        if match:
+            count = int(match.group(1))
+            name = match.group(2).strip()
+            
+            # DB検索 (完全一致)
+            c.execute("SELECT * FROM cards WHERE name = ?", (name,))
+            card = c.fetchone()
+            
+            # なければ前方一致検索
+            if not card:
+                c.execute("SELECT * FROM cards WHERE name LIKE ?", (f"{name}%",))
+                card = c.fetchone()
+
+            if card:
+                card_data = dict(card)
+                # JSON用整形
+                if card_data['tags']:
+                    try: card_data['tags'] = json.loads(card_data['tags'])
+                    except: card_data['tags'] = []
+                
+                for _ in range(count):
+                    deck_list.append(card_data)
+            else:
+                not_found_list.append(name)
+        
+    conn.close()
+
+    return jsonify({
+        "deck": deck_list,
+        "not_found": not_found_list,
+        "message": f"Found {len(deck_list)} cards. Missing: {len(not_found_list)}"
+    })
+
+# --- メイン処理 ---
+if __name__ == '__main__':
+    try:
+        init_db()
+        print(f"[*] Server running at http://0.0.0.0:{PORT}")
+        app.run(host='0.0.0.0', port=PORT, debug=True)
+    except Exception as e:
+        print(f"[!] Critical Error: {e}")
+        input("Press Enter to exit...") # エラー時にウィンドウがすぐ閉じないようにする

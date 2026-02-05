@@ -1,0 +1,86 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* カラーパレット定義 */
+  --bg-color: #121212;
+  --surface-color: #1e1e1e;
+  --surface-color-light: #2c2c2c;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
+  --accent-color: #007bff;
+  --border-color: #333333;
+  --danger-color: #d32f2f;
+  --success-color: #28a745;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-width: 320px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* スマホでのタップ領域を意識したリセット */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 16px; /* 16px以上にしないとiOSで勝手にズームされる */
+}
+
+/* スクロールバーもダークに */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color); 
+}
+::-webkit-scrollbar-thumb {
+  background: #555; 
+  border-radius: 4px;
+}
+
+/* ユーティリティクラス */
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn:active {
+  opacity: 0.7;
+}
+.btn-primary { background-color: var(--accent-color); color: white; }
+.btn-danger { background-color: var(--danger-color); color: white; }
+.btn-success { background-color: var(--success-color); color: white; }
+.btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+
+.card-box {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.input-field {
+  background-color: var(--surface-color-light);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 12px;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input-field:focus {
+  outline: 2px solid var(--accent-color);
+  border-color: transparent;
+}
