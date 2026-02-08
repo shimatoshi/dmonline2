@@ -35,6 +35,7 @@ export default function GameTable() {
   const [viewMode, setViewMode] = useState(null);
   const [interactionMode, setInteractionMode] = useState(false); // boolean
   const [selectedOpponentCard, setSelectedOpponentCard] = useState(null); // { zone, index }
+  const [firstPlayerId, setFirstPlayerId] = useState(null);
 
   // --- 同期処理 ---
   useEffect(() => {
@@ -43,9 +44,18 @@ export default function GameTable() {
       if (!docSnap.exists()) { alert("部屋が解散されました"); navigate("/"); return; }
       const data = docSnap.data();
       setRoomData(data);
+      setFirstPlayerId(data.firstPlayerId);
+
       const amIHost = (data.hostId === user.uid);
       setIsHost(amIHost);
       
+      // 先行後攻決め
+      if (amIHost && data.guestId && !data.firstPlayerId) {
+        const isHostFirst = Math.random() < 0.5;
+        const firstId = isHostFirst ? data.hostId : data.guestId;
+        updateDoc(doc(db, "rooms", roomId), { firstPlayerId: firstId });
+      }
+
       const myData = amIHost ? data.hostData : data.guestData;
       if (myData) {
         setMyDeck(myData.deck || []);
@@ -338,10 +348,20 @@ export default function GameTable() {
   const getOpponent = () => isHost ? roomData?.guestData : roomData?.hostData;
   const opponent = getOpponent();
 
+  const amIFirst = firstPlayerId === user?.uid;
+  const turnInfo = firstPlayerId ? (amIFirst ? "あなたは【先攻】です" : "あなたは【後攻】です") : "対戦相手待ち...";
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#0a0a0a", color: "#e0e0e0", userSelect: "none", overflow: "hidden" }}>
       
       <ChatSidebar roomId={roomId} user={user} />
+      
+      <div style={{ 
+        background: "#222", color: amIFirst ? "#ffdd57" : "#aaa", textAlign: "center", padding: "4px", 
+        fontSize: "0.85rem", borderBottom: "1px solid #444", fontWeight: "bold"
+      }}>
+        {turnInfo}
+      </div>
 
       {zoomedUrl && (
         <div onClick={() => setZoomedUrl(null)} style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.9)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center" }}>
