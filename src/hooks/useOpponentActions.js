@@ -134,6 +134,11 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
         targetCard = list[index];
         list.splice(index, 1);
         newOppData.hand = list;
+    } else if (zone === "grave") { // ★追加
+        const list = [...(newOppData.graveyard || [])];
+        targetCard = list[index];
+        list.splice(index, 1);
+        newOppData.graveyard = list;
     }
 
     if (!targetCard) return;
@@ -162,6 +167,17 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
        const dest = [...(newOppData.battleZone || [])];
        cardsToMove.forEach(c => dest.push({ url: c, isTapped: false, isFaceDown: false, stack: [], id: generateId() }));
        newOppData.battleZone = dest;
+    } else if (actionType === "deck" || actionType === "deckTop") { // ★追加: 山札トップへ
+       const dest = [...(newOppData.deck || [])];
+       // 複数枚ある場合、順番をどうするか？とりあえずそのまま追加
+       // unshift(...items) は逆順になるので、1つずつunshiftするか、逆順にしてunshiftするか。
+       // cardsToMove = [A, B] -> deck = [A, B, ...] にしたいなら、逆順にしてunshift
+       // ここではシンプルに1枚移動を想定しつつ、複数なら順番通りトップに乗せる
+       // [A, B] -> [A, B, old...]
+       newOppData.deck = [...cardsToMove, ...dest];
+    } else if (actionType === "deckBottom") { // ★追加: 山札ボトムへ
+       const dest = [...(newOppData.deck || [])];
+       newOppData.deck = [...dest, ...cardsToMove];
     }
 
     await updateDoc(doc(db, "rooms", roomId), { [opponentRole]: newOppData });

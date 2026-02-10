@@ -136,8 +136,8 @@ export const Zone = ({
     // 表示内容
     let content = <span style={{fontSize:"0.6rem", color:"#555"}}>{zoneId}</span>;
     if (cardData) {
-       // 山札は常に裏向き
-       const isDeck = zoneId === "deck";
+       // 自分または相手の山札は常に裏向き
+       const isDeck = zoneId === "deck" || zoneId === "opponent-deck";
        const url = (isDeck || cardData.isFaceDown) ? CARD_BACK_URL : getProxyImageUrl(cardData.url);
        content = <img src={url} style={{width:"100%", height:"100%", opacity: 0.9, pointerEvents: "none"}} />;
     }

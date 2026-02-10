@@ -15,8 +15,9 @@ export const OpponentArea = ({
     onDragStart,
     onDragMove,
     onDragEnd,
-    onTap: () => interactionMode ? onOpponentInteract(zoneName, index) : onTapCard(data),
-    onLongPress: () => interactionMode ? onOpponentInteract(zoneName, index) : onTapCard(data)
+    // 干渉モード中でもタップではメニューを出さず、通常通りカード拡大などを優先する
+    onTap: () => onTapCard(data),
+    onLongPress: () => onTapCard(data)
   });
 
   const battleZone = normalizeZone(opponent?.battleZone);
