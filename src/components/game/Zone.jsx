@@ -57,12 +57,13 @@ export const Zone = ({
         <button onClick={() => scrollZone(ref, -100)} style={scrollBtnStyle(true, containerHeight, isOpponent)}>◀</button>
         <div 
           ref={ref}
+          className="zone-scroll"
           data-zone-id={zoneId}
           onClick={onZoneTap}
           style={{ 
             height: containerHeight, 
             display: "flex", alignItems: "center", overflowX: "auto", 
-            padding: "0 25px", gap: "2px", scrollbarWidth: "none",
+            padding: "0 25px", gap: "2px",
             justifyContent: isOpponent ? "center" : "flex-start" // 相手側は中央寄せ
           }}
         >
@@ -98,10 +99,11 @@ export const Zone = ({
   if (type === "grid") {
     return (
       <div 
+        className="zone-scroll"
         data-zone-id={zoneId} 
         onClick={onZoneTap}
         style={{ 
-          flex: 1, display: "flex", justifyContent: "center", alignItems: "center", 
+          flex: 1, display: "flex", justifyContent: "center", alignItems: "flex-start", alignContent: "flex-start",
           flexWrap: "wrap", gap: "4px", padding: "10px", 
           overflowY: "auto", minHeight: "80px", ...style 
         }}

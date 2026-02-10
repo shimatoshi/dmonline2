@@ -31,7 +31,7 @@ button, input, select, textarea {
   font-size: 16px; /* 16px以上にしないとiOSで勝手にズームされる */
 }
 
-/* スクロールバーもダークに */
+/* デフォルトスクロールバー */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -42,6 +42,16 @@ button, input, select, textarea {
 ::-webkit-scrollbar-thumb {
   background: #555; 
   border-radius: 4px;
+}
+
+/* ゾーン用極細スクロールバー */
+.zone-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.zone-scroll::-webkit-scrollbar-thumb {
+  background: #666;
+  border-radius: 2px;
 }
 
 /* ユーティリティクラス */

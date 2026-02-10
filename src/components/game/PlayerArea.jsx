@@ -53,9 +53,10 @@ export const PlayerArea = ({
 
       {/* バトルゾーン */}
       <div 
+        className="zone-scroll"
         data-zone-id="battle" // ★ドロップ用ID
         onClick={() => onZoneTap("battle")}
-        style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "4px", padding: "10px", borderBottom: "1px dashed #222", position: "relative", marginTop: "15px" }}
+        style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "flex-start", alignContent: "flex-start", flexWrap: "wrap", gap: "4px", padding: "10px", borderBottom: "1px dashed #222", position: "relative", marginTop: "15px", overflowY: "auto" }}
       >
          {battleZone.length === 0 && <span style={{fontSize:"0.8rem", color:"#333"}}>Battle Zone</span>}
          {battleZone.map((card, i) => (
@@ -111,9 +112,19 @@ export const PlayerArea = ({
           </div>
 
           {/* シールド */}
-          <div data-zone-id="shield" style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
-             {shields.map((s, i) => (
-               <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })}>
+          <div 
+            className="zone-scroll"
+            data-zone-id="shield" 
+            style={{ 
+              display: "flex", gap: "4px", 
+              justifyContent: shields.length >= 5 ? "flex-end" : "center",
+              maxWidth: "180px", overflowX: "auto", paddingBottom: "4px",
+              minHeight: "50px", minWidth: "80px",
+              transform: "rotate(180deg)"
+            }}
+          >
+             {[...shields].map((s, i) => ({s, i})).reverse().map(({s, i}) => (
+               <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })} style={{ flexShrink: 0, transform: "rotate(180deg)" }}>
                  <div style={{ width: "36px", height: "50px", cursor: "pointer" }}>
                     <img src={CARD_BACK_URL} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid #b8860b", boxShadow: selectedCard?.zone === "shield" && selectedCard?.index === i ? "0 0 0 2px yellow" : "none" }} />
                  </div>
@@ -169,12 +180,23 @@ export const PlayerArea = ({
 
       {/* マナゾーン */}
       <div 
+        className="zone-scroll"
         data-zone-id="mana" // ★ドロップ用ID
         onClick={() => onZoneTap("mana")}
-        style={{ height: "55px", background: "#151515", display: "flex", alignItems: "center", overflowX: "auto", padding: "0 10px", gap: "2px", borderTop: "1px solid #222" }}
+        style={{ 
+          height: "55px", 
+          background: "#151515", 
+          display: "flex", 
+          alignItems: "center", 
+          overflowX: "auto", 
+          padding: "0 10px", 
+          gap: "2px", 
+          borderTop: "1px solid #222",
+          transform: "rotate(180deg)"
+        }}
       >
-         {manaZone.map((card, i) => (
-           <DraggableCard key={card.id || i} {...getDragProps("mana", i, card)}>
+         {[...manaZone].map((card, i) => ({card, i})).reverse().map(({card, i}) => (
+           <DraggableCard key={card.id || i} {...getDragProps("mana", i, card)} style={{ transform: "rotate(180deg)" }}>
              <CardView url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} isSelected={selectedCard?.data === card}
                onClick={() => {}} style={{ height: "45px", width: "32px", flexShrink: 0, marginRight: card.isTapped ? "12px" : "2px" }} />
            </DraggableCard>
@@ -183,17 +205,28 @@ export const PlayerArea = ({
 
       {/* 手札エリア */}
       <div 
+        className="zone-scroll"
         data-zone-id="hand" // ★ドロップ用ID
         onClick={() => onZoneTap("hand")}
-        style={{ height: "90px", background: "#0a0a0a", display: "flex", alignItems: "center", overflowX: "auto", padding: "5px 10px", gap: "5px", borderTop: "1px solid #333" }}
+        style={{ 
+          height: "90px", 
+          background: "#0a0a0a", 
+          display: "flex", 
+          alignItems: "center", 
+          overflowX: "auto", 
+          padding: "5px 10px", 
+          gap: "5px", 
+          borderTop: "1px solid #333",
+          transform: "rotate(180deg)" 
+        }}
       >
-         {hand.map((url, i) => (
-           <DraggableCard key={i} {...getDragProps("hand", i, { url })} style={{ height: "100%", flexShrink: 0 }}>
+         {[...hand].map((url, i) => ({url, i})).reverse().map(({url, i}) => (
+           <DraggableCard key={i} {...getDragProps("hand", i, { url })} style={{ height: "100%", flexShrink: 0, transform: "rotate(180deg)" }}>
              <div style={{ height: "100%", position: "relative" }}>
                 <img src={getProxyImageUrl(url)} style={{ 
                     height: "100%", borderRadius: "4px", border: "1px solid #555", cursor: "pointer",
                     boxShadow: selectedCard?.zone === "hand" && selectedCard?.index === i ? "0 0 0 3px yellow" : "none",
-                    transform: selectedCard?.zone === "hand" && selectedCard?.index === i ? "translateY(-10px)" : "none",
+                    transform: selectedCard?.zone === "hand" && selectedCard?.index === i ? "translateY(10px)" : "none",
                     transition: "transform 0.1s"
                   }} 
                 />
