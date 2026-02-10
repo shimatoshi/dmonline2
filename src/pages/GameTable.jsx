@@ -14,7 +14,9 @@ import { DragOverlay } from "../components/game/DragOverlay";
 
 import { useGameSync } from "../hooks/useGameSync";
 
-import { useGameActions } from "../hooks/useGameActions"; // ★追加
+import { useGameActions } from "../hooks/useGameActions";
+
+import { useOpponentActions } from "../hooks/useOpponentActions"; // ★追加
 
 
 
@@ -56,7 +58,43 @@ export default function GameTable() {
 
 
 
-  // UI State
+    // --- 相手への干渉フック ---
+
+
+
+    const {
+
+
+
+      selectedOpponentCard, setSelectedOpponentCard,
+
+
+
+      interactionMode, setInteractionMode,
+
+
+
+      handleOpponentInteract, executeOpponentAction,
+
+
+
+      performOpponentActionDirect, // ドラッグ用
+
+
+
+      revealOpponentHand, setRevealOpponentHand // ★追加
+
+
+
+    } = useOpponentActions(roomId, isHost, roomData, generateId);
+
+
+
+  
+
+
+
+    // UI State
 
   const [selectedCard, setSelectedCard] = useState(null); 
 
@@ -68,9 +106,9 @@ export default function GameTable() {
 
   const [viewMode, setViewMode] = useState(null);
 
-  const [interactionMode, setInteractionMode] = useState(false);
+  
 
-  const [selectedOpponentCard, setSelectedOpponentCard] = useState(null);
+  // interactionMode, selectedOpponentCard はフックへ移動
 
 
 
@@ -116,177 +154,143 @@ export default function GameTable() {
 
 
 
-  const handleDragEnd = (data, pos) => {
-
-    setDraggingCard(null);
-
-    const element = document.elementFromPoint(pos.x, pos.y);
-
-    if (!element) return;
+    const handleDragEnd = (data, pos) => {
 
 
 
-    const zoneElement = element.closest("[data-zone-id]");
+      setDraggingCard(null);
 
-    if (zoneElement) {
 
-      const targetZone = zoneElement.getAttribute("data-zone-id");
 
-      if (targetZone === "battle") {
+      const element = document.elementFromPoint(pos.x, pos.y);
 
-         const cardElement = element.closest("[data-index]");
 
-         if (cardElement) {
 
-           const targetIndex = parseInt(cardElement.getAttribute("data-index"), 10);
+      if (!element) return;
 
-           if (data.zone === "battle" && data.index === targetIndex) return;
 
-           setSelectedCard({ zone: data.zone, index: data.index, data: data });
-
-           setStackTarget({ index: targetIndex });
-
-           return;
-
-         }
-
-      }
-
-      if (data.zone === targetZone) return;
-
-      performMoveWithData(data, targetZone);
-
-    }
-
-  };
 
   
 
-  // --- 相手への干渉 ---
 
-  const handleOpponentInteract = (targetZone, index) => {
 
-    setSelectedOpponentCard({ zone: targetZone, index });
+      const zoneElement = element.closest("[data-zone-id]");
 
-  };
 
 
+      if (zoneElement) {
 
-  const executeOpponentAction = async (actionType) => {
 
-    if (!roomData || !selectedOpponentCard) return;
 
-    const opponentRole = isHost ? "guestData" : "hostData";
+        const targetZone = zoneElement.getAttribute("data-zone-id");
 
-    const opponentData = roomData[opponentRole];
 
-    if (!opponentData) return;
 
+        
 
 
-    const { zone, index } = selectedOpponentCard;
 
-    let newOppData = { ...opponentData };
+        // ★相手への干渉ドロップ (interactionModeがONのときのみ)
 
-    
 
-    let targetCard = null;
 
-    let targetUrl = "";
+        if (data.isOpponent && interactionMode) {
 
-    let targetStack = [];
 
 
+          if (targetZone.startsWith("opponent-")) {
 
-    if (zone === "battle") {
 
-      const list = [...(newOppData.battleZone || [])];
 
-      targetCard = list[index];
+             const actionType = targetZone.replace("opponent-", "");
 
-      list.splice(index, 1);
 
-      newOppData.battleZone = list;
 
-    } else if (zone === "mana") {
+             // battle, mana, hand, grave, shield など
 
-      const list = [...(newOppData.manaZone || [])];
 
-      targetCard = list[index];
 
-      list.splice(index, 1);
+             performOpponentActionDirect(data.zone, data.index, actionType);
 
-      newOppData.manaZone = list;
 
-    } else if (zone === "shield") {
 
-      const list = [...(newOppData.shields || [])];
+          }
 
-      targetCard = list[index];
 
-      list.splice(index, 1);
 
-      newOppData.shields = list;
+          return;
 
-    }
 
 
+        }
 
-    if (!targetCard) return;
 
 
+  
 
-    targetUrl = typeof targetCard === 'object' ? targetCard.url : targetCard;
 
-    targetStack = typeof targetCard === 'object' ? (targetCard.stack || []) : [];
 
-    const cardsToMove = [targetUrl, ...targetStack];
+        // ターゲットがバトルゾーンの場合、カードの上にドロップされたか判定
 
 
 
-    if (actionType === "grave") {
+        if (targetZone === "battle") {
 
-      const dest = [...(newOppData.graveyard || [])];
 
-      cardsToMove.forEach(c => dest.push(c));
 
-      newOppData.graveyard = dest;
+           const cardElement = element.closest("[data-index]");
 
-    } else if (actionType === "hand") {
 
-      const dest = [...(newOppData.hand || [])];
 
-      cardsToMove.forEach(c => dest.push(c));
+           if (cardElement) {
 
-      newOppData.hand = dest;
 
-    } else if (actionType === "mana") {
 
-      const dest = [...(newOppData.manaZone || [])];
+             const targetIndex = parseInt(cardElement.getAttribute("data-index"), 10);
 
-      cardsToMove.forEach(c => dest.push({ url: c, isTapped: false, isFaceDown: false, id: generateId() }));
 
-      newOppData.manaZone = dest;
 
-    } else if (actionType === "shield") {
+             if (data.zone === "battle" && data.index === targetIndex) return;
 
-      const dest = [...(newOppData.shields || [])];
 
-      cardsToMove.forEach(c => dest.push(c));
 
-      newOppData.shields = dest;
+             setSelectedCard({ zone: data.zone, index: data.index, data: data });
 
-    }
 
 
+             setStackTarget({ index: targetIndex });
 
-    await updateDoc(doc(db, "rooms", roomId), { [opponentRole]: newOppData });
 
-    setSelectedOpponentCard(null);
 
-    setInteractionMode(false);
+             return;
 
-  };
+
+
+           }
+
+
+
+        }
+
+
+
+        if (data.zone === targetZone) return;
+
+
+
+        performMoveWithData(data, targetZone);
+
+
+
+      }
+
+
+
+    };
+
+  
+
+  
 
 
 
@@ -410,33 +414,87 @@ export default function GameTable() {
 
 
 
-      <OpponentArea 
+            <OpponentArea 
 
-        opponent={opponent} normalizeZone={normalizeZone} 
 
-        onTapCard={(card) => {
 
-           if (card.stack && card.stack.length > 0) {
+              opponent={opponent} normalizeZone={normalizeZone} 
 
-             setStackViewCards([card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false })));
 
-             setViewMode("stackView");
 
-           } else {
+              onTapCard={(card) => {
 
-             setZoomedUrl(card.url);
 
-           }
 
-        }}
+                 if (card.stack && card.stack.length > 0) {
 
-        interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
 
-        onOpenGrave={() => setViewMode("opponentGrave")}
 
-        onOpenTemp={() => setViewMode("opponentTemp")} 
+                   setStackViewCards([card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false })));
 
-      />
+
+
+                   setViewMode("stackView");
+
+
+
+                 } else {
+
+
+
+                   setZoomedUrl(card.url);
+
+
+
+                 }
+
+
+
+              }}
+
+
+
+              interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
+
+
+
+                      onOpenGrave={() => setViewMode("opponentGrave")}
+
+
+
+                      onOpenTemp={() => setViewMode("opponentTemp")}
+
+
+
+                      // ★ドラッグ用ハンドラ追加
+
+
+
+                      onDragStart={handleDragStart} 
+
+
+
+                      onDragMove={handleDragMove} 
+
+
+
+                      onDragEnd={handleDragEnd}
+
+
+
+                      // ★手札公開用
+
+
+
+                      revealHand={revealOpponentHand}
+
+
+
+                      onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
+
+
+
+                    />
 
 
 

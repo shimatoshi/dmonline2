@@ -1,96 +1,120 @@
-import { CardView } from "./CardView";
+import { Zone } from "./Zone";
 import { getProxyImageUrl } from "../../utils/apiConfig";
+
 const CARD_BACK_URL = "/card_back.jpg";
 
-export const OpponentArea = ({ opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, onOpenGrave, onOpenTemp }) => {
+export const OpponentArea = ({ 
+  opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, 
+  onOpenGrave, onOpenTemp,
+  onDragStart, onDragMove, onDragEnd,
+  revealHand, onToggleRevealHand // ★追加
+}) => {
+  
+  const getZoneDragProps = (zoneName) => (index, data) => ({
+    data: { zone: zoneName, index, isOpponent: true, ...data },
+    onDragStart,
+    onDragMove,
+    onDragEnd,
+    onTap: () => interactionMode ? onOpponentInteract(zoneName, index) : onTapCard(data),
+    onLongPress: () => interactionMode ? onOpponentInteract(zoneName, index) : onTapCard(data)
+  });
+
+  const battleZone = normalizeZone(opponent?.battleZone);
+  const manaZone = normalizeZone(opponent?.manaZone);
+  
+  // 相手の手札: revealHand が true なら絵柄を表示
+  const handCards = (opponent?.hand || []).map((url, i) => ({ 
+    url: url, 
+    isFaceDown: !revealHand, 
+    id: `opp-hand-${i}` 
+  }));
+
+  const shieldCards = [...Array(opponent?.shields?.length || 0)].map((_, i) => ({ 
+    url: CARD_BACK_URL, 
+    isFaceDown: true, 
+    id: `opp-shield-${i}` 
+  }));
+  
+  const graveCards = opponent?.graveyard || [];
+  const tempCards = opponent?.tempZone || [];
+  const deckCards = opponent?.deck || [];
+
   return (
     <div style={{ flex: 1, borderBottom: "1px solid #333", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
       
-      {/* モード表示 */}
+      {/* モード表示 & コントロール (邪魔にならない左上に固定) */}
       {interactionMode && (
         <div style={{
-          position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", 
-          zIndex: 50, background: "rgba(220, 53, 69, 0.9)",
-          color: "white", fontWeight: "bold", padding: "5px 15px", borderRadius: "20px", pointerEvents: "none",
-          fontSize: "0.8rem", width: "80%", textAlign: "center"
+          position: "absolute", top: "5px", left: "5px", zIndex: 100, 
+          display: "flex", flexDirection: "column", gap: "5px"
         }}>
-          相手のカードをタップして操作を選択
+          <div style={{
+            background: "rgba(220, 53, 69, 0.9)", color: "white", fontSize: "0.6rem", 
+            padding: "2px 8px", borderRadius: "4px", fontWeight: "bold", textAlign: "center"
+          }}>
+            干渉中
+          </div>
+          <button 
+            onClick={onToggleRevealHand}
+            style={{
+              background: revealHand ? "#ffc107" : "#6c757d", border: "none", 
+              color: "black", fontSize: "0.65rem", padding: "4px 6px", 
+              borderRadius: "4px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.5)"
+            }}
+          >
+            {revealHand ? "🙈 隠す" : "👁 見る"}
+          </button>
         </div>
       )}
 
+      {/* 手札・マナエリア */}
       <div style={{ padding: "5px", display: "flex", flexDirection: "column", gap: "2px", alignItems: "center" }}>
-         {/* 手札 */}
-         <div style={{ display: "flex", gap: "2px", marginBottom: "2px" }}>
-            {[...Array(opponent?.hand?.length || 0)].map((_, i) => (
-              <img key={i} src={CARD_BACK_URL} style={{ width: "30px", height: "42px", borderRadius: "2px" }} />
-            ))}
+         <div style={{ width: "100%", transform: "rotate(180deg)" }}>
+            <Zone 
+                type="row" zoneId="opponent-hand" cards={handCards} cardSize={{ width: "30px", height: "42px" }}
+                getDragProps={getZoneDragProps("hand")}
+                isOpponent={true}
+                revealHand={revealHand} // Zone側にも渡す
+            />
          </div>
-         {/* マナ (干渉可能) */}
-         <div style={{ display: "flex", gap: "2px", height: "40px", alignItems: "center", transform: "rotate(180deg)" }}>
-            {normalizeZone(opponent?.manaZone).map((card, i) => (
-              <CardView 
-                key={i} url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} 
-                onClick={() => interactionMode ? onOpponentInteract("mana", i) : onTapCard(card)} 
-                style={{ height: "35px", width: "25px", flexShrink: 0, cursor: interactionMode ? "pointer" : "default", boxShadow: interactionMode ? "0 0 5px red" : "none" }} 
-              />
-            ))}
+
+         <div style={{ width: "100%", transform: "rotate(180deg)" }}>
+            <Zone 
+                type="row" zoneId="opponent-mana" cards={manaZone} cardSize={{ width: "25px", height: "35px" }}
+                getDragProps={getZoneDragProps("mana")}
+                isOpponent={true}
+            />
          </div>
       </div>
       
       {/* ミドルエリア */}
       <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "5px", transform: "rotate(180deg)" }}>
-          <div 
-            onClick={onOpenGrave}
-            style={{ width: "40px", height: "56px", border: "1px dashed #444", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-          >
-             {opponent?.graveyard?.length > 0 ? <img src={getProxyImageUrl(opponent.graveyard[opponent.graveyard.length-1])} style={{width:"100%", height:"100%"}} /> : <span style={{fontSize:"0.5rem", color:"#555"}}>墓</span>}
+          <div onClick={onOpenGrave}>
+             <Zone type="stack" zoneId="opponent-grave" cards={graveCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("grave")} isOpponent={true} />
           </div>
           
-          {opponent?.tempZone?.length > 0 && (
-            <div 
-              onClick={onOpenTemp}
-              style={{ width: "40px", height: "56px", border: "2px solid #6f42c1", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", background: "#222", position: "relative", cursor: "pointer" }}
-            >
-               {(() => {
-                 const topCard = opponent.tempZone[opponent.tempZone.length - 1];
-                 const isFaceDown = (typeof topCard === 'object') ? topCard.isFaceDown : false;
-                 const url = (typeof topCard === 'object') ? topCard.url : topCard;
-                 return <img src={isFaceDown ? CARD_BACK_URL : getProxyImageUrl(url)} style={{width:"100%", height:"100%"}} />;
-               })()}
-               <span style={{position:"absolute", bottom:0, right:0, background:"black", color:"white", fontSize:"0.6rem"}}>{opponent.tempZone.length}</span>
+          {tempCards.length > 0 && (
+            <div onClick={onOpenTemp}>
+                <Zone type="stack" zoneId="opponent-temp" cards={tempCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("temp")} isOpponent={true} />
             </div>
           )}
 
-          {/* 盾 (干渉可能) */}
-          <div style={{ display: "flex", gap: "3px" }}>
-             {[...Array(opponent?.shields?.length || 0)].map((_, i) => (
-               <div key={i} onClick={() => interactionMode && onOpponentInteract("shield", i)}>
-                 <img src={CARD_BACK_URL} style={{ 
-                   width: "32px", height: "45px", borderRadius: "2px", border: "1px solid #b8860b",
-                   boxShadow: interactionMode ? "0 0 5px red" : "none",
-                   cursor: interactionMode ? "pointer" : "default"
-                 }} />
-               </div>
-             ))}
+          <div style={{ maxWidth: "200px" }}>
+             <Zone type="row" zoneId="opponent-shield" cards={shieldCards} cardSize={{ width: "32px", height: "45px" }} getDragProps={getZoneDragProps("shield")} isOpponent={true} />
           </div>
-          <div style={{ width: "40px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-             {opponent?.deck?.length > 0 ? <img src={CARD_BACK_URL} style={{width:"100%", height:"100%"}} /> : <span style={{fontSize:"0.5rem", color:"#555"}}>山</span>}
+
+          <div>
+             <Zone type="stack" zoneId="opponent-deck" cards={deckCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("deck")} isOpponent={true} />
           </div>
       </div>
 
-      {/* バトルゾーン (干渉可能) */}
-      <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap", gap: "2px", transform: "rotate(180deg)", padding: "10px", borderTop: "1px dashed #333" }}>
-         {normalizeZone(opponent?.battleZone).map((card, i) => (
-           <CardView 
-             key={i} url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} 
-             onClick={() => interactionMode ? onOpponentInteract("battle", i) : onTapCard(card)} 
-             style={{ 
-               width: "55px", 
-               boxShadow: interactionMode ? "0 0 5px red" : "none",
-               cursor: interactionMode ? "pointer" : "default"
-             }} 
-           />
-         ))}
+      {/* バトルゾーン */}
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", transform: "rotate(180deg)", borderTop: "1px dashed #333" }}>
+         <Zone 
+            type="grid" zoneId="opponent-battle" cards={battleZone} cardSize={{ width: "55px" }}
+            getDragProps={getZoneDragProps("battle")}
+            isOpponent={true}
+         />
       </div>
     </div>
   );
