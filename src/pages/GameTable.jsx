@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react"; // useEffect削除
 import { useParams, useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { doc, updateDoc, onSnapshot, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, addDoc, collection, serverTimestamp } from "firebase/firestore"; // onSnapshot削除
 import { getProxyImageUrl } from "../utils/apiConfig";
 
 import { ZoneModal } from "../components/game/ZoneModal";
@@ -10,34 +10,38 @@ import { OpponentActionMenu } from "../components/game/OpponentActionMenu";
 import { OpponentArea } from "../components/game/OpponentArea";
 import { PlayerArea } from "../components/game/PlayerArea";
 import { ChatSidebar } from "../components/game/ChatSidebar";
-import { DragOverlay } from "../components/game/DragOverlay"; // ★追加
+import { DragOverlay } from "../components/game/DragOverlay";
 
-const generateId = () => Math.random().toString(36).substr(2, 9);
+import { useGameSync } from "../hooks/useGameSync"; // ★追加
 
 export default function GameTable() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const user = auth.currentUser;
 
-  const [isHost, setIsHost] = useState(false);
-  const [roomData, setRoomData] = useState(null);
-  
-  const [myHand, setMyHand] = useState([]);
-  const [myBattleZone, setMyBattleZone] = useState([]);
-  const [myManaZone, setMyManaZone] = useState([]);
-  const [myShields, setMyShields] = useState([]);
-  const [myGraveyard, setMyGraveyard] = useState([]);
-  const [myDeck, setMyDeck] = useState([]);
-  const [myTempZone, setMyTempZone] = useState([]);
+  // --- 切り出したフックを使用 ---
+  const {
+    isHost, roomData, firstPlayerId,
+    myHand, setMyHand,
+    myBattleZone, setMyBattleZone,
+    myManaZone, setMyManaZone,
+    myShields, setMyShields,
+    myGraveyard, setMyGraveyard,
+    myDeck, setMyDeck,
+    myTempZone, setMyTempZone,
+    syncToDB,
+    generateId, // フックから取得
+    normalizeZone // ★追加
+  } = useGameSync(roomId, user);
 
+  // UI State
   const [selectedCard, setSelectedCard] = useState(null); 
   const [stackTarget, setStackTarget] = useState(null);
   const [zoomedUrl, setZoomedUrl] = useState(null);
-  const [stackViewCards, setStackViewCards] = useState([]); // ★追加: スタック確認用
+  const [stackViewCards, setStackViewCards] = useState([]);
   const [viewMode, setViewMode] = useState(null);
-  const [interactionMode, setInteractionMode] = useState(false); // boolean
-  const [selectedOpponentCard, setSelectedOpponentCard] = useState(null); // { zone, index }
-  const [firstPlayerId, setFirstPlayerId] = useState(null);
+  const [interactionMode, setInteractionMode] = useState(false);
+  const [selectedOpponentCard, setSelectedOpponentCard] = useState(null);
 
   // --- ドラッグ & ドロップ用 ---
   const [draggingCard, setDraggingCard] = useState(null); // { data, initialOffset }
@@ -151,70 +155,9 @@ export default function GameTable() {
   };
 
 
-  useEffect(() => {
-    if (!user || !roomId) return;
-    const unsubscribe = onSnapshot(doc(db, "rooms", roomId), (docSnap) => {
-      if (!docSnap.exists()) { alert("部屋が解散されました"); navigate("/"); return; }
-      const data = docSnap.data();
-      setRoomData(data);
-      setFirstPlayerId(data.firstPlayerId);
 
-      const amIHost = (data.hostId === user.uid);
-      setIsHost(amIHost);
-      
-      // 先行後攻決め
-      if (amIHost && data.guestId && !data.firstPlayerId) {
-        const isHostFirst = Math.random() < 0.5;
-        const firstId = isHostFirst ? data.hostId : data.guestId;
-        updateDoc(doc(db, "rooms", roomId), { firstPlayerId: firstId });
-      }
 
-      const myData = amIHost ? data.hostData : data.guestData;
-      if (myData) {
-        setMyDeck(myData.deck || []);
-        setMyHand(myData.hand || []);
-        setMyShields(myData.shields || []);
-        setMyGraveyard(myData.graveyard || []);
-        setMyTempZone(normalizeZone(myData.tempZone));
-        setMyBattleZone(normalizeZone(myData.battleZone));
-        setMyManaZone(normalizeZone(myData.manaZone));
-      }
-    });
-    return () => unsubscribe();
-  }, [roomId, user]);
 
-  const normalizeZone = (zoneData) => {
-    if (!zoneData) return [];
-    return zoneData.map(item => {
-      if (typeof item === "string") {
-        return { url: item, isTapped: false, isFaceDown: false, stack: [], id: generateId() };
-      }
-      return { ...item, isFaceDown: item.isFaceDown || false, stack: item.stack || [] };
-    });
-  };
-
-  const syncToDB = async (newData) => {
-    const fieldName = isHost ? "hostData" : "guestData";
-    const dataToSave = {
-      hand: newData.hand !== undefined ? newData.hand : myHand,
-      battleZone: newData.battleZone !== undefined ? newData.battleZone : myBattleZone,
-      manaZone: newData.manaZone !== undefined ? newData.manaZone : myManaZone,
-      graveyard: newData.graveyard !== undefined ? newData.graveyard : myGraveyard,
-      shields: newData.shields !== undefined ? newData.shields : myShields,
-      deck: newData.deck !== undefined ? newData.deck : myDeck,
-      tempZone: newData.tempZone !== undefined ? newData.tempZone : myTempZone,
-    };
-    
-    if (newData.hand) setMyHand(newData.hand);
-    if (newData.battleZone) setMyBattleZone(newData.battleZone);
-    if (newData.manaZone) setMyManaZone(newData.manaZone);
-    if (newData.graveyard) setMyGraveyard(newData.graveyard);
-    if (newData.shields) setMyShields(newData.shields);
-    if (newData.deck) setMyDeck(newData.deck);
-    if (newData.tempZone) setMyTempZone(newData.tempZone);
-
-    await updateDoc(doc(db, "rooms", roomId), { [fieldName]: dataToSave });
-  };
 
   // --- 相手への干渉 ---
   const handleOpponentInteract = (targetZone, index) => {
