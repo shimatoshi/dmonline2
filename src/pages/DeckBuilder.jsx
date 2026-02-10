@@ -17,6 +17,7 @@ export default function DeckBuilder() {
   const [deckName, setDeckName] = useState("");
   const [deckTags, setDeckTags] = useState([]);
   const [deckCards, setDeckCards] = useState([]);
+  const [deckThumbnail, setDeckThumbnail] = useState(null); // ★追加: サムネイル
   const [newDeckTag, setNewDeckTag] = useState("");
   
   const isEditMode = !!deckId;
@@ -28,6 +29,7 @@ export default function DeckBuilder() {
   // UI制御
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isDeckMinimized, setIsDeckMinimized] = useState(false);
+  const [showThumbSelector, setShowThumbSelector] = useState(false); // ★追加: サムネ選択モード
   
   // ★画像保存用ステート: trueの時だけCORS属性を付与して再レンダリングする
   const [isCapturing, setIsCapturing] = useState(false);
@@ -52,6 +54,7 @@ export default function DeckBuilder() {
           setDeckName(data.name || "");
           setDeckTags(data.tags || []);
           setDeckCards(data.cards || []);
+          setDeckThumbnail(data.thumbnail || null); // ★読み込み
         } else {
           alert("デッキが見つかりません");
           navigate("/decks");
@@ -85,6 +88,7 @@ export default function DeckBuilder() {
         name: deckName,
         tags: deckTags,
         cards: deckCards,
+        thumbnail: deckThumbnail, // ★保存
         updatedAt: new Date()
       };
 
@@ -184,8 +188,26 @@ export default function DeckBuilder() {
             onChange={e => setDeckName(e.target.value)}
             style={{ flex: 1, fontSize: "1.1rem", fontWeight: "bold" }}
           />
+          <button className="btn btn-outline" onClick={() => setShowThumbSelector(true)} style={{ fontSize: "0.8rem", color: "#ddd", borderColor: "#555" }}>
+            サムネ設定
+          </button>
           <button className="btn btn-primary" onClick={saveDeck} style={{ minWidth: "80px" }}>保存</button>
         </div>
+
+        {/* サムネ選択モダル */}
+        {showThumbSelector && (
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.9)", zIndex: 2000, overflowY: "auto", padding: "20px" }}>
+            <h3 style={{ color: "white", textAlign: "center" }}>サムネイルを選択</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+              {deckCards.map((url, i) => (
+                <div key={i} onClick={() => { setDeckThumbnail(url); setShowThumbSelector(false); }} style={{ cursor: "pointer" }}>
+                  <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "4px", border: deckThumbnail === url ? "3px solid yellow" : "none" }} />
+                </div>
+              ))}
+            </div>
+            <button className="btn" onClick={() => setShowThumbSelector(false)} style={{ display: "block", margin: "20px auto", background: "#333", color: "white" }}>閉じる</button>
+          </div>
+        )}
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "5px" }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", flex: 1 }}>

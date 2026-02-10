@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getProxyImageUrl } from "../utils/apiConfig";
 
 import { ZoneModal } from "../components/game/ZoneModal";
 import { ActionMenu } from "../components/game/ActionMenu";
-import { OpponentActionMenu } from "../components/game/OpponentActionMenu"; // ★追加
+import { OpponentActionMenu } from "../components/game/OpponentActionMenu";
 import { OpponentArea } from "../components/game/OpponentArea";
 import { PlayerArea } from "../components/game/PlayerArea";
 import { ChatSidebar } from "../components/game/ChatSidebar";
+import { DragOverlay } from "../components/game/DragOverlay"; // ★追加
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -32,12 +33,124 @@ export default function GameTable() {
   const [selectedCard, setSelectedCard] = useState(null); 
   const [stackTarget, setStackTarget] = useState(null);
   const [zoomedUrl, setZoomedUrl] = useState(null);
+  const [stackViewCards, setStackViewCards] = useState([]); // ★追加: スタック確認用
   const [viewMode, setViewMode] = useState(null);
   const [interactionMode, setInteractionMode] = useState(false); // boolean
   const [selectedOpponentCard, setSelectedOpponentCard] = useState(null); // { zone, index }
   const [firstPlayerId, setFirstPlayerId] = useState(null);
 
-  // --- 同期処理 ---
+  // --- ドラッグ & ドロップ用 ---
+  const [draggingCard, setDraggingCard] = useState(null); // { data, initialOffset }
+  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+
+  const handleDragStart = (data, pos) => {
+    // 既に選択中なら解除
+    setSelectedCard(null); 
+    // 山札(deck)からのドラッグ、または裏向きのカードならゴーストを裏向きにする
+    const isFaceDown = data.zone === "deck" || data.zone === "shield" || (data.isFaceDown);
+    setDraggingCard({ data, isFaceDown });
+    setDragPos(pos);
+  };
+
+  const handleDragMove = (pos) => {
+    setDragPos(pos);
+  };
+
+  const handleDragEnd = (data, pos) => {
+    setDraggingCard(null);
+    
+    // ドロップ先の判定
+    const element = document.elementFromPoint(pos.x, pos.y);
+    if (!element) return;
+
+    // data-zone-id を持つ親要素を探す
+    const zoneElement = element.closest("[data-zone-id]");
+    if (zoneElement) {
+      const targetZone = zoneElement.getAttribute("data-zone-id");
+      
+      // ターゲットがバトルゾーンの場合、カードの上にドロップされたか判定
+      if (targetZone === "battle") {
+         const cardElement = element.closest("[data-index]");
+         if (cardElement) {
+           const targetIndex = parseInt(cardElement.getAttribute("data-index"), 10);
+           
+           // 自分自身へのドロップは無視
+           if (data.zone === "battle" && data.index === targetIndex) return;
+
+           // スタックメニューを表示 (dataはドラッグ元、targetIndexはドロップ先)
+           // performStackのために一時的にselectedCardを偽装する（またはperformStackを改修する）
+           // ここでは既存の仕組みに乗せるため、selectedCardをセットしてメニューを出す
+           setSelectedCard({ zone: data.zone, index: data.index, data: data });
+           setStackTarget({ index: targetIndex }); // dataは不要ならindexだけで
+           return;
+         }
+      }
+
+      // 自分自身へのドロップは無視
+      if (data.zone === targetZone) return;
+
+      performMoveWithData(data, targetZone);
+    }
+  };
+  
+  // performMoveのロジックを再利用できるように分離
+  const performMoveWithData = (sourceData, targetZoneName) => {
+    const { zone: fromZone, index: fromIndex } = sourceData;
+    // ... (logic from performMove)
+    
+    let cardUrl = "";
+    let cardObj = null;
+    let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
+    let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
+
+    // 取り出し
+    if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
+    else if (fromZone === "battle") { 
+      cardObj = newBattle[fromIndex];
+      cardUrl = cardObj.url;
+      if (cardObj.stack && cardObj.stack.length > 0) {
+        const nextCardUrl = cardObj.stack[0];
+        const newStack = cardObj.stack.slice(1);
+        newBattle[fromIndex] = { ...cardObj, url: nextCardUrl, stack: newStack, isTapped: false };
+      } else {
+        newBattle.splice(fromIndex, 1);
+      }
+    }
+    else if (fromZone === "mana") { cardObj = newMana[fromIndex]; cardUrl = cardObj.url; newMana.splice(fromIndex, 1); }
+    else if (fromZone === "shield") { cardUrl = newShields[fromIndex]; newShields.splice(fromIndex, 1); }
+    else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
+    else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
+    else if (fromZone === "temp") { 
+      cardObj = newTemp[fromIndex]; 
+      cardUrl = cardObj.url; 
+      newTemp.splice(fromIndex, 1); 
+    }
+
+    // 追加
+    const isTemp = targetZoneName === "temp";
+    const newObj = { url: cardUrl, isTapped: false, isFaceDown: isTemp, stack: [], id: generateId() };
+    
+    if (targetZoneName === "battle") newBattle.push(newObj);
+    else if (targetZoneName === "mana") newMana.push(newObj);
+    else if (targetZoneName === "hand") newHand.push(cardUrl);
+    else if (targetZoneName === "grave") newGrave.push(cardUrl);
+    else if (targetZoneName === "shield") newShields.push(cardUrl);
+    else if (targetZoneName === "deckTop") newDeck.unshift(cardUrl);
+    else if (targetZoneName === "deckBottom") newDeck.push(cardUrl);
+    else if (targetZoneName === "temp") newTemp.push(newObj);
+
+    syncToDB({ hand: newHand, battleZone: newBattle, manaZone: newMana, graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp });
+  };
+  
+  // 既存のperformMoveも維持（互換性のため、またはメニュー操作用）
+  const performMove = (targetZoneName) => {
+    if (!selectedCard) return;
+    performMoveWithData(selectedCard, targetZoneName);
+    setSelectedCard(null);
+    if (targetZoneName !== "temp" && selectedCard.zone !== "temp" && viewMode !== "temp") setViewMode(null);
+  };
+
+
   useEffect(() => {
     if (!user || !roomId) return;
     const unsubscribe = onSnapshot(doc(db, "rooms", roomId), (docSnap) => {
@@ -193,20 +306,25 @@ export default function GameTable() {
     setSelectedCard(null);
   };
 
-  const handleDeckInteraction = () => {
+  // デッキトップ選択
+  const handleDeckTap = () => {
     if (myDeck.length === 0) return;
-    if (viewMode === "temp") {
-      const cardUrl = myDeck[0];
-      const newDeck = myDeck.slice(1);
-      const newTempCard = { url: cardUrl, isTapped: false, isFaceDown: true, id: generateId() };
-      const newTempZone = [...myTempZone, newTempCard];
-      syncToDB({ deck: newDeck, tempZone: newTempZone });
-    } else {
-      const card = myDeck[0];
-      const newDeck = myDeck.slice(1);
-      const newHand = [...myHand, card];
-      syncToDB({ deck: newDeck, hand: newHand });
+    if (selectedCard && selectedCard.zone === "deck") {
+       setSelectedCard(null);
+       return;
     }
+    // 選択状態にするだけで移動はしない
+    setSelectedCard({ zone: "deck", index: 0, data: myDeck[0] });
+  };
+
+  // ドロー実行
+  const drawCard = () => {
+    if (myDeck.length === 0) return;
+    const card = myDeck[0];
+    const newDeck = myDeck.slice(1);
+    const newHand = [...myHand, card];
+    syncToDB({ deck: newDeck, hand: newHand });
+    setSelectedCard(null);
   };
 
   const shuffleDeck = () => {
@@ -217,77 +335,77 @@ export default function GameTable() {
     setSelectedCard(null);
   };
 
-  const performMove = (targetZoneName) => {
-    if (!selectedCard) return;
+  const performStack = (mode) => {
+    if (!selectedCard || !stackTarget) return;
     const { zone: fromZone, index: fromIndex } = selectedCard;
-    if (fromZone === targetZoneName) return;
+    const { index: toIndex } = stackTarget;
+    
+    // バトルゾーン同士で同じカードなら無視
+    if (fromZone === "battle" && fromIndex === toIndex) return;
 
-    let cardUrl = "";
-    let cardObj = null;
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
 
-    if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
-    else if (fromZone === "battle") { 
-      cardObj = newBattle[fromIndex];
-      cardUrl = cardObj.url;
-      if (cardObj.stack && cardObj.stack.length > 0) {
-        const nextCardUrl = cardObj.stack[0];
-        const newStack = cardObj.stack.slice(1);
-        newBattle[fromIndex] = { ...cardObj, url: nextCardUrl, stack: newStack, isTapped: false };
-      } else {
+    // --- 1. 元カードの取り出し ---
+    let cardUrl = "";
+    let sourceStack = [];
+
+    if (fromZone === "hand") { 
+        cardUrl = newHand[fromIndex]; 
+        newHand.splice(fromIndex, 1); 
+    } else if (fromZone === "battle") { 
+        const cardObj = newBattle[fromIndex];
+        cardUrl = cardObj.url;
+        sourceStack = cardObj.stack || [];
+        // バトルゾーンから移動する場合はカード全体を削除
         newBattle.splice(fromIndex, 1);
-      }
+    } else if (fromZone === "mana") {
+        const cardObj = newMana[fromIndex]; 
+        cardUrl = cardObj.url; 
+        newMana.splice(fromIndex, 1);
+    } else if (fromZone === "grave") {
+        cardUrl = newGrave[fromIndex]; 
+        newGrave.splice(fromIndex, 1);
+    } else if (fromZone === "deck") {
+        cardUrl = newDeck[fromIndex]; 
+        newDeck.splice(fromIndex, 1);
+    } else if (fromZone === "temp") {
+        const cardObj = newTemp[fromIndex]; 
+        cardUrl = cardObj.url; 
+        newTemp.splice(fromIndex, 1);
     }
-    else if (fromZone === "mana") { cardObj = newMana[fromIndex]; cardUrl = cardObj.url; newMana.splice(fromIndex, 1); }
-    else if (fromZone === "shield") { cardUrl = newShields[fromIndex]; newShields.splice(fromIndex, 1); }
-    else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
-    else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
-    else if (fromZone === "temp") { 
-      cardObj = newTemp[fromIndex]; 
-      cardUrl = cardObj.url; 
-      newTemp.splice(fromIndex, 1); 
-    }
 
-    const isTemp = targetZoneName === "temp";
-    const newObj = { url: cardUrl, isTapped: false, isFaceDown: isTemp, stack: [], id: generateId() };
-    
-    if (targetZoneName === "battle") newBattle.push(newObj);
-    else if (targetZoneName === "mana") newMana.push(newObj);
-    else if (targetZoneName === "hand") newHand.push(cardUrl);
-    else if (targetZoneName === "grave") newGrave.push(cardUrl);
-    else if (targetZoneName === "shield") newShields.push(cardUrl);
-    else if (targetZoneName === "deckTop") newDeck.unshift(cardUrl);
-    else if (targetZoneName === "deckBottom") newDeck.push(cardUrl);
-    else if (targetZoneName === "temp") newTemp.push(newObj);
-
-    syncToDB({ hand: newHand, battleZone: newBattle, manaZone: newMana, graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp });
-    
-    setSelectedCard(null);
-    if (targetZoneName !== "temp" && fromZone !== "temp" && viewMode !== "temp") setViewMode(null);
-  };
-
-  const performStack = (mode) => {
-    if (!selectedCard || !stackTarget) return;
-    const { index: fromIndex } = selectedCard;
-    const { index: toIndex } = stackTarget;
-    if (fromIndex === toIndex) return;
-    let newBattle = [...myBattleZone];
-    let sourceObj = newBattle[fromIndex];
-    const sourceStack = [sourceObj.url, ...(sourceObj.stack || [])];
-    newBattle = newBattle.filter((_, i) => i !== fromIndex);
+    // --- 2. ターゲットへの適用 ---
+    // バトルゾーンから抜いた場合、インデックスがずれる可能性があるため補正
     let adjustedToIndex = toIndex;
-    if (fromIndex < toIndex) adjustedToIndex -= 1;
-    let newTarget = { ...newBattle[adjustedToIndex] };
+    if (fromZone === "battle" && fromIndex < toIndex) adjustedToIndex -= 1;
+    
+    let targetCard = { ...newBattle[adjustedToIndex] };
+    const oldTop = targetCard.url;
+    const oldStack = targetCard.stack || [];
+
     if (mode === "evolve") {
-      newTarget.url = sourceObj.url; 
-      newTarget.stack = [newBattle[adjustedToIndex].url, ...(newBattle[adjustedToIndex].stack || []), ...(sourceObj.stack || [])];
-      newTarget.isTapped = false;
+      // 進化・重ね（上）
+      targetCard.url = cardUrl;
+      targetCard.stack = [oldTop, ...oldStack, ...sourceStack];
+      targetCard.isTapped = false; 
+      targetCard.isFaceDown = false;
     } else if (mode === "under") {
-      newTarget.stack = [...(newTarget.stack || []), ...sourceStack];
+      // 下に重ねる
+      targetCard.stack = [...oldStack, cardUrl, ...sourceStack];
+    } else if (mode === "seal") {
+      // 封印
+      targetCard.url = cardUrl;
+      targetCard.stack = [oldTop, ...oldStack, ...sourceStack];
+      targetCard.isFaceDown = true;
     }
-    newBattle[adjustedToIndex] = newTarget;
-    syncToDB({ battleZone: newBattle });
+
+    newBattle[adjustedToIndex] = targetCard;
+
+    syncToDB({ 
+        hand: newHand, battleZone: newBattle, manaZone: newMana, 
+        graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp 
+    });
     setSelectedCard(null);
     setStackTarget(null);
   };
@@ -333,10 +451,43 @@ export default function GameTable() {
     setSelectedCard(null);
   };
 
+  const handleEndTurn = async () => {
+    try {
+      await addDoc(collection(db, "rooms", roomId, "messages"), {
+        text: "⚡ ターン終了",
+        senderId: user.uid,
+        senderName: user.displayName || user.email?.split("@")[0] || "Guest",
+        createdAt: serverTimestamp()
+      });
+      setSelectedCard(null);
+    } catch (error) {
+      console.error("ターン終了ログ送信エラー:", error);
+    }
+  };
+
+  // 即座にタップ状態を切り替える (バトル/マナ用)
+  const handleQuickTap = (zone, index) => {
+    if (zone === "battle") {
+      const newZone = [...myBattleZone];
+      newZone[index].isTapped = !newZone[index].isTapped;
+      syncToDB({ battleZone: newZone });
+    } else if (zone === "mana") {
+      const newZone = [...myManaZone];
+      newZone[index].isTapped = !newZone[index].isTapped;
+      syncToDB({ manaZone: newZone });
+    }
+  };
+
   const handleCardTap = (e, zone, index, cardData) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     if (selectedCard && selectedCard.zone === zone && selectedCard.index === index) { setSelectedCard(null); return; }
-    if (selectedCard && selectedCard.zone === "battle" && zone === "battle") { setStackTarget({ index, data: cardData }); return; }
+    
+    // スタックターゲット設定（どのゾーンからでもバトルゾーンのカードをタップすれば重ねられるようにする）
+    if (selectedCard && zone === "battle") { 
+      setStackTarget({ index, data: cardData }); 
+      return; 
+    }
+
     if (selectedCard && selectedCard.zone !== zone) { performMove(zone); return; }
     setSelectedCard({ zone, index, data: cardData });
   };
@@ -372,20 +523,81 @@ export default function GameTable() {
       {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} onToggleFace={toggleTempAll} />}
+      
+      {viewMode === "opponentGrave" && (
+        <ZoneModal 
+          title="相手の墓地" 
+          cards={opponent?.graveyard || []} 
+          zoneName="opponentGrave" 
+          selectedCard={null} 
+          onClose={() => setViewMode(null)} 
+          onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} 
+        />
+      )}
+      {viewMode === "opponentTemp" && (
+        <ZoneModal 
+          title="相手の一時ゾーン" 
+          cards={opponent?.tempZone || []} 
+          zoneName="opponentTemp" 
+          selectedCard={null} 
+          onClose={() => setViewMode(null)} 
+          onCardTap={(e, z, i, cardData) => {
+             // 伏せカードでなければ拡大
+             const url = typeof cardData === 'object' ? cardData.url : cardData;
+             const isFaceDown = typeof cardData === 'object' ? cardData.isFaceDown : false;
+             if (!isFaceDown) setZoomedUrl(url);
+          }} 
+        />
+      )}
+      {viewMode === "stackView" && (
+        <ZoneModal 
+          title="重なっているカード" 
+          cards={stackViewCards} 
+          zoneName="stackView" 
+          selectedCard={null} 
+          onClose={() => setViewMode(null)} 
+          onCardTap={(e, z, i, cardData) => {
+             const url = typeof cardData === 'object' ? cardData.url : cardData;
+             setZoomedUrl(url);
+          }} 
+        />
+      )}
+
+      {/* ドラッグ中のゴースト */}
+      <DragOverlay draggingCard={draggingCard} currentPos={dragPos} />
 
       <OpponentArea 
-        opponent={opponent} normalizeZone={normalizeZone} onZoom={setZoomedUrl} 
+        opponent={opponent} normalizeZone={normalizeZone} 
+        onTapCard={(card) => {
+           if (card.stack && card.stack.length > 0) {
+             const allCards = [card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false }));
+             setStackViewCards(allCards);
+             setViewMode("stackView");
+           } else {
+             setZoomedUrl(card.url);
+           }
+        }}
         interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
+        onOpenGrave={() => setViewMode("opponentGrave")}
+        onOpenTemp={() => setViewMode("opponentTemp")} 
       />
 
       <PlayerArea 
         hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields} graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone}
         selectedCard={selectedCard} interactionMode={interactionMode}
-        onZoneTap={handleZoneTap} onCardTap={handleCardTap} 
-        onDraw={handleDeckInteraction} 
+        onZoneTap={handleZoneTap} 
+        onCardTap={handleCardTap} 
+        onQuickTap={handleQuickTap} 
+        onDeckTap={handleDeckTap} 
+        onDrawCard={drawCard}     
         onViewMode={setViewMode}
-        onSetup={setupGame} onStartTurn={startTurn} onShuffle={shuffleDeck}
+        onSetup={setupGame} onStartTurn={startTurn} onEndTurn={handleEndTurn} 
+        onShuffle={shuffleDeck}
         onSetInteractionMode={setInteractionMode}
+        // ★ドラッグ用ハンドラ追加
+        onDragStart={handleDragStart}
+        onDragMove={handleDragMove}
+        onDragEnd={handleDragEnd}
       />
 
       {/* 自分のカードメニュー */}
@@ -396,6 +608,12 @@ export default function GameTable() {
           onMove={performMove} 
           onToggleStatus={toggleStatus} 
           onShuffle={shuffleDeck}
+          onShowStack={(card) => {
+            const allCards = [card.url, ...(card.stack || [])].map(u => ({ url: u, isFaceDown: false }));
+            setStackViewCards(allCards);
+            setViewMode("stackView");
+            setSelectedCard(null);
+          }}
           onClose={() => setSelectedCard(null)} 
         />
       )}
@@ -417,8 +635,9 @@ export default function GameTable() {
         }}>
           <p style={{margin: "0 0 10px 0", fontSize:"0.9rem"}}>重ねる</p>
           <div style={{display:"flex", gap:"10px"}}>
-            <button className="btn btn-primary" onClick={() => performStack("evolve")} style={{fontSize:"0.8rem", padding:"5px 10px"}}>上に重ねる</button>
-            <button className="btn btn-outline" onClick={() => performStack("under")} style={{fontSize:"0.8rem", padding:"5px 10px", borderColor:"#555"}}>下に重ねる</button>
+            <button className="btn btn-primary" onClick={() => performStack("evolve")} style={{fontSize:"0.8rem", padding:"5px 10px"}}>進化/上</button>
+            <button className="btn btn-outline" onClick={() => performStack("under")} style={{fontSize:"0.8rem", padding:"5px 10px", borderColor:"#555"}}>下</button>
+            <button className="btn btn-outline" onClick={() => performStack("seal")} style={{fontSize:"0.8rem", padding:"5px 10px", borderColor:"#ff6b6b", color:"#ff6b6b"}}>封印</button>
           </div>
           <button className="btn" onClick={() => setStackTarget(null)} style={{marginTop:"8px", width:"100%", background:"#333", padding:"4px", fontSize:"0.8rem"}}>キャンセル</button>
         </div>

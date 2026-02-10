@@ -267,8 +267,8 @@ export default function DeckList() {
             style={{ display: "flex", gap: "10px", alignItems: "center", cursor: "pointer", transition: "background 0.2s" }}
           >
             <div style={{ width: "60px", aspectRatio: "2/3", background: "#000", borderRadius: "4px", overflow: "hidden", flexShrink: 0 }}>
-              {deck.cards && deck.cards[0] ? (
-                <img src={getProxyImageUrl(deck.cards[0])} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {deck.thumbnail || (deck.cards && deck.cards[0]) ? (
+                <img src={getProxyImageUrl(deck.thumbnail || deck.cards[0])} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#333", fontSize: "0.7rem" }}>No Img</div>
               )}

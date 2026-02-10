@@ -1,11 +1,11 @@
-export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShuffle, onClose }) => {
+export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShuffle, onShowStack, onClose }) => {
   if (!selectedCard) return null;
   const { zone, data } = selectedCard;
+  const hasStack = data.stack && data.stack.length > 0;
 
   return (
     <div style={{ 
        position: "absolute", top: "52%", left: "50%", transform: "translateX(-50%)", 
-       /* zIndexを3500に設定 (ZoneModalの3000より上にする) */
        zIndex: 3500, 
        display: "flex", gap: "8px", background: "rgba(0,0,0,0.95)", padding: "8px 12px", borderRadius: "8px",
        boxShadow: "0 4px 15px rgba(0,0,0,0.8)", border: "1px solid #007bff", whiteSpace: "nowrap"
@@ -14,6 +14,16 @@ export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShu
        
        <div style={{width:"1px", background:"#555"}}></div>
        
+       {/* 重なり確認ボタン */}
+       {hasStack && (
+         <>
+           <button onClick={() => onShowStack(data)} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#17a2b8", color:"white"}}>
+             ≡ 重なり({data.stack.length})
+           </button>
+           <div style={{width:"1px", background:"#555"}}></div>
+         </>
+       )}
+
        {/* 山札専用 */}
        {zone === "deck" && (
          <>

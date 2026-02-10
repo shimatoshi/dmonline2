@@ -2,7 +2,7 @@ import { CardView } from "./CardView";
 import { getProxyImageUrl } from "../../utils/apiConfig";
 const CARD_BACK_URL = "/card_back.jpg";
 
-export const OpponentArea = ({ opponent, normalizeZone, onZoom, interactionMode, onOpponentInteract }) => {
+export const OpponentArea = ({ opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, onOpenGrave, onOpenTemp }) => {
   return (
     <div style={{ flex: 1, borderBottom: "1px solid #333", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
       
@@ -30,7 +30,7 @@ export const OpponentArea = ({ opponent, normalizeZone, onZoom, interactionMode,
             {normalizeZone(opponent?.manaZone).map((card, i) => (
               <CardView 
                 key={i} url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} 
-                onClick={() => interactionMode ? onOpponentInteract("mana", i) : onZoom(card.url)} 
+                onClick={() => interactionMode ? onOpponentInteract("mana", i) : onTapCard(card)} 
                 style={{ height: "35px", width: "25px", flexShrink: 0, cursor: interactionMode ? "pointer" : "default", boxShadow: interactionMode ? "0 0 5px red" : "none" }} 
               />
             ))}
@@ -39,12 +39,18 @@ export const OpponentArea = ({ opponent, normalizeZone, onZoom, interactionMode,
       
       {/* ミドルエリア */}
       <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "5px", transform: "rotate(180deg)" }}>
-          <div style={{ width: "40px", height: "56px", border: "1px dashed #444", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div 
+            onClick={onOpenGrave}
+            style={{ width: "40px", height: "56px", border: "1px dashed #444", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+          >
              {opponent?.graveyard?.length > 0 ? <img src={getProxyImageUrl(opponent.graveyard[opponent.graveyard.length-1])} style={{width:"100%", height:"100%"}} /> : <span style={{fontSize:"0.5rem", color:"#555"}}>墓</span>}
           </div>
           
           {opponent?.tempZone?.length > 0 && (
-            <div style={{ width: "40px", height: "56px", border: "2px solid #6f42c1", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", background: "#222", position: "relative" }}>
+            <div 
+              onClick={onOpenTemp}
+              style={{ width: "40px", height: "56px", border: "2px solid #6f42c1", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", background: "#222", position: "relative", cursor: "pointer" }}
+            >
                {(() => {
                  const topCard = opponent.tempZone[opponent.tempZone.length - 1];
                  const isFaceDown = (typeof topCard === 'object') ? topCard.isFaceDown : false;
@@ -77,7 +83,7 @@ export const OpponentArea = ({ opponent, normalizeZone, onZoom, interactionMode,
          {normalizeZone(opponent?.battleZone).map((card, i) => (
            <CardView 
              key={i} url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} 
-             onClick={() => interactionMode ? onOpponentInteract("battle", i) : onZoom(card.url)} 
+             onClick={() => interactionMode ? onOpponentInteract("battle", i) : onTapCard(card)} 
              style={{ 
                width: "55px", 
                boxShadow: interactionMode ? "0 0 5px red" : "none",
