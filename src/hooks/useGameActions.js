@@ -1,74 +1,47 @@
-import { useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
-export const useGameActions = (syncToDB, gameState, generateId) => {
+export const useGameActions = (syncToDB, gameState, generateId, roomId, user) => {
   const { 
-    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperZone 
+    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone 
   } = gameState;
 
-  // 移動処理
+  // --- カード移動ロジック ---
   const performMoveWithData = (sourceData, targetZoneName) => {
     const { zone: fromZone, index: fromIndex } = sourceData;
     
-    let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
-    let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
-    let newHyper = [...myHyperZone];
-
     let cardUrl = "";
     let cardObj = null;
+    let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
+    let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
 
-    // --- 取り出し ---
-    if (fromZone === "hand") { 
-        cardUrl = newHand[fromIndex]; 
-        newHand.splice(fromIndex, 1); 
-    } else if (fromZone === "battle") { 
-        cardObj = newBattle[fromIndex];
-        cardUrl = cardObj.url;
-        // バトルゾーンから移動する場合はカード全体を削除 (Stackも)
-        if (cardObj.stack && cardObj.stack.length > 0) {
-            // Stackがある場合、一番上だけ剥がすか、全体を移動するか？
-            // 既存ロジック: 「一番上を剥がす」 -> performMoveWithData は "Single card move" を想定
-            // しかし、performMoveのロジックを見ると、Stackがある場合は「一番上を剥がして残りを更新」している。
-            const nextCardUrl = cardObj.stack[0];
-            const newStack = cardObj.stack.slice(1);
-            newBattle[fromIndex] = { ...cardObj, url: nextCardUrl, stack: newStack, isTapped: false };
-        } else {
-            newBattle.splice(fromIndex, 1);
-        }
-    } else if (fromZone === "mana") {
-        cardObj = newMana[fromIndex]; 
-        cardUrl = cardObj.url; 
-        newMana.splice(fromIndex, 1);
-    } else if (fromZone === "grave") {
-        cardUrl = newGrave[fromIndex]; 
-        newGrave.splice(fromIndex, 1);
-    } else if (fromZone === "deck") {
-        cardUrl = newDeck[fromIndex]; 
-        newDeck.splice(fromIndex, 1);
-    } else if (fromZone === "temp") {
-        cardObj = newTemp[fromIndex]; 
-        cardUrl = cardObj.url; 
-        newTemp.splice(fromIndex, 1);
-    } else if (fromZone === "hyper") {
-        cardObj = newHyper[fromIndex]; 
-        cardUrl = cardObj.url; 
-        newHyper.splice(fromIndex, 1); 
-    } else if (fromZone === "shield") {
-        cardUrl = newShields[fromIndex]; 
-        newShields.splice(fromIndex, 1); 
+    // 取り出し
+    if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
+    else if (fromZone === "battle") { 
+      cardObj = newBattle[fromIndex];
+      cardUrl = cardObj.url;
+      if (cardObj.stack && cardObj.stack.length > 0) {
+        const nextCardUrl = cardObj.stack[0];
+        const newStack = cardObj.stack.slice(1);
+        newBattle[fromIndex] = { ...cardObj, url: nextCardUrl, stack: newStack, isTapped: false };
+      } else {
+        newBattle.splice(fromIndex, 1);
+      }
+    }
+    else if (fromZone === "mana") { cardObj = newMana[fromIndex]; cardUrl = cardObj.url; newMana.splice(fromIndex, 1); }
+    else if (fromZone === "shield") { cardUrl = newShields[fromIndex]; newShields.splice(fromIndex, 1); }
+    else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
+    else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
+    else if (fromZone === "temp") { 
+      cardObj = newTemp[fromIndex]; 
+      cardUrl = cardObj.url; 
+      newTemp.splice(fromIndex, 1); 
     }
 
-    // --- Safety Check ---
-    // もしカードが取得できていなければ中止 (インデックス不整合や空ゾーンからの移動など)
-    if (!cardUrl && !cardObj) {
-      console.warn("Move aborted: Source card not found.", sourceData);
-      return;
-    }
+    if (!cardUrl && !cardObj) return;
 
-    // --- 追加 ---
-    const isTemp = targetZoneName === "temp" || targetZoneName === "hyper"; 
-    // バトル・マナ・超次元・一時はオブジェクト、他はURL文字列（シールドはURLだが裏向き管理はPlayerArea側でやるか、ここでオブジェクトにするか？）
-    // 既存ロジックではShieldsはURL配列。PlayerAreaで表示時にisFaceDownをつけている。
-    
+    // 追加
+    const isTemp = targetZoneName === "temp";
     const newObj = { url: cardUrl, isTapped: false, isFaceDown: isTemp, stack: [], id: generateId() };
     
     if (targetZoneName === "battle") newBattle.push(newObj);
@@ -76,19 +49,17 @@ export const useGameActions = (syncToDB, gameState, generateId) => {
     else if (targetZoneName === "hand") newHand.push(cardUrl);
     else if (targetZoneName === "grave") newGrave.push(cardUrl);
     else if (targetZoneName === "shield") newShields.push(cardUrl);
-    else if (targetZoneName === "deckTop" || targetZoneName === "deck") newDeck.unshift(cardUrl); // "deck" 指定はとりあえずトップへ
+    else if (targetZoneName === "deckTop") newDeck.unshift(cardUrl);
     else if (targetZoneName === "deckBottom") newDeck.push(cardUrl);
     else if (targetZoneName === "temp") newTemp.push(newObj);
-    else if (targetZoneName === "hyper") newHyper.push(newObj);
 
     syncToDB({ 
       hand: newHand, battleZone: newBattle, manaZone: newMana, 
-      graveyard: newGrave, shields: newShields, deck: newDeck, 
-      tempZone: newTemp, hyperZone: newHyper 
+      graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp 
     });
   };
 
-  // スタック（進化/封印）
+  // --- スタック (進化/封印) ---
   const performStack = (selectedCard, stackTarget, mode) => {
     if (!selectedCard || !stackTarget) return;
     const { zone: fromZone, index: fromIndex } = selectedCard;
@@ -98,27 +69,20 @@ export const useGameActions = (syncToDB, gameState, generateId) => {
 
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
-    let newHyper = [...myHyperZone];
 
     let cardUrl = "";
     let sourceStack = [];
 
-    // 元カード取得 (performMoveWithDataと同様だが、BattleZoneの場合は「丸ごと」移動する)
-    if (fromZone === "battle") {
+    if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
+    else if (fromZone === "battle") { 
         const cardObj = newBattle[fromIndex];
         cardUrl = cardObj.url;
         sourceStack = cardObj.stack || [];
         newBattle.splice(fromIndex, 1);
-    } else {
-        // 他ゾーンからは1枚移動とみなす
-        if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
-        else if (fromZone === "mana") { cardUrl = newMana[fromIndex].url; newMana.splice(fromIndex, 1); }
-        else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
-        else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
-        else if (fromZone === "temp") { cardUrl = newTemp[fromIndex].url; newTemp.splice(fromIndex, 1); }
-        else if (fromZone === "hyper") { cardUrl = newHyper[fromIndex].url; newHyper.splice(fromIndex, 1); }
-        else if (fromZone === "shield") { cardUrl = newShields[fromIndex]; newShields.splice(fromIndex, 1); }
-    }
+    } else if (fromZone === "mana") { cardUrl = newMana[fromIndex].url; newMana.splice(fromIndex, 1); }
+    else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
+    else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
+    else if (fromZone === "temp") { cardUrl = newTemp[fromIndex].url; newTemp.splice(fromIndex, 1); }
 
     let adjustedToIndex = toIndex;
     if (fromZone === "battle" && fromIndex < toIndex) adjustedToIndex -= 1;
@@ -144,9 +108,29 @@ export const useGameActions = (syncToDB, gameState, generateId) => {
 
     syncToDB({ 
         hand: newHand, battleZone: newBattle, manaZone: newMana, 
-        graveyard: newGrave, shields: newShields, deck: newDeck, 
-        tempZone: newTemp, hyperZone: newHyper 
+        graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp 
     });
+  };
+
+  // --- タップ状態トグル ---
+  const toggleStatus = (selectedCard, type) => {
+    if (!selectedCard) return;
+    const { zone, index } = selectedCard;
+    if (zone === "battle") {
+      const newZone = [...myBattleZone];
+      if (type === "tap") newZone[index].isTapped = !newZone[index].isTapped;
+      if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
+      syncToDB({ battleZone: newZone });
+    } else if (zone === "mana") {
+      const newZone = [...myManaZone];
+      if (type === "tap") newZone[index].isTapped = !newZone[index].isTapped;
+      if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
+      syncToDB({ manaZone: newZone });
+    } else if (zone === "temp") {
+      const newZone = [...myTempZone];
+      if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
+      syncToDB({ tempZone: newZone });
+    }
   };
 
   const handleQuickTap = (zone, index) => {
@@ -161,6 +145,7 @@ export const useGameActions = (syncToDB, gameState, generateId) => {
     }
   };
 
+  // --- ターン制御 ---
   const startTurn = () => {
     const newBattle = myBattleZone.map(c => ({ ...c, isTapped: false }));
     const newMana = myManaZone.map(c => ({ ...c, isTapped: false }));
@@ -173,11 +158,33 @@ export const useGameActions = (syncToDB, gameState, generateId) => {
     syncToDB({ battleZone: newBattle, manaZone: newMana, deck: newDeck, hand: newHand });
   };
 
+  const handleEndTurn = async () => {
+    try {
+      await addDoc(collection(db, "rooms", roomId, "messages"), {
+        text: "⚡ ターン終了",
+        senderId: user.uid,
+        senderName: user.displayName || user.email?.split("@")[0] || "Guest",
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("ターン終了ログ送信エラー:", error);
+    }
+  };
+
+  // --- デッキ操作 ---
   const shuffleDeck = () => {
     if (myDeck.length <= 1) return;
     const newDeck = [...myDeck].sort(() => Math.random() - 0.5);
     syncToDB({ deck: newDeck });
     alert("山札をシャッフルしました");
+  };
+
+  const drawCard = () => {
+    if (myDeck.length === 0) return;
+    const card = myDeck[0];
+    const newDeck = myDeck.slice(1);
+    const newHand = [...myHand, card];
+    syncToDB({ deck: newDeck, hand: newHand });
   };
 
   const setupGame = () => {
@@ -195,10 +202,21 @@ export const useGameActions = (syncToDB, gameState, generateId) => {
     const newHand = shuffled.slice(5, 10);
     const newDeck = shuffled.slice(10);
 
-    syncToDB({ deck: newDeck, hand: newHand, shields: newShields, battleZone: [], manaZone: [], graveyard: [], tempZone: [], hyperZone: [] });
+    syncToDB({ 
+      deck: newDeck, hand: newHand, shields: newShields, 
+      battleZone: [], manaZone: [], graveyard: [], tempZone: [] 
+    });
+  };
+
+  const toggleTempAll = () => {
+    if (myTempZone.length === 0) return;
+    const currentStatus = myTempZone[0].isFaceDown;
+    const newZone = myTempZone.map(card => ({ ...card, isFaceDown: !currentStatus }));
+    syncToDB({ tempZone: newZone });
   };
 
   return {
-    performMoveWithData, performStack, handleQuickTap, startTurn, shuffleDeck, setupGame
+    performMoveWithData, performStack, toggleStatus, handleQuickTap,
+    startTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll
   };
 };
