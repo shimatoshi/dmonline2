@@ -120,10 +120,11 @@ export const PlayerArea = ({
               justifyContent: shields.length >= 5 ? "flex-end" : "center",
               maxWidth: "180px", overflowX: "auto", paddingBottom: "4px",
               minHeight: "50px", minWidth: "80px",
-              transform: "rotate(180deg)"
+              transform: "rotate(180deg)",
+              direction: "rtl"
             }}
           >
-             {[...shields].map((s, i) => ({s, i})).reverse().map(({s, i}) => (
+             {[...shields].map((s, i) => ({s, i})).map(({s, i}) => (
                <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })} style={{ flexShrink: 0, transform: "rotate(180deg)" }}>
                  <div style={{ width: "36px", height: "50px", cursor: "pointer" }}>
                     <img src={CARD_BACK_URL} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid #b8860b", boxShadow: selectedCard?.zone === "shield" && selectedCard?.index === i ? "0 0 0 2px yellow" : "none" }} />
@@ -192,10 +193,11 @@ export const PlayerArea = ({
           padding: "0 10px", 
           gap: "2px", 
           borderTop: "1px solid #222",
-          transform: "rotate(180deg)"
+          transform: "rotate(180deg)",
+          direction: "rtl"
         }}
       >
-         {[...manaZone].map((card, i) => ({card, i})).reverse().map(({card, i}) => (
+         {[...manaZone].map((card, i) => ({card, i})).map(({card, i}) => (
            <DraggableCard key={card.id || i} {...getDragProps("mana", i, card)} style={{ transform: "rotate(180deg)" }}>
              <CardView url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} isSelected={selectedCard?.data === card}
                onClick={() => {}} style={{ height: "45px", width: "32px", flexShrink: 0, marginRight: card.isTapped ? "12px" : "2px" }} />
@@ -217,10 +219,11 @@ export const PlayerArea = ({
           padding: "5px 10px", 
           gap: "5px", 
           borderTop: "1px solid #333",
-          transform: "rotate(180deg)" 
+          transform: "rotate(180deg)",
+          direction: "rtl"
         }}
       >
-         {[...hand].map((url, i) => ({url, i})).reverse().map(({url, i}) => (
+         {[...hand].map((url, i) => ({url, i})).map(({url, i}) => (
            <DraggableCard key={i} {...getDragProps("hand", i, { url })} style={{ height: "100%", flexShrink: 0, transform: "rotate(180deg)" }}>
              <div style={{ height: "100%", position: "relative" }}>
                 <img src={getProxyImageUrl(url)} style={{ 
