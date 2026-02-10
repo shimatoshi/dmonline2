@@ -16,7 +16,11 @@ export const OpponentArea = ({
     onDragMove,
     onDragEnd,
     // 干渉モード中でもタップではメニューを出さず、通常通りカード拡大などを優先する
-    onTap: () => onTapCard(data),
+    onTap: () => {
+      if (zoneName === "grave") { onOpenGrave(); return; }
+      if (zoneName === "temp") { onOpenTemp(); return; }
+      onTapCard(data);
+    },
     onLongPress: () => onTapCard(data)
   });
 
