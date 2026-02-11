@@ -91,6 +91,29 @@ export default function Lobby() {
     }
   };
 
+  const createSoloRoom = async () => {
+    if (!user) return;
+    const deckCards = getSelectedDeckCards();
+    if (deckCards.length === 0) { alert("デッキを選択してください"); return; }
+
+    try {
+      const docRef = await addDoc(collection(db, "rooms"), {
+        hostId: user.uid,
+        hostName: getUserName(),
+        guestId: "solo",
+        guestName: "1人回しモード",
+        status: "playing",
+        createdAt: new Date(),
+        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] },
+        guestData: { deck: [], hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+      });
+      navigate(`/game/${docRef.id}`);
+    } catch (error) {
+      console.error(error);
+      alert("作成失敗: " + error.message);
+    }
+  };
+
   const joinRoom = async (roomId) => {
     if (!user) return;
     const deckCards = getSelectedDeckCards();
@@ -116,7 +139,27 @@ export default function Lobby() {
     try { await deleteDoc(doc(db, "rooms", roomId)); } catch (e) { console.error(e); }
   };
 
-  const enterGame = (roomId) => navigate(`/game/${roomId}`);
+  const enterGame = async (roomId) => {
+    if (!user) return;
+    const room = rooms.find(r => r.id === roomId);
+    
+    // デッキ更新処理
+    const deckCards = getSelectedDeckCards();
+    if (room && deckCards.length > 0) {
+      try {
+        const roomRef = doc(db, "rooms", roomId);
+        if (room.hostId === user.uid) {
+          await updateDoc(roomRef, { "hostData.deck": deckCards });
+        } else if (room.guestId === user.uid) {
+          await updateDoc(roomRef, { "guestData.deck": deckCards });
+        }
+      } catch (error) {
+        console.error("デッキ更新失敗:", error);
+      }
+    }
+
+    navigate(`/game/${roomId}`);
+  };
 
   return (
     <div style={{ padding: "15px", maxWidth: "600px", margin: "0 auto", paddingBottom: "80px" }}>
@@ -167,6 +210,14 @@ export default function Lobby() {
           style={{ width: "100%", padding: "12px", fontSize: "1.1rem", fontWeight: "bold", opacity: myDecks.length === 0 ? 0.5 : 1 }}
         >
           ＋ 新しく対戦部屋を作る
+        </button>
+        <button 
+          className="btn btn-outline"
+          onClick={createSoloRoom}
+          disabled={myDecks.length === 0}
+          style={{ width: "100%", padding: "12px", fontSize: "1.1rem", fontWeight: "bold", marginTop: "10px", borderColor: "#aaa", color: "#ddd" }}
+        >
+          一人回し（練習）
         </button>
       </div>
 

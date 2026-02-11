@@ -34,9 +34,13 @@ export const useGameSync = (roomId, user) => {
       
       // 先行後攻決め (Hostのみが実行)
       if (amIHost && data.guestId && !data.firstPlayerId) {
-        const isHostFirst = Math.random() < 0.5;
-        const firstId = isHostFirst ? data.hostId : data.guestId;
-        updateDoc(doc(db, "rooms", roomId), { firstPlayerId: firstId });
+        if (data.guestId === "solo") {
+          updateDoc(doc(db, "rooms", roomId), { firstPlayerId: data.hostId });
+        } else {
+          const isHostFirst = Math.random() < 0.5;
+          const firstId = isHostFirst ? data.hostId : data.guestId;
+          updateDoc(doc(db, "rooms", roomId), { firstPlayerId: firstId });
+        }
       }
 
       const myData = amIHost ? data.hostData : data.guestData;
