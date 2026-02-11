@@ -49,9 +49,9 @@ export const PlayerUtilityRow = ({
         className="zone-scroll"
         data-zone-id="shield" 
         style={{ 
-          display: "flex", gap: "4px", 
-          justifyContent: shields.length >= 5 ? "flex-end" : "center",
-          maxWidth: "180px", overflowX: "auto", paddingBottom: "4px",
+          display: "flex", gap: "4px", flexWrap: "wrap",
+          justifyContent: "center",
+          maxWidth: "180px", paddingBottom: "4px",
           minHeight: "50px", minWidth: "80px",
           transform: "rotate(180deg)",
           direction: "rtl"
