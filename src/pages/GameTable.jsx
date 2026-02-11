@@ -43,7 +43,9 @@ export default function GameTable() {
 
       myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
 
-      syncToDB, generateId, normalizeZone
+      syncToDB, generateId, normalizeZone,
+
+      setSoloSide, isSolo // ★追加
 
     } = gameState;
 
@@ -310,17 +312,25 @@ export default function GameTable() {
       
 
       <div style={{ 
-
         background: "#222", color: amIFirst ? "#ffdd57" : "#aaa", textAlign: "center", padding: "4px", 
-
-        fontSize: "0.85rem", borderBottom: "1px solid #444", fontWeight: "bold"
-
+        fontSize: "0.85rem", borderBottom: "1px solid #444", fontWeight: "bold",
+        display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", position: "relative"
       }}>
-
                 {turnInfo}
-
+                
+                {isSolo && (
+                  <button 
+                    onClick={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
+                    style={{
+                      background: "#007bff", color: "white", border: "none", borderRadius: "4px",
+                      padding: "2px 8px", fontSize: "0.75rem", cursor: "pointer",
+                      position: "absolute", right: "5px"
+                    }}
+                  >
+                    視点切替
+                  </button>
+                )}
         
-
               </div>
 
         

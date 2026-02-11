@@ -9,6 +9,7 @@ export const useGameSync = (roomId, user) => {
   const [isHost, setIsHost] = useState(false);
   const [roomData, setRoomData] = useState(null);
   const [firstPlayerId, setFirstPlayerId] = useState(null);
+  const [soloSide, setSoloSide] = useState("host"); // "host" or "guest"
   
   // 自分のデータ
   const [myHand, setMyHand] = useState([]);
@@ -20,7 +21,7 @@ export const useGameSync = (roomId, user) => {
   const [myDeck, setMyDeck] = useState([]);
   const [myTempZone, setMyTempZone] = useState([]);
 
-  // 初期化・同期
+  // 1. RoomData同期 & 初期設定
   useEffect(() => {
     if (!user || !roomId) return;
     const unsubscribe = onSnapshot(doc(db, "rooms", roomId), (docSnap) => {
@@ -29,11 +30,8 @@ export const useGameSync = (roomId, user) => {
       setRoomData(data);
       setFirstPlayerId(data.firstPlayerId);
 
-      const amIHost = (data.hostId === user.uid);
-      setIsHost(amIHost);
-      
-      // 先行後攻決め (Hostのみが実行)
-      if (amIHost && data.guestId && !data.firstPlayerId) {
+      // 先行後攻決め (本来のHostのみが実行)
+      if (data.hostId === user.uid && data.guestId && !data.firstPlayerId) {
         if (data.guestId === "solo") {
           updateDoc(doc(db, "rooms", roomId), { firstPlayerId: data.hostId });
         } else {
@@ -42,21 +40,40 @@ export const useGameSync = (roomId, user) => {
           updateDoc(doc(db, "rooms", roomId), { firstPlayerId: firstId });
         }
       }
-
-      const myData = amIHost ? data.hostData : data.guestData;
-      if (myData) {
-        setMyDeck(myData.deck || []);
-        setMyHand(myData.hand || []);
-        setMyShields(myData.shields || []);
-        setMyGraveyard(myData.graveyard || []);
-        setMyHyperspace(myData.hyperspace || []); // ★追加
-        setMyTempZone(normalizeZone(myData.tempZone));
-        setMyBattleZone(normalizeZone(myData.battleZone));
-        setMyManaZone(normalizeZone(myData.manaZone));
-      }
     });
     return () => unsubscribe();
   }, [roomId, user]);
+
+  // 2. ローカルデータの抽出 (視点切り替え対応)
+  useEffect(() => {
+    if (!roomData || !user) return;
+
+    const amIOwner = roomData.hostId === user.uid;
+    const isSolo = roomData.guestId === "solo";
+
+    // 視点の決定
+    let effectiveIsHost = amIOwner;
+    if (isSolo) {
+      effectiveIsHost = (soloSide === "host");
+    } else {
+      // 通常対戦では自分がHostならHostデータ、GuestならGuestデータ
+      effectiveIsHost = amIOwner;
+    }
+    
+    setIsHost(effectiveIsHost);
+
+    const myData = effectiveIsHost ? roomData.hostData : roomData.guestData;
+    if (myData) {
+      setMyDeck(myData.deck || []);
+      setMyHand(myData.hand || []);
+      setMyShields(myData.shields || []);
+      setMyGraveyard(myData.graveyard || []);
+      setMyHyperspace(myData.hyperspace || []); 
+      setMyTempZone(normalizeZone(myData.tempZone));
+      setMyBattleZone(normalizeZone(myData.battleZone));
+      setMyManaZone(normalizeZone(myData.manaZone));
+    }
+  }, [roomData, soloSide, user]);
 
   // データ正規化 (文字列配列をオブジェクト配列に変換など)
   const normalizeZone = (zoneData) => {
@@ -113,6 +130,8 @@ export const useGameSync = (roomId, user) => {
     myTempZone, setMyTempZone,
     syncToDB,
     generateId, // ID生成器もエクスポートしておく
-    normalizeZone // ★追加
+    normalizeZone, // ★追加
+    setSoloSide, // ★追加: 視点切り替え用
+    isSolo: roomData?.guestId === "solo" // ★追加: 1人回しモード判定
   };
 };

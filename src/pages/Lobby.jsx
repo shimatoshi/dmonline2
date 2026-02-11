@@ -8,6 +8,7 @@ export default function Lobby() {
   const [activeGames, setActiveGames] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
   const [selectedDeckId, setSelectedDeckId] = useState("");
+  const [selectedOpponentDeckId, setSelectedOpponentDeckId] = useState("");
   
   const navigate = useNavigate();
   const user = auth.currentUser;
@@ -33,8 +34,9 @@ export default function Lobby() {
     const unsubDecks = onSnapshot(qDecks, (snapshot) => {
       const deckList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMyDecks(deckList);
-      if (deckList.length > 0 && !selectedDeckId) {
-        setSelectedDeckId(deckList[0].id);
+      if (deckList.length > 0) {
+        if (!selectedDeckId) setSelectedDeckId(deckList[0].id);
+        if (!selectedOpponentDeckId) setSelectedOpponentDeckId(deckList[0].id);
       }
     });
 
@@ -70,6 +72,11 @@ export default function Lobby() {
     return deck ? deck.cards : [];
   };
 
+  const getSelectedOpponentDeckCards = () => {
+    const deck = myDecks.find(d => d.id === selectedOpponentDeckId);
+    return deck ? deck.cards : [];
+  };
+
   const createRoom = async () => {
     if (!user) return;
     const deckCards = getSelectedDeckCards();
@@ -94,7 +101,10 @@ export default function Lobby() {
   const createSoloRoom = async () => {
     if (!user) return;
     const deckCards = getSelectedDeckCards();
+    const opponentDeckCards = getSelectedOpponentDeckCards();
     if (deckCards.length === 0) { alert("デッキを選択してください"); return; }
+    // 相手デッキは必須ではないが、一応チェック
+    if (opponentDeckCards.length === 0) { alert("相手用デッキを選択してください"); return; }
 
     try {
       const docRef = await addDoc(collection(db, "rooms"), {
@@ -105,7 +115,7 @@ export default function Lobby() {
         status: "playing",
         createdAt: new Date(),
         hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] },
-        guestData: { deck: [], hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        guestData: { deck: opponentDeckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
       });
       navigate(`/game/${docRef.id}`);
     } catch (error) {
@@ -203,6 +213,22 @@ export default function Lobby() {
             ))}
           </select>
         </div>
+        
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", fontSize: "0.85rem", color: "#aaa", marginBottom: "5px" }}>1人回し用：相手デッキ:</label>
+          <select 
+            className="input-field"
+            value={selectedOpponentDeckId} 
+            onChange={(e) => setSelectedOpponentDeckId(e.target.value)}
+            style={{ width: "100%", background: "#2c2c2c", color: "white" }}
+          >
+            {myDecks.length === 0 && <option value="">デッキがありません</option>}
+            {myDecks.map(deck => (
+              <option key={deck.id} value={deck.id}>{deck.name} ({deck.cards?.length || 0}枚)</option>
+            ))}
+          </select>
+        </div>
+
         <button 
           className="btn btn-primary"
           onClick={createRoom}
