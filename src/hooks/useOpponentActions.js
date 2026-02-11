@@ -48,6 +48,11 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
       targetCard = list[index];
       list.splice(index, 1);
       newOppData.hand = list;
+    } else if (zone === "hyperspace") { // ★追加
+      const list = [...(newOppData.hyperspace || [])];
+      targetCard = list[index];
+      list.splice(index, 1);
+      newOppData.hyperspace = list;
     }
 
     if (!targetCard) return;
@@ -80,6 +85,10 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
        const dest = [...(newOppData.battleZone || [])];
        cardsToMove.forEach(c => dest.push({ url: c, isTapped: false, isFaceDown: false, stack: [], id: generateId() }));
        newOppData.battleZone = dest;
+    } else if (actionType === "hyperspace") { // ★追加
+       const dest = [...(newOppData.hyperspace || [])];
+       cardsToMove.forEach(c => dest.push(c));
+       newOppData.hyperspace = dest;
     }
 
     await updateDoc(doc(db, "rooms", roomId), { [opponentRole]: newOppData });
@@ -139,6 +148,11 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
         targetCard = list[index];
         list.splice(index, 1);
         newOppData.graveyard = list;
+    } else if (zone === "hyperspace") { // ★追加
+        const list = [...(newOppData.hyperspace || [])];
+        targetCard = list[index];
+        list.splice(index, 1);
+        newOppData.hyperspace = list;
     }
 
     if (!targetCard) return;
@@ -167,6 +181,10 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
        const dest = [...(newOppData.battleZone || [])];
        cardsToMove.forEach(c => dest.push({ url: c, isTapped: false, isFaceDown: false, stack: [], id: generateId() }));
        newOppData.battleZone = dest;
+    } else if (actionType === "hyperspace") { // ★追加
+       const dest = [...(newOppData.hyperspace || [])];
+       cardsToMove.forEach(c => dest.push(c));
+       newOppData.hyperspace = dest;
     } else if (actionType === "deck" || actionType === "deckTop") { // ★追加: 山札トップへ
        const dest = [...(newOppData.deck || [])];
        // 複数枚ある場合、順番をどうするか？とりあえずそのまま追加

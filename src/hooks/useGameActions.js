@@ -3,7 +3,7 @@ import { db } from "../firebase";
 
 export const useGameActions = (syncToDB, gameState, generateId, roomId, user) => {
   const { 
-    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone 
+    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace
   } = gameState;
 
   // --- カード移動ロジック ---
@@ -14,6 +14,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     let cardObj = null;
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
+    let newHyperspace = [...myHyperspace];
 
     // 取り出し
     if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
@@ -37,6 +38,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
       cardUrl = cardObj.url; 
       newTemp.splice(fromIndex, 1); 
     }
+    else if (fromZone === "hyperspace") { cardUrl = newHyperspace[fromIndex]; newHyperspace.splice(fromIndex, 1); }
 
     if (!cardUrl && !cardObj) return;
 
@@ -52,10 +54,12 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     else if (targetZoneName === "deckTop") newDeck.unshift(cardUrl);
     else if (targetZoneName === "deckBottom") newDeck.push(cardUrl);
     else if (targetZoneName === "temp") newTemp.push(newObj);
+    else if (targetZoneName === "hyperspace") newHyperspace.push(cardUrl);
 
     syncToDB({ 
       hand: newHand, battleZone: newBattle, manaZone: newMana, 
-      graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp 
+      graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp,
+      hyperspace: newHyperspace
     });
   };
 
@@ -69,6 +73,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
+    let newHyperspace = [...myHyperspace];
 
     let cardUrl = "";
     let sourceStack = [];
@@ -81,6 +86,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
         newBattle.splice(fromIndex, 1);
     } else if (fromZone === "mana") { cardUrl = newMana[fromIndex].url; newMana.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
+    else if (fromZone === "hyperspace") { cardUrl = newHyperspace[fromIndex]; newHyperspace.splice(fromIndex, 1); }
     else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
     else if (fromZone === "temp") { cardUrl = newTemp[fromIndex].url; newTemp.splice(fromIndex, 1); }
 
@@ -108,7 +114,8 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     syncToDB({ 
         hand: newHand, battleZone: newBattle, manaZone: newMana, 
-        graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp 
+        graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp,
+        hyperspace: newHyperspace
     });
   };
 
@@ -204,7 +211,8 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     syncToDB({ 
       deck: newDeck, hand: newHand, shields: newShields, 
-      battleZone: [], manaZone: [], graveyard: [], tempZone: [] 
+      battleZone: [], manaZone: [], graveyard: [], tempZone: [],
+      hyperspace: myHyperspace
     });
   };
 

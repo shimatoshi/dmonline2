@@ -34,15 +34,15 @@ export default function GameTable() {
 
   const gameState = useGameSync(roomId, user);
 
-  const {
+    const {
 
-    isHost, roomData, firstPlayerId,
+      isHost, roomData, firstPlayerId,
 
-    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone,
+      myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
 
-    syncToDB, generateId, normalizeZone
+      syncToDB, generateId, normalizeZone
 
-  } = gameState;
+    } = gameState;
 
 
 
@@ -376,21 +376,47 @@ export default function GameTable() {
 
 
 
-      {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
+            {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
 
-      {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
 
-      {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} onToggleFace={toggleTempAll} />}
+
+            {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
+
+
+
+            {viewMode === "hyperspace" && <ZoneModal title="超次元ゾーン" cards={myHyperspace} zoneName="hyperspace" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
+
+
+
+            {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} onToggleFace={toggleTempAll} />}
 
       
 
-      {viewMode === "opponentGrave" && (
+            {viewMode === "opponentGrave" && (
 
-        <ZoneModal title="相手の墓地" cards={opponent?.graveyard || []} zoneName="opponentGrave" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
+      
 
-      )}
+              <ZoneModal title="相手の墓地" cards={opponent?.graveyard || []} zoneName="opponentGrave" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
 
-      {viewMode === "opponentTemp" && (
+      
+
+            )}
+
+      
+
+            {viewMode === "opponentHyperspace" && (
+
+      
+
+              <ZoneModal title="相手の超次元" cards={opponent?.hyperspace || []} zoneName="opponentHyperspace" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
+
+      
+
+            )}
+
+      
+
+            {viewMode === "opponentTemp" && (
 
         <ZoneModal title="相手の一時ゾーン" cards={opponent?.tempZone || []} zoneName="opponentTemp" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardData) => {
 
@@ -414,109 +440,68 @@ export default function GameTable() {
 
 
 
-            <OpponentArea 
-
-
-
-              opponent={opponent} normalizeZone={normalizeZone} 
-
-
-
-              onTapCard={(card) => {
-
-
-
-                 if (card.stack && card.stack.length > 0) {
-
-
-
-                   setStackViewCards([card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false })));
-
-
-
-                   setViewMode("stackView");
-
-
-
-                 } else {
-
-
-
-                   setZoomedUrl(card.url);
-
-
-
-                 }
-
-
-
-              }}
-
-
-
-              interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
-
-
-
-                      onOpenGrave={() => setViewMode("opponentGrave")}
-
-
-
-                      onOpenTemp={() => setViewMode("opponentTemp")}
-
-
-
-                      // ★ドラッグ用ハンドラ追加
-
-
-
-                      onDragStart={handleDragStart} 
-
-
-
-                      onDragMove={handleDragMove} 
-
-
-
-                      onDragEnd={handleDragEnd}
-
-
-
-                      // ★手札公開用
-
-
-
-                      revealHand={revealOpponentHand}
-
-
-
-                      onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
-
-
-
-                    />
-
-
-
-      <PlayerArea 
-
-        hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields} graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone}
-
-        selectedCard={selectedCard} interactionMode={interactionMode}
-
-        onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap} onDeckTap={handleDeckTap} onDrawCard={drawCard}     
-
-        onViewMode={setViewMode}
-
-        onSetup={setupGame} onStartTurn={startTurn} onEndTurn={handleEndTurn} 
-
-        onShuffle={shuffleDeck}
-
-        onSetInteractionMode={setInteractionMode}
-
-        onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
-
+      <OpponentArea 
+        opponent={opponent} normalizeZone={normalizeZone} 
+        onTapCard={(card) => {
+           if (card.stack && card.stack.length > 0) {
+             setStackViewCards([card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false })));
+             setViewMode("stackView");
+           } else {
+             setZoomedUrl(card.url);
+           }
+        }}
+        interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
+        onOpenGrave={() => setViewMode("opponentGrave")}
+        onOpenHyperspace={() => setViewMode("opponentHyperspace")}
+        onOpenTemp={() => setViewMode("opponentTemp")}
+        // ★ドラッグ用ハンドラ追加
+        onDragStart={handleDragStart} 
+        onDragMove={handleDragMove} 
+        onDragEnd={handleDragEnd}
+        // ★手札公開用
+        revealHand={revealOpponentHand}
+        onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
       />
+
+
+
+                  <PlayerArea 
+
+
+
+                    hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields} graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone} hyperspace={myHyperspace}
+
+
+
+                    selectedCard={selectedCard} interactionMode={interactionMode}
+
+
+
+                    onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap} onDeckTap={handleDeckTap} onDrawCard={drawCard}     
+
+
+
+                    onViewMode={setViewMode}
+
+
+
+                    onSetup={setupGame} onStartTurn={startTurn} onEndTurn={handleEndTurn} 
+
+
+
+                    onShuffle={shuffleDeck}
+
+
+
+                    onSetInteractionMode={setInteractionMode}
+
+
+
+                    onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
+
+
+
+                  />
 
 
 

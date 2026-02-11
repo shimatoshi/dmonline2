@@ -3,9 +3,9 @@ import { getProxyImageUrl } from "../../utils/apiConfig";
 
 const CARD_BACK_URL = "/card_back.jpg";
 
-export const OpponentArea = ({ 
+export const OpponentArea = ({
   opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, 
-  onOpenGrave, onOpenTemp,
+  onOpenGrave, onOpenTemp, onOpenHyperspace,
   onDragStart, onDragMove, onDragEnd,
   revealHand, onToggleRevealHand // ★追加
 }) => {
@@ -19,6 +19,7 @@ export const OpponentArea = ({
     onTap: () => {
       if (zoneName === "grave") { onOpenGrave(); return; }
       if (zoneName === "temp") { onOpenTemp(); return; }
+      if (zoneName === "hyperspace") { onOpenHyperspace(); return; }
       onTapCard(data);
     },
     onLongPress: () => onTapCard(data)
@@ -41,6 +42,7 @@ export const OpponentArea = ({
   }));
   
   const graveCards = opponent?.graveyard || [];
+  const hyperspaceCards = opponent?.hyperspace || [];
   const tempCards = opponent?.tempZone || [];
   const deckCards = opponent?.deck || [];
 
@@ -94,8 +96,13 @@ export const OpponentArea = ({
       
       {/* ミドルエリア */}
       <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "5px", transform: "rotate(180deg)" }}>
-          <div onClick={onOpenGrave}>
-             <Zone type="stack" zoneId="opponent-grave" cards={graveCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("grave")} isOpponent={true} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <div onClick={onOpenHyperspace}>
+               <Zone type="stack" zoneId="opponent-hyperspace" cards={hyperspaceCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("hyperspace")} isOpponent={true} style={{ border: "1px dashed #00bfff" }} />
+            </div>
+            <div onClick={onOpenGrave}>
+               <Zone type="stack" zoneId="opponent-grave" cards={graveCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("grave")} isOpponent={true} />
+            </div>
           </div>
           
           {tempCards.length > 0 && (

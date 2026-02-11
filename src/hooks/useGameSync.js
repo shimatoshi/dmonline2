@@ -16,6 +16,7 @@ export const useGameSync = (roomId, user) => {
   const [myManaZone, setMyManaZone] = useState([]);
   const [myShields, setMyShields] = useState([]);
   const [myGraveyard, setMyGraveyard] = useState([]);
+  const [myHyperspace, setMyHyperspace] = useState([]);
   const [myDeck, setMyDeck] = useState([]);
   const [myTempZone, setMyTempZone] = useState([]);
 
@@ -44,6 +45,7 @@ export const useGameSync = (roomId, user) => {
         setMyHand(myData.hand || []);
         setMyShields(myData.shields || []);
         setMyGraveyard(myData.graveyard || []);
+        setMyHyperspace(myData.hyperspace || []); // ★追加
         setMyTempZone(normalizeZone(myData.tempZone));
         setMyBattleZone(normalizeZone(myData.battleZone));
         setMyManaZone(normalizeZone(myData.manaZone));
@@ -86,6 +88,7 @@ export const useGameSync = (roomId, user) => {
       battleZone: newData.battleZone !== undefined ? newData.battleZone : myBattleZone,
       manaZone: newData.manaZone !== undefined ? newData.manaZone : myManaZone,
       graveyard: newData.graveyard !== undefined ? newData.graveyard : myGraveyard,
+      hyperspace: newData.hyperspace !== undefined ? newData.hyperspace : myHyperspace,
       shields: newData.shields !== undefined ? newData.shields : myShields,
       deck: newData.deck !== undefined ? newData.deck : myDeck,
       tempZone: newData.tempZone !== undefined ? newData.tempZone : myTempZone,
@@ -101,6 +104,7 @@ export const useGameSync = (roomId, user) => {
     myManaZone, setMyManaZone,
     myShields, setMyShields,
     myGraveyard, setMyGraveyard,
+    myHyperspace, setMyHyperspace, // ★追加
     myDeck, setMyDeck,
     myTempZone, setMyTempZone,
     syncToDB,
