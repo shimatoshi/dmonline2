@@ -6,6 +6,7 @@ import { getProxyImageUrl } from "../utils/apiConfig";
 
 import { GameModals } from "../components/game/GameModals"; // ★追加
 import { ActionMenu } from "../components/game/ActionMenu";
+import { StackMenu } from "../components/game/StackMenu"; // ★追加
 import { OpponentActionMenu } from "../components/game/OpponentActionMenu";
 import { OpponentArea } from "../components/game/OpponentArea";
 import { PlayerArea } from "../components/game/PlayerArea";
@@ -16,7 +17,9 @@ import { useGameSync } from "../hooks/useGameSync";
 
 import { useGameActions } from "../hooks/useGameActions";
 
-import { useOpponentActions } from "../hooks/useOpponentActions"; // ★追加
+import { useOpponentActions } from "../hooks/useOpponentActions";
+
+import { useGameInteractions } from "../hooks/useGameInteractions"; // ★追加
 
 
 
@@ -86,251 +89,207 @@ export default function GameTable() {
 
 
 
-    } = useOpponentActions(roomId, isHost, roomData, generateId);
+        } = useOpponentActions(roomId, isHost, roomData, generateId);
 
 
 
-  
+    
 
 
 
-    // UI State
+    
 
-  const [selectedCard, setSelectedCard] = useState(null); 
 
-  const [stackTarget, setStackTarget] = useState(null);
 
-  const [zoomedUrl, setZoomedUrl] = useState(null);
+    
 
-  const [stackViewCards, setStackViewCards] = useState([]);
 
-  const [viewMode, setViewMode] = useState(null);
 
-  
+        // UI State
 
-  // interactionMode, selectedOpponentCard はフックへ移動
 
 
+    
 
-  // --- ドラッグ & ドロップ用 ---
 
-  const [draggingCard, setDraggingCard] = useState(null); 
 
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+      const [zoomedUrl, setZoomedUrl] = useState(null);
 
 
 
-  // 互換性のためのラッパー
+    
 
-  const performMove = (targetZoneName) => {
 
-    if (!selectedCard) return;
 
-    performMoveWithData(selectedCard, targetZoneName);
+      const [stackViewCards, setStackViewCards] = useState([]);
 
-    setSelectedCard(null);
 
-    if (targetZoneName !== "temp" && selectedCard.zone !== "temp" && viewMode !== "temp") setViewMode(null);
 
-  };
+    
 
 
 
-  const handleDragStart = (data, pos) => {
+      const [viewMode, setViewMode] = useState(null);
 
-    setSelectedCard(null); 
 
-    const isFaceDown = data.zone === "deck" || data.zone === "shield" || (data.isFaceDown);
 
-    setDraggingCard({ data, isFaceDown });
+    
 
-    setDragPos(pos);
 
-  };
 
+      
 
 
-  const handleDragMove = (pos) => setDragPos(pos);
 
+    
 
 
-    const handleDragEnd = (data, pos) => {
 
+      // --- インタラクションフック ---
 
 
-      setDraggingCard(null);
 
+    
 
 
-      const element = document.elementFromPoint(pos.x, pos.y);
 
+      const {
 
 
-      if (!element) return;
 
+    
 
 
-  
 
+        selectedCard, setSelectedCard,
 
 
-      const zoneElement = element.closest("[data-zone-id]");
 
+    
 
 
-      if (zoneElement) {
 
+        stackTarget, setStackTarget,
 
 
-        const targetZone = zoneElement.getAttribute("data-zone-id");
 
+    
 
 
-        
 
+        draggingCard, dragPos,
 
 
-        // ★相手への干渉ドロップ (interactionModeがONのときのみ)
 
+    
 
 
-        if (data.isOpponent && interactionMode) {
 
+        performMove,
 
 
-          if (targetZone.startsWith("opponent-")) {
 
+    
 
 
-             const actionType = targetZone.replace("opponent-", "");
 
+        handleDragStart, handleDragMove, handleDragEnd,
 
 
-             // battle, mana, hand, grave, shield など
 
+    
 
 
-             performOpponentActionDirect(data.zone, data.index, actionType);
 
+        handleDeckTap, handleCardTap, handleZoneTap
 
 
-          }
 
+    
 
 
-          return;
 
+      } = useGameInteractions({
 
 
-        }
 
+    
 
 
-  
 
+        performMoveWithData,
 
 
-        // ターゲットがバトルゾーンの場合、カードの上にドロップされたか判定
 
+    
 
 
-        if (targetZone === "battle") {
 
+        performOpponentActionDirect,
 
 
-           const cardElement = element.closest("[data-index]");
 
+    
 
 
-           if (cardElement) {
 
+        interactionMode,
 
 
-             const targetIndex = parseInt(cardElement.getAttribute("data-index"), 10);
 
+    
 
 
-             if (data.zone === "battle" && data.index === targetIndex) return;
 
+        setViewMode,
 
 
-             setSelectedCard({ zone: data.zone, index: data.index, data: data });
 
+    
 
 
-             setStackTarget({ index: targetIndex });
 
+        myDeck,
 
 
-             return;
 
+    
 
 
-           }
 
+        setStackViewCards,
 
 
-        }
 
+    
 
 
-        if (data.zone === targetZone) return;
 
+        setZoomedUrl
 
 
-        performMoveWithData(data, targetZone);
 
+    
 
 
-      }
 
+      });
 
 
-    };
 
-  
+    
 
-  
 
 
+    
 
-  const handleDeckTap = () => {
 
-    if (myDeck.length === 0) return;
 
-    if (selectedCard && selectedCard.zone === "deck") { setSelectedCard(null); return; }
+    
 
-    setSelectedCard({ zone: "deck", index: 0, data: myDeck[0] });
 
-  };
 
-
-
-  const handleCardTap = (e, zone, index, cardData) => {
-
-    if (e) e.stopPropagation();
-
-    if (selectedCard && selectedCard.zone === zone && selectedCard.index === index) { setSelectedCard(null); return; }
-
-    if (selectedCard && zone === "battle") { setStackTarget({ index, data: cardData }); return; }
-
-    if (selectedCard && selectedCard.zone !== zone) { performMove(zone); return; }
-
-    setSelectedCard({ zone, index, data: cardData });
-
-  };
-
-
-
-  const handleZoneTap = (zoneName) => {
-
-    if (selectedCard && selectedCard.zone !== zoneName) performMove(zoneName);
-
-  };
-
-
-
-  const getOpponent = () => isHost ? roomData?.guestData : roomData?.hostData;
+      const getOpponent = () => isHost ? roomData?.guestData : roomData?.hostData;
 
   const opponent = getOpponent();
 
@@ -523,33 +482,15 @@ export default function GameTable() {
 
 
 
-      {stackTarget && (
+      <StackMenu 
+        stackTarget={stackTarget}
+        selectedCard={selectedCard}
+        performStack={performStack}
+        setStackTarget={setStackTarget}
+        setSelectedCard={setSelectedCard}
+      />
 
-        <div style={{ 
 
-          position: "absolute", top: "52%", left: "50%", transform: "translate(-50%, -50%)", 
-
-          zIndex: 600, background: "rgba(0,0,0,0.95)", padding: "10px 15px", borderRadius: "8px", border: "1px solid #007bff", textAlign: "center", whiteSpace: "nowrap"
-
-        }}>
-
-          <p style={{margin: "0 0 10px 0", fontSize:"0.9rem"}}>重ねる</p>
-
-          <div style={{display:"flex", gap:"10px"}}>
-
-            <button className="btn btn-primary" onClick={() => { performStack(selectedCard, stackTarget, "evolve"); setSelectedCard(null); setStackTarget(null); }} style={{fontSize:"0.8rem", padding:"5px 10px"}}>進化/上</button>
-
-            <button className="btn btn-outline" onClick={() => { performStack(selectedCard, stackTarget, "under"); setSelectedCard(null); setStackTarget(null); }} style={{fontSize:"0.8rem", padding:"5px 10px", borderColor:"#555"}}>下</button>
-
-            <button className="btn btn-outline" onClick={() => { performStack(selectedCard, stackTarget, "seal"); setSelectedCard(null); setStackTarget(null); }} style={{fontSize:"0.8rem", padding:"5px 10px", borderColor:"#ff6b6b", color:"#ff6b6b"}}>封印</button>
-
-          </div>
-
-          <button className="btn" onClick={() => setStackTarget(null)} style={{marginTop:"8px", width:"100%", background:"#333", padding:"4px", fontSize:"0.8rem"}}>キャンセル</button>
-
-        </div>
-
-      )}
 
     </div>
 
