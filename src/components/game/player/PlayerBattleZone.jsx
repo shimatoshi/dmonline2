@@ -7,7 +7,7 @@ export const PlayerBattleZone = ({ battleZone, selectedCard, onZoneTap, getDragP
       className="zone-scroll"
       data-zone-id="battle"
       onClick={() => onZoneTap("battle")}
-      style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "flex-start", alignContent: "flex-start", flexWrap: "wrap", gap: "4px", padding: "10px", borderBottom: "1px dashed #222", position: "relative", marginTop: "15px", overflowY: "auto" }}
+      style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", alignContent: "flex-start", flexWrap: "wrap", gap: "4px", padding: "10px", borderBottom: "1px dashed #222", position: "relative", marginTop: "15px", minHeight: "100px" }}
     >
        {battleZone.length === 0 && <span style={{fontSize:"0.8rem", color:"#333"}}>Battle Zone</span>}
        {battleZone.map((card, i) => (

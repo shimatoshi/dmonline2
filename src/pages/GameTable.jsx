@@ -301,7 +301,7 @@ export default function GameTable() {
 
   return (
 
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#0a0a0a", color: "#e0e0e0", userSelect: "none", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#0a0a0a", color: "#e0e0e0", userSelect: "none" }}>
 
       
 

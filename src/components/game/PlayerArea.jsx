@@ -34,9 +34,9 @@ export const PlayerArea = ({
   });
 
   return (
-    <div style={{ flex: 1.2, display: "flex", flexDirection: "column", background: "#0a0a0a", position: "relative" }}>
+    <div style={{ flex: "1 0 auto", display: "flex", flexDirection: "column", background: "#0a0a0a", position: "relative" }}>
       
-      <SideControlMenu 
+      <SideControlMenu  
         onShuffle={onShuffle}
         onViewTemp={() => onViewMode("temp")}
         onToggleInteract={() => onSetInteractionMode(!interactionMode)}
