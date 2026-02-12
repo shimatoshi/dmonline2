@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dm-online-v1';
+const CACHE_NAME = 'dm-online-v2';
 const IMAGE_CACHE_NAME = 'dm-online-images-v1';
 
 // インストール時に最低限のリソースをキャッシュ
@@ -74,6 +74,7 @@ self.addEventListener('fetch', (event) => {
       .then((networkResponse) => {
         // 正常なレスポンスならキャッシュ更新
         if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+          // Cloneしてキャッシュへ
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
@@ -86,12 +87,18 @@ self.addEventListener('fetch', (event) => {
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) return cachedResponse;
           
-          // SPA対応: HTMLリクエストなら index.html のキャッシュを返す
+          // SPA対応: HTMLリクエスト（ナビゲーション）なら index.html のキャッシュを返す
           if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
+            return caches.match('/index.html').then((indexHtml) => {
+                if (indexHtml) return indexHtml;
+                // 万が一 index.html もない場合
+                return new Response('Offline: index.html missing', { status: 503, headers: {'Content-Type': 'text/plain'} });
+            });
           }
           
-          return new Response('Offline', { status: 503 });
+          // その他のリソースが見つからない場合
+          // 画像なら空を返すなどの処理も考えられるが、JS/CSSがないと動かないのでエラーレスポンス
+          return new Response('Offline: Resource missing', { status: 503, statusText: 'Offline', headers: {'Content-Type': 'text/plain'} });
         });
       })
   );
