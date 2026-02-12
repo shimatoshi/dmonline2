@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   build: {
     // Termux環境での安定性のためminify設定を調整
-    // 手動PWAにするため複雑な設定は不要
+    minify: false,
+    sourcemap: false,
   },
   plugins: [
     react(),

@@ -1,25 +1,23 @@
-const CACHE_NAME = 'dmonline2-static-v1';
-const IMAGE_CACHE_NAME = 'dmonline2-images-v1';
+const CACHE_NAME = 'dm-online-v1';
+const IMAGE_CACHE_NAME = 'dm-online-images-v1';
 
-// キャッシュする静的アセット
-// 注意: ビルドごとにハッシュが変わるファイルはここには書かず、動的にキャッシュします
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.ico',
-  '/card_back.jpg'
-];
-
+// インストール時に最低限のリソースをキャッシュ
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      // index.html と vite.svg は最低限キャッシュしておく
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/vite.svg',
+        '/manifest.webmanifest'
+      ]);
     })
   );
   self.skipWaiting();
 });
 
+// 古いキャッシュの削除
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -35,27 +33,33 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// フェッチ処理
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. 画像キャッシュ (/api/image)
-  if (url.pathname.startsWith('/api/image')) {
+  // 1. 画像リクエスト (Cache First)
+  // /api/image や firebasestorage、または画像拡張子
+  if (
+    url.pathname.startsWith('/api/image') ||
+    url.host.includes('firebasestorage') ||
+    event.request.destination === 'image'
+  ) {
+    // console.log('SW: Fetching image', url.href); // デバッグ用
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then((cache) => {
-        return cache.match(event.request).then((response) => {
-          // キャッシュにあればそれを返す
-          if (response) {
-            return response;
+        return cache.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
           }
-          // なければネットワークから取得してキャッシュ
           return fetch(event.request).then((networkResponse) => {
+            // 画像取得成功ならキャッシュに追加
             if (networkResponse && networkResponse.status === 200) {
               cache.put(event.request, networkResponse.clone());
             }
             return networkResponse;
           }).catch(() => {
-            // オフラインで画像がない場合、裏面を返す
-            return caches.match('/card_back.jpg');
+             // オフラインでキャッシュもない場合
+             return new Response('', { status: 404 });
           });
         });
       })
@@ -63,25 +67,32 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. その他のリクエスト (Stale-While-Revalidate 戦略)
-  // まずキャッシュを表示し、裏でネットワークから最新を取得して更新
+  // 2. その他のリクエスト (Network First, falling back to Cache)
+  // 特にJSやCSS、APIリクエストなど
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // 成功したらキャッシュ更新
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+    fetch(event.request)
+      .then((networkResponse) => {
+        // 正常なレスポンスならキャッシュ更新
+        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // オフライン時は何もしない（キャッシュがあればそれが使われる）
-      });
-
-      // キャッシュがあればそれを即座に返す、なければネットワークの結果を待つ
-      return cachedResponse || fetchPromise;
-    })
+      })
+      .catch(() => {
+        // オフライン時
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          
+          // SPA対応: HTMLリクエストなら index.html のキャッシュを返す
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          
+          return new Response('Offline', { status: 503 });
+        });
+      })
   );
 });
