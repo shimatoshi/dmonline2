@@ -123,17 +123,23 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   const toggleStatus = (selectedCard, type) => {
     if (!selectedCard) return;
     const { zone, index } = selectedCard;
+    
+    const isValid = (list, idx) => list && list.length > idx && list[idx];
+
     if (zone === "battle") {
+      if (!isValid(myBattleZone, index)) return;
       const newZone = [...myBattleZone];
       if (type === "tap") newZone[index].isTapped = !newZone[index].isTapped;
       if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
       syncToDB({ battleZone: newZone });
     } else if (zone === "mana") {
+      if (!isValid(myManaZone, index)) return;
       const newZone = [...myManaZone];
       if (type === "tap") newZone[index].isTapped = !newZone[index].isTapped;
       if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
       syncToDB({ manaZone: newZone });
     } else if (zone === "temp") {
+      if (!isValid(myTempZone, index)) return;
       const newZone = [...myTempZone];
       if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
       syncToDB({ tempZone: newZone });
@@ -141,11 +147,15 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   };
 
   const handleQuickTap = (zone, index) => {
+    const isValid = (list, idx) => list && list.length > idx && list[idx];
+
     if (zone === "battle") {
+      if (!isValid(myBattleZone, index)) return;
       const newZone = [...myBattleZone];
       newZone[index].isTapped = !newZone[index].isTapped;
       syncToDB({ battleZone: newZone });
     } else if (zone === "mana") {
+      if (!isValid(myManaZone, index)) return;
       const newZone = [...myManaZone];
       newZone[index].isTapped = !newZone[index].isTapped;
       syncToDB({ manaZone: newZone });

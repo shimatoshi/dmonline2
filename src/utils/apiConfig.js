@@ -10,6 +10,11 @@ export const API_BASE_URL = "https://dmonline2.loophole.site";
 export const getProxyImageUrl = (originalUrl) => {
   if (!originalUrl) return "/card_back.jpg"; // URLがないなら裏面
   
+  if (typeof originalUrl !== 'string') {
+    console.warn("getProxyImageUrl received non-string url:", originalUrl);
+    return "/card_back.jpg";
+  }
+
   // 既にローカル画像("/...")の場合はそのまま返す
   if (originalUrl.startsWith("/")) return originalUrl;
 

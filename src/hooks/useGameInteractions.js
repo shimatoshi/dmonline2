@@ -38,36 +38,43 @@ export const useGameInteractions = ({
   const handleDragMove = (pos) => setDragPos(pos);
 
   const handleDragEnd = (data, pos) => {
-    setDraggingCard(null);
-    const element = document.elementFromPoint(pos.x, pos.y);
-    if (!element) return;
+    try {
+      setDraggingCard(null);
+      
+      if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') return;
 
-    const zoneElement = element.closest("[data-zone-id]");
-    if (zoneElement) {
-      const targetZone = zoneElement.getAttribute("data-zone-id");
+      const element = document.elementFromPoint(pos.x, pos.y);
+      if (!element) return;
 
-      // ★相手への干渉ドロップ (interactionModeがONのときのみ)
-      if (data.isOpponent && interactionMode) {
-        if (targetZone.startsWith("opponent-")) {
-           const actionType = targetZone.replace("opponent-", "");
-           performOpponentActionDirect(data.zone, data.index, actionType);
+      const zoneElement = element.closest("[data-zone-id]");
+      if (zoneElement) {
+        const targetZone = zoneElement.getAttribute("data-zone-id");
+
+        // ★相手への干渉ドロップ (interactionModeがONのときのみ)
+        if (data.isOpponent && interactionMode) {
+          if (targetZone.startsWith("opponent-")) {
+             const actionType = targetZone.replace("opponent-", "");
+             performOpponentActionDirect(data.zone, data.index, actionType);
+          }
+          return;
         }
-        return;
-      }
 
-      // ターゲットがバトルゾーンの場合、カードの上にドロップされたか判定
-      if (targetZone === "battle") {
-         const cardElement = element.closest("[data-index]");
-         if (cardElement) {
-           const targetIndex = parseInt(cardElement.getAttribute("data-index"), 10);
-           if (data.zone === "battle" && data.index === targetIndex) return;
-           setSelectedCard({ zone: data.zone, index: data.index, data: data });
-           setStackTarget({ index: targetIndex });
-           return;
-         }
+        // ターゲットがバトルゾーンの場合、カードの上にドロップされたか判定
+        if (targetZone === "battle") {
+           const cardElement = element.closest("[data-index]");
+           if (cardElement) {
+             const targetIndex = parseInt(cardElement.getAttribute("data-index"), 10);
+             if (data.zone === "battle" && data.index === targetIndex) return;
+             setSelectedCard({ zone: data.zone, index: data.index, data: data });
+             setStackTarget({ index: targetIndex });
+             return;
+           }
+        }
+        if (data.zone === targetZone) return;
+        performMoveWithData(data, targetZone);
       }
-      if (data.zone === targetZone) return;
-      performMoveWithData(data, targetZone);
+    } catch (error) {
+      console.error("Error in handleDragEnd:", error);
     }
   };
 

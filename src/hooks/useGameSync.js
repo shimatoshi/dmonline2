@@ -77,8 +77,9 @@ export const useGameSync = (roomId, user) => {
 
   // データ正規化 (文字列配列をオブジェクト配列に変換など)
   const normalizeZone = (zoneData) => {
-    if (!zoneData) return [];
+    if (!zoneData || !Array.isArray(zoneData)) return [];
     return zoneData.map(item => {
+      if (!item) return { url: "/card_back.jpg", isTapped: false, isFaceDown: true, stack: [], id: generateId() };
       if (typeof item === "string") {
         return { url: item, isTapped: false, isFaceDown: false, stack: [], id: generateId() };
       }

@@ -382,11 +382,12 @@ export default function GameTable() {
       <OpponentArea 
         opponent={opponent} normalizeZone={normalizeZone} 
         onTapCard={(card) => {
-           if (card.stack && card.stack.length > 0) {
+           if (!card) return;
+           if (card.stack && Array.isArray(card.stack) && card.stack.length > 0) {
              setStackViewCards([card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false })));
              setViewMode("stackView");
            } else {
-             setZoomedUrl(card.url);
+             if (card.url) setZoomedUrl(card.url);
            }
         }}
         interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
