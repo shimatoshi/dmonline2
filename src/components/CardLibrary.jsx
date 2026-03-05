@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getProxyImageUrl } from "../utils/apiConfig";
 
-export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, existingTags }) {
+export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, onUpdateUserTags, userCardTags = {}, existingTags }) {
   const [filterTag, setFilterTag] = useState("ALL");
   const [searchName, setSearchName] = useState("");
   const [searchCost, setSearchCost] = useState(""); // ★コスト検索用
@@ -43,9 +43,9 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
   };
 
   const filteredCards = library.filter(card => {
-    const tagMatch = filterTag === "ALL" || (card.tags && card.tags.includes(filterTag));
+    const allTags = [...(card.tags || []), ...(userCardTags[card.id] || [])];
+    const tagMatch = filterTag === "ALL" || allTags.includes(filterTag);
     const nameMatch = card.name && card.name.toLowerCase().includes(searchName.toLowerCase());
-    // ★コスト一致判定（入力がある場合のみ）
     const costMatch = searchCost === "" || (card.cost != null && String(card.cost) === searchCost);
     return tagMatch && nameMatch && costMatch;
   });

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebase";
-import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, updateDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, updateDoc, setDoc, where } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
 
@@ -12,18 +12,20 @@ export default function DeckBuilder() {
   const { deckId } = useParams();
   const navigate = useNavigate();
   const user = auth.currentUser;
-  
+
   // デッキデータ
   const [deckName, setDeckName] = useState("");
   const [deckTags, setDeckTags] = useState([]);
   const [deckCards, setDeckCards] = useState([]);
-  const [deckThumbnail, setDeckThumbnail] = useState(null); // ★追加: サムネイル
+  const [deckThumbnail, setDeckThumbnail] = useState(null);
   const [newDeckTag, setNewDeckTag] = useState("");
-  
+
   const isEditMode = !!deckId;
 
-  // ライブラリデータ
+  // 共有カードライブラリ
   const [library, setLibrary] = useState([]);
+  // ユーザー個別タグ
+  const [userCardTags, setUserCardTags] = useState({});
   const [statusMsg, setStatusMsg] = useState("");
   
   // UI制御
@@ -40,9 +42,18 @@ export default function DeckBuilder() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(collection(db, "users", user.uid, "library"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // 共有カードマスターを購読
+    const cardsQuery = query(collection(db, "cards"), orderBy("createdAt", "desc"));
+    const unsubCards = onSnapshot(cardsQuery, (snapshot) => {
       setLibrary(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    // ユーザー個別タグを購読
+    const tagsQuery = query(collection(db, "users", user.uid, "cardTags"));
+    const unsubTags = onSnapshot(tagsQuery, (snapshot) => {
+      const tags = {};
+      snapshot.docs.forEach(d => { tags[d.id] = d.data().tags || []; });
+      setUserCardTags(tags);
     });
 
     const loadDeck = async () => {
@@ -63,11 +74,15 @@ export default function DeckBuilder() {
     };
     loadDeck();
 
-    return () => unsubscribe();
+    return () => { unsubCards(); unsubTags(); };
   }, [user, deckId, isEditMode, navigate]);
 
   // --- ロジック ---
-  const allExistingTags = Array.from(new Set(library.flatMap(card => card.tags || []))).sort();
+  // 共有タグ + ユーザー個別タグを統合
+  const allExistingTags = Array.from(new Set([
+    ...library.flatMap(card => card.tags || []),
+    ...Object.values(userCardTags).flat()
+  ])).sort();
 
   const addToDeck = (url) => {
     if (deckCards.length >= 40) { alert("デッキは40枚までです"); return; }
@@ -162,17 +177,33 @@ export default function DeckBuilder() {
 
   const handleRegisterCard = async (name, url, tags, cost) => {
     if (!name || !url) return;
-    await addDoc(collection(db, "users", user.uid, "library"), { 
-      name, url, tags, cost: cost || null, createdAt: new Date() 
+    // 共有カードマスターに登録
+    await addDoc(collection(db, "cards"), {
+      name, url, tags, cost: cost || null, createdAt: new Date()
     });
-    setStatusMsg("登録しました");
+    setStatusMsg("共有図鑑に登録しました");
     setTimeout(() => setStatusMsg(""), 2000);
   };
   const handleDeleteCard = async (id) => {
-    if(!window.confirm("図鑑から削除しますか？")) return;
-    await deleteDoc(doc(db, "users", user.uid, "library", id));
+    if(!window.confirm("共有図鑑から削除しますか？")) return;
+    await deleteDoc(doc(db, "cards", id));
+    // ユーザー個別タグも削除
+    try { await deleteDoc(doc(db, "users", user.uid, "cardTags", id)); } catch(e) {}
   };
-  const handleUpdateCard = async (id, newData) => await updateDoc(doc(db, "users", user.uid, "library", id), newData);
+  const handleUpdateCard = async (id, newData) => {
+    // 共有データ（name, url, cost）はcardsコレクションを更新
+    const sharedData = {};
+    if (newData.name !== undefined) sharedData.name = newData.name;
+    if (newData.url !== undefined) sharedData.url = newData.url;
+    if (newData.cost !== undefined) sharedData.cost = newData.cost;
+    if (newData.tags !== undefined) sharedData.tags = newData.tags;
+    if (Object.keys(sharedData).length > 0) {
+      await updateDoc(doc(db, "cards", id), sharedData);
+    }
+  };
+  const handleUpdateUserTags = async (cardId, tags) => {
+    await setDoc(doc(db, "users", user.uid, "cardTags", cardId), { tags });
+  };
 
 
   return (
@@ -298,12 +329,14 @@ export default function DeckBuilder() {
 
         {isLibraryOpen && (
           <div style={{ marginTop: "15px", animation: "fadeIn 0.3s" }}>
-            <CardLibrary 
-              library={library} 
-              onAddToDeck={addToDeck} 
-              onDelete={handleDeleteCard} 
-              onUpdate={handleUpdateCard} 
-              existingTags={allExistingTags} 
+            <CardLibrary
+              library={library}
+              onAddToDeck={addToDeck}
+              onDelete={handleDeleteCard}
+              onUpdate={handleUpdateCard}
+              onUpdateUserTags={handleUpdateUserTags}
+              userCardTags={userCardTags}
+              existingTags={allExistingTags}
             />
           </div>
         )}
