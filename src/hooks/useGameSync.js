@@ -91,24 +91,9 @@ export const useGameSync = (roomId, user) => {
     });
   };
 
-  // DBへの保存 (stateの更新はGameTable側で行われるが、ここでも最新stateをsaveするヘルパーを提供)
   const syncToDB = async (newData) => {
-    // GameTable側でローカルstateを更新した後にこれを呼んでもらう、
-    // またはここでローカルstateも更新するか。
-    // 今回は「退避」が目的なので、GameTableのロジックを変えすぎないよう
-    // 「引数で渡されたデータをDBに書く」機能だけ提供する。
-    // ただし、GameTable内の performMoveWithData は state を直接 set している箇所が多い。
-    // ここは少し工夫が必要。
-    
-    // 一旦、GameTableのロジックは「state更新」と「DB更新」が密結合しているので、
-    // ここでは単純に「最新のstateを保持する」機能と「DB更新関数」を返す。
-    
     const fieldName = isHost ? "hostData" : "guestData";
-    
-    // newData に含まれていないフィールドは現在のstateを使う
-    // ※注意: Reactのstate更新は非同期なので、連続処理で古いstateを参照しないよう注意が必要だが、
-    // 既存コードもその辺りは厳密ではなかったので一旦そのまま移植する。
-    
+
     const dataToSave = {
       hand: newData.hand !== undefined ? newData.hand : myHand,
       battleZone: newData.battleZone !== undefined ? newData.battleZone : myBattleZone,
@@ -138,9 +123,7 @@ export const useGameSync = (roomId, user) => {
     myDeck, setMyDeck,
     myTempZone, setMyTempZone,
     syncToDB,
-    generateId, // ID生成器もエクスポートしておく
-    normalizeZone, // ★追加
-    setSoloSide, // ★追加: 視点切り替え用
-    isSolo: roomData?.guestId === "solo" // ★追加: 1人回しモード判定
+    generateId, normalizeZone, setSoloSide,
+    isSolo: roomData?.guestId === "solo"
   };
 };

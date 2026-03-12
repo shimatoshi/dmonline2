@@ -4,10 +4,10 @@ import { getProxyImageUrl } from "../../utils/apiConfig";
 const CARD_BACK_URL = "/card_back.jpg";
 
 export const OpponentArea = ({
-  opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, 
-  onOpenGrave, onOpenTemp, onOpenHyperspace,
+  opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract,
+  onOpenGrave, onOpenTemp, onOpenHyperspace, onOpenGRZone,
   onDragStart, onDragMove, onDragEnd,
-  revealHand, onToggleRevealHand // ★追加
+  revealHand, onToggleRevealHand
 }) => {
   
   const getZoneDragProps = (zoneName) => (index, data) => ({
@@ -20,6 +20,7 @@ export const OpponentArea = ({
       if (zoneName === "grave") { onOpenGrave(); return; }
       if (zoneName === "temp") { onOpenTemp(); return; }
       if (zoneName === "hyperspace") { onOpenHyperspace(); return; }
+      if (zoneName === "grZone") { onOpenGRZone?.(); return; }
       onTapCard(data);
     },
     onLongPress: () => onTapCard(data)
@@ -43,6 +44,7 @@ export const OpponentArea = ({
   
   const graveCards = opponent?.graveyard || [];
   const hyperspaceCards = opponent?.hyperspace || [];
+  const grZoneCards = opponent?.grZone || [];
   const tempCards = opponent?.tempZone || [];
   const deckCards = opponent?.deck || [];
 
@@ -120,13 +122,21 @@ export const OpponentArea = ({
           </div>
       </div>
 
-      {/* バトルゾーン */}
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", transform: "rotate(180deg)", borderTop: "1px dashed #333" }}>
-         <Zone 
-            type="grid" zoneId="opponent-battle" cards={battleZone} cardSize={{ width: "55px" }}
-            getDragProps={getZoneDragProps("battle")}
-            isOpponent={true}
-         />
+      {/* バトルゾーン + GRゾーン */}
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", transform: "rotate(180deg)", borderTop: "1px dashed #333" }}>
+         <div style={{ flex: 1 }}>
+           <Zone
+              type="grid" zoneId="opponent-battle" cards={battleZone} cardSize={{ width: "55px" }}
+              getDragProps={getZoneDragProps("battle")}
+              isOpponent={true}
+           />
+         </div>
+         {grZoneCards.length > 0 && (
+           <div onClick={() => onOpenGRZone?.()} style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "4px", borderLeft: "1px dashed #4caf50", minWidth: "50px" }}>
+             <Zone type="stack" zoneId="opponent-grZone" cards={grZoneCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("grZone")} isOpponent={true} style={{ border: "1px dashed #4caf50" }} />
+             <span style={{ fontSize: "0.5rem", color: "#4caf50" }}>GR {grZoneCards.length}</span>
+           </div>
+         )}
       </div>
     </div>
   );

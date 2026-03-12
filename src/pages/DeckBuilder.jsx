@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebase";
-import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, updateDoc, setDoc, where } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, updateDoc, setDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
 
