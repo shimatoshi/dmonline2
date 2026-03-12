@@ -32,16 +32,16 @@ export const GameModals = ({
       {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} onToggleFace={toggleTempAll} />}
       
       {viewMode === "opponentGrave" && (
-        <ZoneModal title="相手の墓地" cards={opponent?.graveyard || []} zoneName="opponentGrave" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
+        <ZoneModal title="相手の墓地" cards={opponent?.graveyard || []} zoneName="opponentGrave" isOpponent={true} selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
       )}
       {viewMode === "opponentHyperspace" && (
-        <ZoneModal title="相手の超次元" cards={opponent?.hyperspace || []} zoneName="opponentHyperspace" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
+        <ZoneModal title="相手の超次元" cards={opponent?.hyperspace || []} zoneName="opponentHyperspace" isOpponent={true} selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
       )}
       {viewMode === "opponentGRZone" && (
-        <ZoneModal title="相手のGRゾーン" cards={opponent?.grZone || []} zoneName="opponentGRZone" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
+        <ZoneModal title="相手のGRゾーン" cards={opponent?.grZone || []} zoneName="opponentGRZone" isOpponent={true} selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
       )}
       {viewMode === "opponentTemp" && (
-        <ZoneModal title="相手の一時ゾーン" cards={opponent?.tempZone || []} zoneName="opponentTemp" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardData) => {
+        <ZoneModal title="相手の一時ゾーン" cards={opponent?.tempZone || []} zoneName="opponentTemp" isOpponent={true} selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardData) => {
              const url = typeof cardData === 'object' ? cardData.url : cardData;
              if (!cardData.isFaceDown) setZoomedUrl(url);
         }} />
