@@ -7,6 +7,7 @@ export const GameModals = ({
   myDeck,
   myGraveyard,
   myHyperspace,
+  myGRZone,
   myTempZone,
   opponent,
   stackViewCards,
@@ -27,6 +28,7 @@ export const GameModals = ({
       {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "hyperspace" && <ZoneModal title="超次元ゾーン" cards={myHyperspace} zoneName="hyperspace" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
+      {viewMode === "grZone" && <ZoneModal title="GRゾーン" cards={myGRZone || []} zoneName="grZone" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} onToggleFace={toggleTempAll} />}
       
       {viewMode === "opponentGrave" && (
@@ -34,6 +36,9 @@ export const GameModals = ({
       )}
       {viewMode === "opponentHyperspace" && (
         <ZoneModal title="相手の超次元" cards={opponent?.hyperspace || []} zoneName="opponentHyperspace" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
+      )}
+      {viewMode === "opponentGRZone" && (
+        <ZoneModal title="相手のGRゾーン" cards={opponent?.grZone || []} zoneName="opponentGRZone" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(cardUrl)} />
       )}
       {viewMode === "opponentTemp" && (
         <ZoneModal title="相手の一時ゾーン" cards={opponent?.tempZone || []} zoneName="opponentTemp" selectedCard={null} onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardData) => {

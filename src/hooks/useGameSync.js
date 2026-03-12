@@ -18,6 +18,8 @@ export const useGameSync = (roomId, user) => {
   const [myShields, setMyShields] = useState([]);
   const [myGraveyard, setMyGraveyard] = useState([]);
   const [myHyperspace, setMyHyperspace] = useState([]);
+  const [myGRZone, setMyGRZone] = useState([]);
+  const [myForbiddenCard, setMyForbiddenCard] = useState(null);
   const [myDeck, setMyDeck] = useState([]);
   const [myTempZone, setMyTempZone] = useState([]);
 
@@ -68,7 +70,9 @@ export const useGameSync = (roomId, user) => {
       setMyHand(myData.hand || []);
       setMyShields(myData.shields || []);
       setMyGraveyard(myData.graveyard || []);
-      setMyHyperspace(myData.hyperspace || []); 
+      setMyHyperspace(myData.hyperspace || []);
+      setMyGRZone(myData.grZone || []);
+      setMyForbiddenCard(myData.forbiddenCard || null);
       setMyTempZone(normalizeZone(myData.tempZone));
       setMyBattleZone(normalizeZone(myData.battleZone));
       setMyManaZone(normalizeZone(myData.manaZone));
@@ -111,6 +115,8 @@ export const useGameSync = (roomId, user) => {
       manaZone: newData.manaZone !== undefined ? newData.manaZone : myManaZone,
       graveyard: newData.graveyard !== undefined ? newData.graveyard : myGraveyard,
       hyperspace: newData.hyperspace !== undefined ? newData.hyperspace : myHyperspace,
+      grZone: newData.grZone !== undefined ? newData.grZone : myGRZone,
+      forbiddenCard: newData.forbiddenCard !== undefined ? newData.forbiddenCard : myForbiddenCard,
       shields: newData.shields !== undefined ? newData.shields : myShields,
       deck: newData.deck !== undefined ? newData.deck : myDeck,
       tempZone: newData.tempZone !== undefined ? newData.tempZone : myTempZone,
@@ -126,7 +132,9 @@ export const useGameSync = (roomId, user) => {
     myManaZone, setMyManaZone,
     myShields, setMyShields,
     myGraveyard, setMyGraveyard,
-    myHyperspace, setMyHyperspace, // ★追加
+    myHyperspace, setMyHyperspace,
+    myGRZone, setMyGRZone,
+    myForbiddenCard, setMyForbiddenCard,
     myDeck, setMyDeck,
     myTempZone, setMyTempZone,
     syncToDB,

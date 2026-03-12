@@ -42,6 +42,7 @@ export default function GameTable() {
       isHost, roomData, firstPlayerId,
 
       myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
+      myGRZone, myForbiddenCard,
 
       syncToDB, generateId, normalizeZone,
 
@@ -351,6 +352,8 @@ export default function GameTable() {
 
                 myHyperspace={myHyperspace}
 
+                myGRZone={myGRZone}
+
                 myTempZone={myTempZone}
 
                 opponent={opponent}
@@ -409,7 +412,7 @@ export default function GameTable() {
 
 
 
-                    hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields} graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone} hyperspace={myHyperspace}
+                    hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields} graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone} hyperspace={myHyperspace} grZone={myGRZone}
 
 
 

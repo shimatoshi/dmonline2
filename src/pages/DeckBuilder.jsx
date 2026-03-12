@@ -19,6 +19,13 @@ export default function DeckBuilder() {
   const [deckCards, setDeckCards] = useState([]);
   const [deckThumbnail, setDeckThumbnail] = useState(null);
   const [newDeckTag, setNewDeckTag] = useState("");
+  const [deckSize, setDeckSize] = useState(40);
+
+  // 特殊ゾーン
+  const [hyperCards, setHyperCards] = useState([]);
+  const [grCards, setGrCards] = useState([]);
+  const [forbiddenCard, setForbiddenCard] = useState(null);
+  const [addTarget, setAddTarget] = useState("main"); // "main" | "hyper" | "gr" | "forbidden"
 
   const isEditMode = !!deckId;
 
@@ -65,7 +72,11 @@ export default function DeckBuilder() {
           setDeckName(data.name || "");
           setDeckTags(data.tags || []);
           setDeckCards(data.cards || []);
-          setDeckThumbnail(data.thumbnail || null); // ★読み込み
+          setDeckThumbnail(data.thumbnail || null);
+          setDeckSize(data.deckSize || 40);
+          setHyperCards(data.hyperCards || []);
+          setGrCards(data.grCards || []);
+          setForbiddenCard(data.forbiddenCard || null);
         } else {
           alert("デッキが見つかりません");
           navigate("/decks");
@@ -85,8 +96,18 @@ export default function DeckBuilder() {
   ])).sort();
 
   const addToDeck = (url) => {
-    if (deckCards.length >= 40) { alert("デッキは40枚までです"); return; }
-    setDeckCards([...deckCards, url]);
+    if (addTarget === "hyper") {
+      if (hyperCards.length >= 8) { alert("超次元ゾーンは8枚までです"); return; }
+      setHyperCards([...hyperCards, url]);
+    } else if (addTarget === "gr") {
+      if (grCards.length >= 12) { alert("GRゾーンは12枚までです"); return; }
+      setGrCards([...grCards, url]);
+    } else if (addTarget === "forbidden") {
+      setForbiddenCard(url);
+    } else {
+      if (deckCards.length >= deckSize) { alert(`デッキは${deckSize}枚までです`); return; }
+      setDeckCards([...deckCards, url]);
+    }
   };
 
   const removeFromDeck = (indexToRemove) => {
@@ -103,7 +124,11 @@ export default function DeckBuilder() {
         name: deckName,
         tags: deckTags,
         cards: deckCards,
-        thumbnail: deckThumbnail, // ★保存
+        thumbnail: deckThumbnail,
+        deckSize,
+        hyperCards,
+        grCards,
+        forbiddenCard,
         updatedAt: new Date()
       };
 
@@ -265,9 +290,20 @@ export default function DeckBuilder() {
       <div style={{ position: "sticky", top: "56px", zIndex: 50, background: "#121212", borderBottom: "2px solid #333", boxShadow: "0 4px 6px rgba(0,0,0,0.5)" }}>
         
         <div style={{ padding: "5px 10px", background: "#252525", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#aaa", fontSize: "0.8rem" }}>
-            {deckName || "名称未設定"} ({deckCards.length}/40)
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ color: "#aaa", fontSize: "0.8rem" }}>
+              {deckName || "名称未設定"} ({deckCards.length}/{deckSize})
+            </span>
+            <div style={{ display: "flex", gap: "2px" }}>
+              {[40, 45].map(n => (
+                <button key={n} onClick={() => setDeckSize(n)}
+                  style={{ fontSize: "0.65rem", padding: "1px 5px", borderRadius: "3px", border: "1px solid #555",
+                    background: deckSize === n ? "#007bff" : "transparent", color: deckSize === n ? "#fff" : "#888", cursor: "pointer" }}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={exportImage} disabled={isCapturing} className="btn btn-outline" style={{ fontSize: "0.7rem", padding: "2px 8px", borderColor: "#555", color: "#ddd" }}>
               {isCapturing ? "生成中..." : "📷 画像保存"}
@@ -304,7 +340,7 @@ export default function DeckBuilder() {
                   />
                 </div>
               ))}
-              {[...Array(Math.max(0, 40 - deckCards.length))].map((_, i) => (
+              {[...Array(Math.max(0, deckSize - deckCards.length))].map((_, i) => (
                 <div key={`empty-${i}`} style={{ border: "1px dashed #444", borderRadius: "2px", aspectRatio: "2/3", background: "rgba(255,255,255,0.05)" }}></div>
               ))}
             </div>
@@ -312,8 +348,76 @@ export default function DeckBuilder() {
         )}
       </div>
 
+      {/* 特殊ゾーン */}
+      <div style={{ padding: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+
+        {/* 超次元ゾーン */}
+        <div style={{ background: "#1a1a2e", border: "1px solid #00bfff", borderRadius: "8px", padding: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ color: "#00bfff", fontSize: "0.85rem", fontWeight: "bold" }}>超次元ゾーン ({hyperCards.length}/8)</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "2px", minHeight: "50px" }}>
+            {hyperCards.map((url, i) => (
+              <div key={i} style={{ cursor: "pointer" }} onClick={() => setHyperCards(hyperCards.filter((_, idx) => idx !== i))}>
+                <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "2px", display: "block" }} />
+              </div>
+            ))}
+            {hyperCards.length === 0 && <span style={{ fontSize: "0.7rem", color: "#555", gridColumn: "1/-1", textAlign: "center", padding: "10px" }}>タップで追加</span>}
+          </div>
+        </div>
+
+        {/* GRゾーン */}
+        <div style={{ background: "#1a2e1a", border: "1px solid #4caf50", borderRadius: "8px", padding: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>GRゾーン ({grCards.length}/12)</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "2px", minHeight: "50px" }}>
+            {grCards.map((url, i) => (
+              <div key={i} style={{ cursor: "pointer" }} onClick={() => setGrCards(grCards.filter((_, idx) => idx !== i))}>
+                <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "2px", display: "block" }} />
+              </div>
+            ))}
+            {grCards.length === 0 && <span style={{ fontSize: "0.7rem", color: "#555", gridColumn: "1/-1", textAlign: "center", padding: "10px" }}>タップで追加</span>}
+          </div>
+        </div>
+
+        {/* 禁断 */}
+        <div style={{ background: "#2e1a1a", border: "1px solid #ff5252", borderRadius: "8px", padding: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ color: "#ff5252", fontSize: "0.85rem", fontWeight: "bold" }}>禁断 ({forbiddenCard ? 1 : 0}/1)</span>
+            {forbiddenCard && (
+              <button onClick={() => setForbiddenCard(null)} style={{ fontSize: "0.7rem", color: "#ff5252", background: "none", border: "none", cursor: "pointer" }}>削除</button>
+            )}
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", minHeight: "50px" }}>
+            {forbiddenCard ? (
+              <div style={{ width: "60px", cursor: "pointer" }} onClick={() => setForbiddenCard(null)}>
+                <img src={getProxyImageUrl(forbiddenCard)} style={{ width: "100%", borderRadius: "2px", display: "block" }} />
+              </div>
+            ) : <span style={{ fontSize: "0.7rem", color: "#555", alignSelf: "center" }}>タップで追加</span>}
+          </div>
+        </div>
+      </div>
+
       <div style={{ padding: "10px" }}>
-        
+
+        {/* 追加先選択 */}
+        <div style={{ display: "flex", gap: "6px", marginBottom: "15px", flexWrap: "wrap" }}>
+          <span style={{ color: "#aaa", fontSize: "0.8rem", alignSelf: "center" }}>追加先:</span>
+          {[
+            { key: "main", label: "メインデッキ", color: "#007bff" },
+            { key: "hyper", label: "超次元", color: "#00bfff" },
+            { key: "gr", label: "GR", color: "#4caf50" },
+            { key: "forbidden", label: "禁断", color: "#ff5252" },
+          ].map(t => (
+            <button key={t.key} onClick={() => setAddTarget(t.key)}
+              style={{ fontSize: "0.75rem", padding: "4px 10px", borderRadius: "15px", border: `1px solid ${t.color}`,
+                background: addTarget === t.key ? t.color : "transparent", color: addTarget === t.key ? "#fff" : t.color, cursor: "pointer" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <CardRegister onRegister={handleRegisterCard} existingTags={allExistingTags} />
 
         <hr style={{ margin: "20px 0", borderTop: "1px solid #333" }} />

@@ -36,6 +36,7 @@ export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShu
        {/* 移動ボタン (常に表示) */}
        <button onClick={() => onMove("deckTop")} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#333", color:"white"}}>山札上</button>
        <button onClick={() => onMove("deckBottom")} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#333", color:"white"}}>山札下</button>
+       <button onClick={() => onMove("grZone")} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#2e7d32", color:"white"}}>GR</button>
 
        {/* 状態変更ボタン */}
        {(zone === "battle" || zone === "mana" || zone === "temp") && (

@@ -2,8 +2,9 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
 export const useGameActions = (syncToDB, gameState, generateId, roomId, user) => {
-  const { 
-    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace
+  const {
+    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
+    myGRZone, myForbiddenCard
   } = gameState;
 
   // --- カード移動ロジック ---
@@ -15,10 +16,11 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
     let newHyperspace = [...myHyperspace];
+    let newGRZone = [...myGRZone];
 
     // 取り出し
     if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
-    else if (fromZone === "battle") { 
+    else if (fromZone === "battle") {
       cardObj = newBattle[fromIndex];
       cardUrl = cardObj.url;
       if (cardObj.stack && cardObj.stack.length > 0) {
@@ -33,12 +35,13 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     else if (fromZone === "shield") { cardUrl = newShields[fromIndex]; newShields.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
     else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
-    else if (fromZone === "temp") { 
-      cardObj = newTemp[fromIndex]; 
-      cardUrl = cardObj.url; 
-      newTemp.splice(fromIndex, 1); 
+    else if (fromZone === "temp") {
+      cardObj = newTemp[fromIndex];
+      cardUrl = cardObj.url;
+      newTemp.splice(fromIndex, 1);
     }
     else if (fromZone === "hyperspace") { cardUrl = newHyperspace[fromIndex]; newHyperspace.splice(fromIndex, 1); }
+    else if (fromZone === "grZone") { cardUrl = newGRZone[fromIndex]; newGRZone.splice(fromIndex, 1); }
 
     if (!cardUrl && !cardObj) return;
 
@@ -55,11 +58,12 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     else if (targetZoneName === "deckBottom") newDeck.push(cardUrl);
     else if (targetZoneName === "temp") newTemp.push(newObj);
     else if (targetZoneName === "hyperspace") newHyperspace.push(cardUrl);
+    else if (targetZoneName === "grZone") { newGRZone.push(cardUrl); newGRZone.sort(() => Math.random() - 0.5); }
 
-    syncToDB({ 
-      hand: newHand, battleZone: newBattle, manaZone: newMana, 
+    syncToDB({
+      hand: newHand, battleZone: newBattle, manaZone: newMana,
       graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp,
-      hyperspace: newHyperspace
+      hyperspace: newHyperspace, grZone: newGRZone
     });
   };
 
@@ -74,12 +78,13 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
     let newHyperspace = [...myHyperspace];
+    let newGRZone = [...myGRZone];
 
     let cardUrl = "";
     let sourceStack = [];
 
     if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
-    else if (fromZone === "battle") { 
+    else if (fromZone === "battle") {
         const cardObj = newBattle[fromIndex];
         cardUrl = cardObj.url;
         sourceStack = cardObj.stack || [];
@@ -87,6 +92,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     } else if (fromZone === "mana") { cardUrl = newMana[fromIndex].url; newMana.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
     else if (fromZone === "hyperspace") { cardUrl = newHyperspace[fromIndex]; newHyperspace.splice(fromIndex, 1); }
+    else if (fromZone === "grZone") { cardUrl = newGRZone[fromIndex]; newGRZone.splice(fromIndex, 1); }
     else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
     else if (fromZone === "temp") { cardUrl = newTemp[fromIndex].url; newTemp.splice(fromIndex, 1); }
 
@@ -112,10 +118,10 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     newBattle[adjustedToIndex] = targetCard;
 
-    syncToDB({ 
-        hand: newHand, battleZone: newBattle, manaZone: newMana, 
+    syncToDB({
+        hand: newHand, battleZone: newBattle, manaZone: newMana,
         graveyard: newGrave, shields: newShields, deck: newDeck, tempZone: newTemp,
-        hyperspace: newHyperspace
+        hyperspace: newHyperspace, grZone: newGRZone
     });
   };
 
@@ -208,21 +214,50 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     if (myDeck.length === 0 && myHand.length === 0) { alert("デッキがありません"); return; }
     if (!window.confirm("ゲームを開始しますか？")) return;
 
-    const allCards = [
+    // メインデッキのカードのみ集める（超次元・GR・禁断は除外）
+    const allMainCards = [
       ...myDeck, ...myHand, ...myShields, ...myGraveyard, ...myTempZone.map(c => c.url),
-      ...myBattleZone.map(c => c.url), ...myManaZone.map(c => c.url)
+      ...myBattleZone.filter(c => !myForbiddenCard || c.url !== myForbiddenCard).map(c => {
+        // スタック内のカードも回収（封印されたカード含む）、ただし禁断カード自体は除外
+        const stackUrls = (c.stack || []).filter(u => u !== myForbiddenCard);
+        return [c.url !== myForbiddenCard ? c.url : null, ...stackUrls].filter(Boolean);
+      }).flat(),
+      ...myManaZone.map(c => c.url)
     ];
-    if (allCards.length < 10) { alert("カード不足"); return; }
+    if (allMainCards.length < 10) { alert("カード不足"); return; }
 
-    const shuffled = allCards.sort(() => Math.random() - 0.5);
+    const shuffled = allMainCards.sort(() => Math.random() - 0.5);
     const newShields = shuffled.slice(0, 5);
     const newHand = shuffled.slice(5, 10);
     const newDeck = shuffled.slice(10);
 
-    syncToDB({ 
-      deck: newDeck, hand: newHand, shields: newShields, 
-      battleZone: [], manaZone: [], graveyard: [], tempZone: [],
-      hyperspace: myHyperspace
+    // 禁断カード処理: バトルゾーンに配置し、山札の上から6枚を封印として載せる
+    let finalDeck = [...newDeck];
+    let finalBattle = [];
+
+    if (myForbiddenCard) {
+      const sealCount = Math.min(6, finalDeck.length);
+      const sealCards = finalDeck.splice(0, sealCount);
+
+      if (sealCards.length > 0) {
+        finalBattle.push({
+          url: sealCards[0],
+          isTapped: false,
+          isFaceDown: true,
+          stack: [...sealCards.slice(1), myForbiddenCard],
+          id: generateId()
+        });
+      } else {
+        finalBattle.push({
+          url: myForbiddenCard, isTapped: false, isFaceDown: false, stack: [], id: generateId()
+        });
+      }
+    }
+
+    syncToDB({
+      deck: finalDeck, hand: newHand, shields: newShields,
+      battleZone: finalBattle, manaZone: [], graveyard: [], tempZone: [],
+      hyperspace: myHyperspace, grZone: myGRZone, forbiddenCard: myForbiddenCard
     });
   };
 

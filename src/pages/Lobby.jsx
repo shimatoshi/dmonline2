@@ -67,15 +67,19 @@ export default function Lobby() {
     return () => { unsubRooms(); unsubDecks(); unsubHost(); unsubGuest(); };
   }, [user]);
 
-  const getSelectedDeckCards = () => {
-    const deck = myDecks.find(d => d.id === selectedDeckId);
-    return deck ? deck.cards : [];
+  const getSelectedDeckData = (deckId) => {
+    const deck = myDecks.find(d => d.id === deckId);
+    if (!deck) return { cards: [], hyperCards: [], grCards: [], forbiddenCard: null };
+    return {
+      cards: deck.cards || [],
+      hyperCards: deck.hyperCards || [],
+      grCards: deck.grCards || [],
+      forbiddenCard: deck.forbiddenCard || null,
+    };
   };
 
-  const getSelectedOpponentDeckCards = () => {
-    const deck = myDecks.find(d => d.id === selectedOpponentDeckId);
-    return deck ? deck.cards : [];
-  };
+  const getSelectedDeckCards = () => getSelectedDeckData(selectedDeckId).cards;
+  const getSelectedOpponentDeckCards = () => getSelectedDeckData(selectedOpponentDeckId).cards;
 
   const createRoom = async () => {
     if (!user) return;
@@ -89,7 +93,10 @@ export default function Lobby() {
         guestId: null,
         status: "waiting",
         createdAt: new Date(),
-        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [],
+          hyperspace: getSelectedDeckData(selectedDeckId).hyperCards,
+          grZone: getSelectedDeckData(selectedDeckId).grCards,
+          forbiddenCard: getSelectedDeckData(selectedDeckId).forbiddenCard }
       });
       navigate(`/game/${docRef.id}`);
     } catch (error) {
@@ -103,8 +110,10 @@ export default function Lobby() {
     const deckCards = getSelectedDeckCards();
     const opponentDeckCards = getSelectedOpponentDeckCards();
     if (deckCards.length === 0) { alert("デッキを選択してください"); return; }
-    // 相手デッキは必須ではないが、一応チェック
     if (opponentDeckCards.length === 0) { alert("相手用デッキを選択してください"); return; }
+
+    const hostExtra = getSelectedDeckData(selectedDeckId);
+    const guestExtra = getSelectedDeckData(selectedOpponentDeckId);
 
     try {
       const docRef = await addDoc(collection(db, "rooms"), {
@@ -114,8 +123,10 @@ export default function Lobby() {
         guestName: "1人回しモード",
         status: "playing",
         createdAt: new Date(),
-        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] },
-        guestData: { deck: opponentDeckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [],
+          hyperspace: hostExtra.hyperCards, grZone: hostExtra.grCards, forbiddenCard: hostExtra.forbiddenCard },
+        guestData: { deck: opponentDeckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [],
+          hyperspace: guestExtra.hyperCards, grZone: guestExtra.grCards, forbiddenCard: guestExtra.forbiddenCard }
       });
       navigate(`/game/${docRef.id}`);
     } catch (error) {
@@ -135,7 +146,10 @@ export default function Lobby() {
         guestId: user.uid,
         guestName: getUserName(), // ★名前を使用
         status: "playing",
-        guestData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        guestData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [],
+          hyperspace: getSelectedDeckData(selectedDeckId).hyperCards,
+          grZone: getSelectedDeckData(selectedDeckId).grCards,
+          forbiddenCard: getSelectedDeckData(selectedDeckId).forbiddenCard }
       });
       navigate(`/game/${roomId}`);
     } catch (error) {

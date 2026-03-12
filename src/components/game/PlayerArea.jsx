@@ -4,8 +4,8 @@ import { PlayerBattleZone } from "./player/PlayerBattleZone";
 import { PlayerManaZone } from "./player/PlayerManaZone";
 import { PlayerUtilityRow } from "./player/PlayerUtilityRow";
 
-export const PlayerArea = ({ 
-  hand, battleZone, manaZone, shields, graveyard, deck, tempZone, hyperspace,
+export const PlayerArea = ({
+  hand, battleZone, manaZone, shields, graveyard, deck, tempZone, hyperspace, grZone,
   selectedCard, interactionMode,
   onZoneTap, onCardTap, onQuickTap, onDeckTap, onDrawCard, onViewMode, 
   onSetup, onStartTurn, onEndTurn, onShuffle, onSetInteractionMode,
@@ -51,11 +51,13 @@ export const PlayerArea = ({
          <button className="btn btn-primary" onClick={onStartTurn} style={{ fontSize: "0.7rem", padding: "2px 6px", border: "1px solid #007bff", boxShadow: "0 2px 4px black", color: "white" }}>⚡開始</button>
       </div>
 
-      <PlayerBattleZone 
-        battleZone={battleZone} 
-        selectedCard={selectedCard} 
-        onZoneTap={onZoneTap} 
-        getDragProps={getDragProps} 
+      <PlayerBattleZone
+        battleZone={battleZone}
+        grZone={grZone}
+        selectedCard={selectedCard}
+        onZoneTap={onZoneTap}
+        onViewMode={onViewMode}
+        getDragProps={getDragProps}
       />
 
       <PlayerUtilityRow 
