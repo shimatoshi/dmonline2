@@ -11,6 +11,7 @@ const DeckList = lazy(() => import("./pages/DeckList"));
 const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
 const BBS = lazy(() => import("./pages/BBS"));
 const BBSThread = lazy(() => import("./pages/BBSThread"));
+const CardLibraryPage = lazy(() => import("./pages/CardLibraryPage"));
 const GameTable = lazy(() => import("./pages/GameTable"));
 const Profile = lazy(() => import("./pages/Profile"));
 
@@ -45,6 +46,7 @@ function App() {
         <nav style={{ fontSize: "0.85rem", display: "flex", gap: "12px", alignItems: "center" }}>
           <Link to="/" style={{ color: "#e0e0e0", textDecoration: "none" }}>ロビー</Link>
           <Link to="/decks" style={{ color: "#e0e0e0", textDecoration: "none" }}>デッキ</Link>
+          <Link to="/library" style={{ color: "#e0e0e0", textDecoration: "none" }}>図鑑</Link>
           <Link to="/bbs" style={{ color: "#e0e0e0", textDecoration: "none" }}>掲示板</Link>
           <Link to="/profile" style={{ color: "#e0e0e0", textDecoration: "none" }}>設定</Link>
           <button onClick={handleLogout} style={{ background: "#333", color: "#aaa", border: "1px solid #555", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontSize: "0.75rem" }}>ログアウト</button>
@@ -57,6 +59,7 @@ function App() {
           <Route path="/decks" element={<DeckList />} />
           <Route path="/deck/new" element={<DeckBuilder />} />
           <Route path="/deck/edit/:deckId" element={<DeckBuilder />} />
+          <Route path="/library" element={<CardLibraryPage />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/bbs" element={<BBS />} />
           <Route path="/bbs/thread/:threadId" element={<BBSThread />} />

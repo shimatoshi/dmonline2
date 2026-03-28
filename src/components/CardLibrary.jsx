@@ -148,7 +148,7 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
           // 通常表示
           return (
             <div key={card.id} style={{ background: "#252525", borderRadius: "8px", overflow: "hidden", border: "1px solid #333", display: "flex", flexDirection: "column" }}>
-              <div style={{ position: "relative", cursor: "pointer", flex: 1 }} onClick={() => onAddToDeck(card.url)}>
+              <div style={{ position: "relative", cursor: onAddToDeck ? "pointer" : "default", flex: 1 }} onClick={() => onAddToDeck?.(card.url)}>
                 <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", aspectRatio: "2/3" }} />
 
                 {card.cost && <div className="badge badge-cost">{card.cost}</div>}
