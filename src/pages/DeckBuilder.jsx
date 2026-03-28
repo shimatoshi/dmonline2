@@ -306,9 +306,7 @@ export default function DeckBuilder() {
                 onClick={() => setHyperspaceCards(hyperspaceCards.filter((_, j) => j !== i))}>
                 <img src={getProxyImageUrl(hsCard.url)} style={{ width: "60px", borderRadius: "3px", border: "1px solid #00bfff" }} />
                 {hsCard.faces && hsCard.faces.length > 1 && (
-                  <div style={{ position: "absolute", top: "2px", right: "2px", background: "#00bfff", color: "#000", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.65rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    {hsCard.faces.length}
-                  </div>
+                  <div className="badge badge-faces" style={{ top: "2px", right: "2px" }}>{hsCard.faces.length}</div>
                 )}
               </div>
             ))}

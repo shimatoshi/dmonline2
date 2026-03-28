@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { getProxyImageUrl } from "../utils/apiConfig";
 
 export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, existingTags }) {
@@ -42,13 +42,12 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
     }
   };
 
-  const filteredCards = library.filter(card => {
+  const filteredCards = useMemo(() => library.filter(card => {
     const tagMatch = filterTag === "ALL" || (card.tags && card.tags.includes(filterTag));
     const nameMatch = card.name && card.name.toLowerCase().includes(searchName.toLowerCase());
-    // ★コスト一致判定（入力がある場合のみ）
     const costMatch = searchCost === "" || (card.cost != null && String(card.cost) === searchCost);
     return tagMatch && nameMatch && costMatch;
-  });
+  }), [library, filterTag, searchName, searchCost]);
 
   return (
     <div className="card-box" style={{ border: "none", padding: 0, background: "transparent" }}>
@@ -150,30 +149,11 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
           return (
             <div key={card.id} style={{ background: "#252525", borderRadius: "8px", overflow: "hidden", border: "1px solid #333", display: "flex", flexDirection: "column" }}>
               <div style={{ position: "relative", cursor: "pointer", flex: 1 }} onClick={() => onAddToDeck(card.url)}>
-                <img src={getProxyImageUrl(card.url)} alt={card.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", aspectRatio: "2/3" }} />
-                
-                {/* ★コストバッジ (コストが設定されている場合のみ) */}
-                {card.cost && (
-                  <div style={{
-                    position: "absolute", top: "4px", left: "4px",
-                    width: "24px", height: "24px", borderRadius: "50%",
-                    background: "#ffd700", color: "#333", border: "2px solid #333",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: "bold", fontSize: "0.8rem", zIndex: 5
-                  }}>
-                    {card.cost}
-                  </div>
-                )}
+                <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", aspectRatio: "2/3" }} />
 
-                {/* 超次元面数バッジ */}
+                {card.cost && <div className="badge badge-cost">{card.cost}</div>}
                 {card.faces && card.faces.length > 1 && (
-                  <div style={{
-                    position: "absolute", top: "4px", right: "4px",
-                    width: "22px", height: "22px", borderRadius: "50%",
-                    background: "#00bfff", color: "#000", border: "1px solid #333",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: "bold", fontSize: "0.7rem", zIndex: 5
-                  }}>
+                  <div className="badge badge-faces" style={{ top: "4px", right: "4px", width: "22px", height: "22px", fontSize: "0.7rem", border: "1px solid #333", zIndex: 5 }}>
                     {card.faces.length}
                   </div>
                 )}
