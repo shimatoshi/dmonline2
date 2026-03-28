@@ -5,7 +5,9 @@ export default function CardRegister({ onRegister, existingTags }) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [cost, setCost] = useState(""); // ★コスト追加
-  
+  const [extraFaces, setExtraFaces] = useState([""]); // 超次元用：追加面URL
+  const [showFaces, setShowFaces] = useState(false); // 面入力エリア表示
+
   const [selectedTags, setSelectedTags] = useState([]);
   const [manualTag, setManualTag] = useState("");
   const [selectedCivs, setSelectedCivs] = useState([]);
@@ -61,12 +63,18 @@ export default function CardRegister({ onRegister, existingTags }) {
       finalTags.push(manualTag.trim());
     }
 
+    // faces配列を構築 (メインURL + 入力された追加面)
+    const validExtraFaces = extraFaces.filter(f => f.trim());
+    const faces = validExtraFaces.length > 0 ? [url, ...validExtraFaces] : null;
+
     // コストを含めて親コンポーネントへ渡す
-    onRegister(name, url, Array.from(new Set(finalTags)), cost);
-    
+    onRegister(name, url, Array.from(new Set(finalTags)), cost, faces);
+
     setName("");
     setUrl("");
     setCost("");
+    setExtraFaces([""]);
+    setShowFaces(false);
     setSelectedTags([]);
     setSelectedCivs([]);
     setManualTag("");
@@ -104,6 +112,47 @@ export default function CardRegister({ onRegister, existingTags }) {
             style={{ flex: 1 }}
           />
         </div>
+      </div>
+
+      {/* 超次元カード面設定 */}
+      <div style={{ marginBottom: "15px" }}>
+        <button
+          onClick={() => setShowFaces(!showFaces)}
+          style={{ fontSize: "0.8rem", background: "none", border: "1px solid #00bfff", color: "#00bfff", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}
+        >
+          {showFaces ? "▲ 超次元面を閉じる" : "＋ 超次元カード（複数面）"}
+        </button>
+
+        {showFaces && (
+          <div style={{ marginTop: "10px", padding: "10px", background: "#1a2a3a", borderRadius: "6px", border: "1px solid #00bfff" }}>
+            <p style={{ fontSize: "0.8rem", color: "#00bfff", margin: "0 0 8px 0" }}>追加面のURL（覚醒・リンク先など）:</p>
+            {extraFaces.map((face, i) => (
+              <div key={i} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
+                <input
+                  className="input-field"
+                  placeholder={`面${i + 2}のURL`}
+                  value={face}
+                  onChange={(e) => {
+                    const newFaces = [...extraFaces];
+                    newFaces[i] = e.target.value;
+                    setExtraFaces(newFaces);
+                  }}
+                  style={{ flex: 1 }}
+                />
+                {extraFaces.length > 1 && (
+                  <button onClick={() => setExtraFaces(extraFaces.filter((_, j) => j !== i))}
+                    style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: "1rem" }}>×</button>
+                )}
+              </div>
+            ))}
+            {extraFaces.length < 3 && (
+              <button onClick={() => setExtraFaces([...extraFaces, ""])}
+                style={{ fontSize: "0.75rem", background: "none", border: "1px dashed #555", color: "#aaa", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}>
+                ＋ 面を追加（最大4面）
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 文明選択 */}

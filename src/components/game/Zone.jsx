@@ -121,6 +121,12 @@ export const Zone = ({
                      {cardData.stack.length + 1}
                    </div>
                  )}
+                 {/* 超次元面バッジ */}
+                 {cardData.faces && cardData.faces.length > 1 && (
+                   <div style={{position:"absolute", bottom:-3, right:-3, background:"#00bfff", color:"#000", borderRadius:"50%", width:"16px", height:"16px", fontSize:"0.6rem", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:"bold", pointerEvents:"none"}}>
+                     {cardData.faces.length}
+                   </div>
+                 )}
                </div>
              </DraggableCard>
            );

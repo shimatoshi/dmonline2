@@ -72,9 +72,19 @@ export default function Lobby() {
     return deck ? deck.cards : [];
   };
 
+  const getSelectedDeckHyperspace = () => {
+    const deck = myDecks.find(d => d.id === selectedDeckId);
+    return deck?.hyperspaceCards || [];
+  };
+
   const getSelectedOpponentDeckCards = () => {
     const deck = myDecks.find(d => d.id === selectedOpponentDeckId);
     return deck ? deck.cards : [];
+  };
+
+  const getSelectedOpponentDeckHyperspace = () => {
+    const deck = myDecks.find(d => d.id === selectedOpponentDeckId);
+    return deck?.hyperspaceCards || [];
   };
 
   const createRoom = async () => {
@@ -89,7 +99,7 @@ export default function Lobby() {
         guestId: null,
         status: "waiting",
         createdAt: new Date(),
-        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedDeckHyperspace() }
       });
       navigate(`/game/${docRef.id}`);
     } catch (error) {
@@ -103,7 +113,6 @@ export default function Lobby() {
     const deckCards = getSelectedDeckCards();
     const opponentDeckCards = getSelectedOpponentDeckCards();
     if (deckCards.length === 0) { alert("デッキを選択してください"); return; }
-    // 相手デッキは必須ではないが、一応チェック
     if (opponentDeckCards.length === 0) { alert("相手用デッキを選択してください"); return; }
 
     try {
@@ -114,8 +123,8 @@ export default function Lobby() {
         guestName: "1人回しモード",
         status: "playing",
         createdAt: new Date(),
-        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] },
-        guestData: { deck: opponentDeckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedDeckHyperspace() },
+        guestData: { deck: opponentDeckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedOpponentDeckHyperspace() }
       });
       navigate(`/game/${docRef.id}`);
     } catch (error) {
@@ -135,7 +144,7 @@ export default function Lobby() {
         guestId: user.uid,
         guestName: getUserName(), // ★名前を使用
         status: "playing",
-        guestData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [] }
+        guestData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedDeckHyperspace() }
       });
       navigate(`/game/${roomId}`);
     } catch (error) {

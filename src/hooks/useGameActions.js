@@ -9,22 +9,24 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   // --- カード移動ロジック ---
   const performMoveWithData = (sourceData, targetZoneName) => {
     const { zone: fromZone, index: fromIndex } = sourceData;
-    
+
     let cardUrl = "";
     let cardObj = null;
+    let cardFaces = null; // 超次元カードのfaces保持用
     let newHand = [...myHand], newBattle = [...myBattleZone], newMana = [...myManaZone];
     let newGrave = [...myGraveyard], newShields = [...myShields], newDeck = [...myDeck], newTemp = [...myTempZone];
     let newHyperspace = [...myHyperspace];
 
     // 取り出し
     if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
-    else if (fromZone === "battle") { 
+    else if (fromZone === "battle") {
       cardObj = newBattle[fromIndex];
       cardUrl = cardObj.url;
+      cardFaces = cardObj.faces || null;
       if (cardObj.stack && cardObj.stack.length > 0) {
         const nextCardUrl = cardObj.stack[0];
         const newStack = cardObj.stack.slice(1);
-        newBattle[fromIndex] = { ...cardObj, url: nextCardUrl, stack: newStack, isTapped: false };
+        newBattle[fromIndex] = { ...cardObj, url: nextCardUrl, stack: newStack, isTapped: false, faces: null };
       } else {
         newBattle.splice(fromIndex, 1);
       }
@@ -33,19 +35,28 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     else if (fromZone === "shield") { cardUrl = newShields[fromIndex]; newShields.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
     else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
-    else if (fromZone === "temp") { 
-      cardObj = newTemp[fromIndex]; 
-      cardUrl = cardObj.url; 
-      newTemp.splice(fromIndex, 1); 
+    else if (fromZone === "temp") {
+      cardObj = newTemp[fromIndex];
+      cardUrl = cardObj.url;
+      newTemp.splice(fromIndex, 1);
     }
-    else if (fromZone === "hyperspace") { cardUrl = newHyperspace[fromIndex]; newHyperspace.splice(fromIndex, 1); }
+    else if (fromZone === "hyperspace") {
+      const hsCard = newHyperspace[fromIndex];
+      if (typeof hsCard === 'object') {
+        cardUrl = hsCard.url;
+        cardFaces = hsCard.faces || null;
+      } else {
+        cardUrl = hsCard;
+      }
+      newHyperspace.splice(fromIndex, 1);
+    }
 
     if (!cardUrl && !cardObj) return;
 
     // 追加
     const isTemp = targetZoneName === "temp";
-    const newObj = { url: cardUrl, isTapped: false, isFaceDown: isTemp, stack: [], id: generateId() };
-    
+    const newObj = { url: cardUrl, isTapped: false, isFaceDown: isTemp, stack: [], id: generateId(), ...(cardFaces ? { faces: cardFaces } : {}) };
+
     if (targetZoneName === "battle") newBattle.push(newObj);
     else if (targetZoneName === "mana") newMana.push(newObj);
     else if (targetZoneName === "hand") newHand.push(cardUrl);
@@ -54,7 +65,13 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     else if (targetZoneName === "deckTop") newDeck.unshift(cardUrl);
     else if (targetZoneName === "deckBottom") newDeck.push(cardUrl);
     else if (targetZoneName === "temp") newTemp.push(newObj);
-    else if (targetZoneName === "hyperspace") newHyperspace.push(cardUrl);
+    else if (targetZoneName === "hyperspace") {
+      if (cardFaces) {
+        newHyperspace.push({ url: cardUrl, faces: cardFaces });
+      } else {
+        newHyperspace.push(cardUrl);
+      }
+    }
 
     syncToDB({ 
       hand: newHand, battleZone: newBattle, manaZone: newMana, 
@@ -79,14 +96,18 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     let sourceStack = [];
 
     if (fromZone === "hand") { cardUrl = newHand[fromIndex]; newHand.splice(fromIndex, 1); }
-    else if (fromZone === "battle") { 
+    else if (fromZone === "battle") {
         const cardObj = newBattle[fromIndex];
         cardUrl = cardObj.url;
         sourceStack = cardObj.stack || [];
         newBattle.splice(fromIndex, 1);
     } else if (fromZone === "mana") { cardUrl = newMana[fromIndex].url; newMana.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = newGrave[fromIndex]; newGrave.splice(fromIndex, 1); }
-    else if (fromZone === "hyperspace") { cardUrl = newHyperspace[fromIndex]; newHyperspace.splice(fromIndex, 1); }
+    else if (fromZone === "hyperspace") {
+        const hsCard = newHyperspace[fromIndex];
+        cardUrl = typeof hsCard === 'object' ? hsCard.url : hsCard;
+        newHyperspace.splice(fromIndex, 1);
+    }
     else if (fromZone === "deck") { cardUrl = newDeck[fromIndex]; newDeck.splice(fromIndex, 1); }
     else if (fromZone === "temp") { cardUrl = newTemp[fromIndex].url; newTemp.splice(fromIndex, 1); }
 
@@ -233,8 +254,28 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     syncToDB({ tempZone: newZone });
   };
 
+  // --- 超次元カード：面チェンジ ---
+  const changeFace = (selectedCard, newFaceUrl) => {
+    if (!selectedCard) return;
+    const { zone, index } = selectedCard;
+
+    if (zone === "battle") {
+      const newZone = [...myBattleZone];
+      newZone[index] = { ...newZone[index], url: newFaceUrl };
+      syncToDB({ battleZone: newZone });
+    } else if (zone === "hyperspace") {
+      const newZone = [...myHyperspace];
+      const card = newZone[index];
+      if (typeof card === 'object') {
+        newZone[index] = { ...card, url: newFaceUrl };
+      }
+      syncToDB({ hyperspace: newZone });
+    }
+  };
+
   return {
     performMoveWithData, performStack, toggleStatus, handleQuickTap,
-    startTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll
+    startTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
+    changeFace
   };
 };

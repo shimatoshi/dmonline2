@@ -154,14 +154,27 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
                 
                 {/* ★コストバッジ (コストが設定されている場合のみ) */}
                 {card.cost && (
-                  <div style={{ 
-                    position: "absolute", top: "4px", left: "4px", 
-                    width: "24px", height: "24px", borderRadius: "50%", 
+                  <div style={{
+                    position: "absolute", top: "4px", left: "4px",
+                    width: "24px", height: "24px", borderRadius: "50%",
                     background: "#ffd700", color: "#333", border: "2px solid #333",
-                    display: "flex", alignItems: "center", justifyContent: "center", 
-                    fontWeight: "bold", fontSize: "0.8rem", zIndex: 5 
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: "bold", fontSize: "0.8rem", zIndex: 5
                   }}>
                     {card.cost}
+                  </div>
+                )}
+
+                {/* 超次元面数バッジ */}
+                {card.faces && card.faces.length > 1 && (
+                  <div style={{
+                    position: "absolute", top: "4px", right: "4px",
+                    width: "22px", height: "22px", borderRadius: "50%",
+                    background: "#00bfff", color: "#000", border: "1px solid #333",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: "bold", fontSize: "0.7rem", zIndex: 5
+                  }}>
+                    {card.faces.length}
                   </div>
                 )}
 

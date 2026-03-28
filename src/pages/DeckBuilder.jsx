@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, updateDoc, setDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
-import html2canvas from "html2canvas";
+// html2canvasは使用時に動的importする
 
 import CardRegister from "../components/CardRegister";
 import CardLibrary from "../components/CardLibrary";
@@ -18,6 +18,8 @@ export default function DeckBuilder() {
   const [deckTags, setDeckTags] = useState([]);
   const [deckCards, setDeckCards] = useState([]);
   const [deckThumbnail, setDeckThumbnail] = useState(null); // ★追加: サムネイル
+  const [hyperspaceCards, setHyperspaceCards] = useState([]); // 超次元カード
+  const [addToHyperspace, setAddToHyperspace] = useState(false); // 超次元追加モード
   const [newDeckTag, setNewDeckTag] = useState("");
   
   const isEditMode = !!deckId;
@@ -54,6 +56,7 @@ export default function DeckBuilder() {
           setDeckName(data.name || "");
           setDeckTags(data.tags || []);
           setDeckCards(data.cards || []);
+          setHyperspaceCards(data.hyperspaceCards || []);
           setDeckThumbnail(data.thumbnail || null); // ★読み込み
         } else {
           alert("デッキが見つかりません");
@@ -70,6 +73,14 @@ export default function DeckBuilder() {
   const allExistingTags = Array.from(new Set(library.flatMap(card => card.tags || []))).sort();
 
   const addToDeck = (url) => {
+    if (addToHyperspace) {
+      // 超次元ゾーンに追加: ライブラリからfaces情報を取得
+      if (hyperspaceCards.length >= 8) { alert("超次元は8枚までです"); return; }
+      const libCard = library.find(c => c.url === url);
+      const faces = libCard?.faces || [url];
+      setHyperspaceCards([...hyperspaceCards, { url, faces }]);
+      return;
+    }
     if (deckCards.length >= 40) { alert("デッキは40枚までです"); return; }
     setDeckCards([...deckCards, url]);
   };
@@ -88,6 +99,7 @@ export default function DeckBuilder() {
         name: deckName,
         tags: deckTags,
         cards: deckCards,
+        hyperspaceCards: hyperspaceCards, // 超次元カード
         thumbnail: deckThumbnail, // ★保存
         updatedAt: new Date()
       };
@@ -126,6 +138,7 @@ export default function DeckBuilder() {
       try {
         setStatusMsg("📸 撮影中...");
         
+        const { default: html2canvas } = await import("html2canvas");
         const canvas = await html2canvas(deckGridRef.current, {
           useCORS: true, // これがないと外部画像は描画されない
           allowTaint: false, // Taint許可するとダウンロードできなくなるのでfalse
@@ -160,11 +173,11 @@ export default function DeckBuilder() {
     }
   };
 
-  const handleRegisterCard = async (name, url, tags, cost) => {
+  const handleRegisterCard = async (name, url, tags, cost, faces) => {
     if (!name || !url) return;
-    await addDoc(collection(db, "users", user.uid, "library"), { 
-      name, url, tags, cost: cost || null, createdAt: new Date() 
-    });
+    const cardData = { name, url, tags, cost: cost || null, createdAt: new Date() };
+    if (faces && faces.length > 1) cardData.faces = faces;
+    await addDoc(collection(db, "users", user.uid, "library"), cardData);
     setStatusMsg("登録しました");
     setTimeout(() => setStatusMsg(""), 2000);
   };
@@ -281,20 +294,53 @@ export default function DeckBuilder() {
         )}
       </div>
 
+      {/* 超次元ゾーン表示 */}
+      {hyperspaceCards.length > 0 && (
+        <div style={{ padding: "10px", background: "#0a1a2a", borderBottom: "1px solid #00bfff" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ color: "#00bfff", fontSize: "0.85rem", fontWeight: "bold" }}>超次元ゾーン ({hyperspaceCards.length})</span>
+          </div>
+          <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "5px" }}>
+            {hyperspaceCards.map((hsCard, i) => (
+              <div key={i} style={{ position: "relative", flexShrink: 0, cursor: "pointer" }}
+                onClick={() => setHyperspaceCards(hyperspaceCards.filter((_, j) => j !== i))}>
+                <img src={getProxyImageUrl(hsCard.url)} style={{ width: "60px", borderRadius: "3px", border: "1px solid #00bfff" }} />
+                {hsCard.faces && hsCard.faces.length > 1 && (
+                  <div style={{ position: "absolute", top: "2px", right: "2px", background: "#00bfff", color: "#000", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.65rem", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                    {hsCard.faces.length}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ padding: "10px" }}>
-        
+
         <CardRegister onRegister={handleRegisterCard} existingTags={allExistingTags} />
 
         <hr style={{ margin: "20px 0", borderTop: "1px solid #333" }} />
 
-        <button 
-          onClick={() => setIsLibraryOpen(!isLibraryOpen)} 
-          className="btn"
-          style={{ width: "100%", background: "#2c2c2c", border: "1px solid #444", color: "#e0e0e0", justifyContent: "space-between" }}
-        >
-          <span>カード図鑑から探す</span>
-          <span>{isLibraryOpen ? "▲" : "▼"}</span>
-        </button>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
+          <button
+            onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+            className="btn"
+            style={{ flex: 1, background: "#2c2c2c", border: "1px solid #444", color: "#e0e0e0", justifyContent: "space-between" }}
+          >
+            <span>カード図鑑から探す</span>
+            <span>{isLibraryOpen ? "▲" : "▼"}</span>
+          </button>
+          {isLibraryOpen && (
+            <button
+              onClick={() => setAddToHyperspace(!addToHyperspace)}
+              className="btn"
+              style={{ background: addToHyperspace ? "#00bfff" : "#333", color: addToHyperspace ? "#000" : "#aaa", border: "1px solid #00bfff", fontSize: "0.8rem", padding: "6px 10px", fontWeight: addToHyperspace ? "bold" : "normal" }}
+            >
+              {addToHyperspace ? "超次元に追加中" : "超次元"}
+            </button>
+          )}
+        </div>
 
         {isLibraryOpen && (
           <div style={{ marginTop: "15px", animation: "fadeIn 0.3s" }}>

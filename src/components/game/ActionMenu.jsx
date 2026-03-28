@@ -1,7 +1,8 @@
-export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShuffle, onShowStack, onClose }) => {
+export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShuffle, onShowStack, onChangeFace, onClose }) => {
   if (!selectedCard) return null;
   const { zone, data } = selectedCard;
   const hasStack = data.stack && data.stack.length > 0;
+  const hasFaces = data.faces && Array.isArray(data.faces) && data.faces.length > 1;
 
   return (
     <div style={{ 
@@ -29,6 +30,16 @@ export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShu
          <>
            <button onClick={() => onMove("temp")} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#6f42c1", color:"white"}}>一時ゾーンへ</button>
            <button onClick={onShuffle} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#28a745", color:"white"}}>🔀 シャッフル</button>
+           <div style={{width:"1px", background:"#555"}}></div>
+         </>
+       )}
+
+       {/* 超次元チェンジボタン */}
+       {hasFaces && (zone === "battle" || zone === "hyperspace") && (
+         <>
+           <button onClick={() => onChangeFace(data)} className="btn" style={{padding:"4px 8px", fontSize:"0.75rem", background: "#00bfff", color:"white", fontWeight:"bold"}}>
+             チェンジ
+           </button>
            <div style={{width:"1px", background:"#555"}}></div>
          </>
        )}

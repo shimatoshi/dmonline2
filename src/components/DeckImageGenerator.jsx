@@ -1,5 +1,5 @@
 import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from "react";
-import html2canvas from "html2canvas";
+// html2canvasは使用時に動的importする
 import { getProxyImageUrl } from "../utils/apiConfig";
 
 const DeckImageGenerator = forwardRef((props, ref) => {
@@ -50,6 +50,7 @@ const DeckImageGenerator = forwardRef((props, ref) => {
       setIsGenerating(true);
       try {
         // 解像度を抑えつつ生成 (scale: 1.5くらいで十分きれい)
+        const { default: html2canvas } = await import("html2canvas");
         const canvas = await html2canvas(containerRef.current, {
           useCORS: true,
           scale: 1.5,

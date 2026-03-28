@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 
 import Login from "./pages/Login";
-import Lobby from "./pages/Lobby";
-import DeckList from "./pages/DeckList";
-import DeckBuilder from "./pages/DeckBuilder";
-import BBS from "./pages/BBS";
-import BBSThread from "./pages/BBSThread"; // 追加
-import GameTable from "./pages/GameTable";
-import Profile from "./pages/Profile"; // 追加
+
+// 遅延ロード: 初期表示に不要なページは必要になるまで読み込まない
+const Lobby = lazy(() => import("./pages/Lobby"));
+const DeckList = lazy(() => import("./pages/DeckList"));
+const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
+const BBS = lazy(() => import("./pages/BBS"));
+const BBSThread = lazy(() => import("./pages/BBSThread"));
+const GameTable = lazy(() => import("./pages/GameTable"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 function App() {
   const [user, setUser] = useState(null);
@@ -49,17 +51,19 @@ function App() {
         </nav>
       </header>
 
-      <Routes>
-        <Route path="/" element={<Lobby />} />
-        <Route path="/decks" element={<DeckList />} />
-        <Route path="/deck/new" element={<DeckBuilder />} />
-        <Route path="/deck/edit/:deckId" element={<DeckBuilder />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/bbs" element={<BBS />} />
-        <Route path="/bbs/thread/:threadId" element={<BBSThread />} />
-        <Route path="/game/:roomId" element={<GameTable />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <Suspense fallback={<div style={{ padding: "20px", color: "#aaa" }}>読み込み中...</div>}>
+        <Routes>
+          <Route path="/" element={<Lobby />} />
+          <Route path="/decks" element={<DeckList />} />
+          <Route path="/deck/new" element={<DeckBuilder />} />
+          <Route path="/deck/edit/:deckId" element={<DeckBuilder />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/bbs" element={<BBS />} />
+          <Route path="/bbs/thread/:threadId" element={<BBSThread />} />
+          <Route path="/game/:roomId" element={<GameTable />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
     </div>
   );
 }

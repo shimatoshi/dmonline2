@@ -68,12 +68,23 @@ export const useGameSync = (roomId, user) => {
       setMyHand(myData.hand || []);
       setMyShields(myData.shields || []);
       setMyGraveyard(myData.graveyard || []);
-      setMyHyperspace(myData.hyperspace || []); 
+      setMyHyperspace(normalizeHyperspace(myData.hyperspace)); 
       setMyTempZone(normalizeZone(myData.tempZone));
       setMyBattleZone(normalizeZone(myData.battleZone));
       setMyManaZone(normalizeZone(myData.manaZone));
     }
   }, [roomData, soloSide, user]);
+
+  // 超次元ゾーン正規化 (文字列 or {url, faces} をそのまま保持)
+  const normalizeHyperspace = (zoneData) => {
+    if (!zoneData || !Array.isArray(zoneData)) return [];
+    return zoneData.map(item => {
+      if (!item) return null;
+      if (typeof item === 'string') return item;
+      // オブジェクト: faces付きカード
+      return { url: item.url, faces: item.faces || null };
+    }).filter(Boolean);
+  };
 
   // データ正規化 (文字列配列をオブジェクト配列に変換など)
   const normalizeZone = (zoneData) => {

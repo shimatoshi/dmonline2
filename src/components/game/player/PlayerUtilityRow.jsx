@@ -95,13 +95,17 @@ export const PlayerUtilityRow = ({
 
         {/* 超次元 */}
         <div data-zone-id="hyperspace" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-          <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: hyperspace[hyperspace.length-1] } : {})} style={{ height: "63px" }}>
-            <div 
-              onClick={() => onZoneTap("hyperspace")} 
+          <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].url : hyperspace[hyperspace.length-1], faces: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].faces : null } : {})} style={{ height: "63px" }}>
+            <div
+              onClick={() => onZoneTap("hyperspace")}
               style={{ width: "45px", height: "63px", border: "1px dashed #00bfff", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
-              {hyperspace.length > 0 ? 
-                <img src={getProxyImageUrl(hyperspace[hyperspace.length-1])} style={{width:"100%", height:"100%", opacity:0.8}} /> : 
+              {hyperspace.length > 0 ?
+                (() => {
+                  const top = hyperspace[hyperspace.length-1];
+                  const topUrl = typeof top === 'object' ? top.url : top;
+                  return <img src={getProxyImageUrl(topUrl)} style={{width:"100%", height:"100%", opacity:0.8}} />;
+                })() :
                 <span style={{fontSize:"0.5rem", color:"#00bfff"}}>超 {hyperspace.length}</span>
               }
             </div>

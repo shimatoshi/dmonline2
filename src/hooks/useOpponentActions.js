@@ -87,7 +87,13 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
        newOppData.battleZone = dest;
     } else if (actionType === "hyperspace") { // ★追加
        const dest = [...(newOppData.hyperspace || [])];
-       cardsToMove.forEach(c => dest.push(c));
+       // faces情報を保持してhyperspaceに戻す
+       const targetFaces = typeof targetCard === 'object' ? targetCard.faces : null;
+       if (targetFaces) {
+         dest.push({ url: targetUrl, faces: targetFaces });
+       } else {
+         cardsToMove.forEach(c => dest.push(c));
+       }
        newOppData.hyperspace = dest;
     }
 
@@ -183,7 +189,12 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
        newOppData.battleZone = dest;
     } else if (actionType === "hyperspace") { // ★追加
        const dest = [...(newOppData.hyperspace || [])];
-       cardsToMove.forEach(c => dest.push(c));
+       const targetFaces = typeof targetCard === 'object' ? targetCard.faces : null;
+       if (targetFaces) {
+         dest.push({ url: targetUrl, faces: targetFaces });
+       } else {
+         cardsToMove.forEach(c => dest.push(c));
+       }
        newOppData.hyperspace = dest;
     } else if (actionType === "deck" || actionType === "deckTop") { // ★追加: 山札トップへ
        const dest = [...(newOppData.deck || [])];

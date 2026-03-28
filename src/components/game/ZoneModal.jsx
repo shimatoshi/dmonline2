@@ -30,21 +30,33 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
             const url = typeof item === 'object' ? item.url : item;
             const isFaceDown = typeof item === 'object' ? item.isFaceDown : false;
 
+            const faces = typeof item === 'object' ? item.faces : null;
+            const hasFaces = faces && Array.isArray(faces) && faces.length > 1;
+
             return (
               <div key={i} onClick={(e) => onCardTap(e, zoneName, i, item)} style={{ position: "relative" }}>
-                 {/* ★修正: 自分には常に絵柄(url)を表示する */}
-                 <img src={getProxyImageUrl(url)} style={{ 
+                 <img src={getProxyImageUrl(url)} style={{
                    width: "100%", borderRadius: "4px", display: "block",
                    border: (selectedCard?.zone === zoneName && selectedCard?.index === i) ? "2px solid yellow" : "1px solid #555",
-                   // 非公開の場合は少し暗くして区別する
                    filter: isFaceDown ? "grayscale(50%) brightness(0.7)" : "none"
                  }} />
-                 
-                 {/* 非公開（裏向き）の場合はマークを重ねて表示 */}
+
+                 {/* 複数面バッジ */}
+                 {hasFaces && (
+                   <div style={{
+                     position:"absolute", top:2, right:2, background:"#00bfff", color:"#000",
+                     borderRadius:"50%", width:"18px", height:"18px", fontSize:"0.65rem",
+                     display:"flex", alignItems:"center", justifyContent:"center", fontWeight:"bold",
+                     pointerEvents:"none"
+                   }}>
+                     {faces.length}
+                   </div>
+                 )}
+
                  {isFaceDown && (
                    <div style={{
-                     position:"absolute", top:0, left:0, width:"100%", height:"100%", 
-                     display:"flex", alignItems:"center", justifyContent:"center", 
+                     position:"absolute", top:0, left:0, width:"100%", height:"100%",
+                     display:"flex", alignItems:"center", justifyContent:"center",
                      color:"white", fontWeight:"bold", textShadow:"0 0 3px black",
                      pointerEvents: "none"
                    }}>
