@@ -195,10 +195,12 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     const { zone, index } = selectedCard;
 
     if (zone === "battle") {
+      if (index < 0 || index >= myBattleZone.length) return;
       const newZone = [...myBattleZone];
       newZone[index] = { ...newZone[index], url: newFaceUrl };
       syncToDB({ battleZone: newZone });
     } else if (zone === "hyperspace") {
+      if (index < 0 || index >= myHyperspace.length) return;
       const newZone = [...myHyperspace];
       const card = newZone[index];
       if (typeof card === 'object') {

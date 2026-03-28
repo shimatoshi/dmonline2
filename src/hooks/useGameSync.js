@@ -93,12 +93,12 @@ export const useGameSync = (roomId, user) => {
   const normalizeZone = (zoneData) => {
     if (!zoneData || !Array.isArray(zoneData)) return [];
     return zoneData.map(item => {
-      if (!item) return { url: "/card_back.jpg", isTapped: false, isFaceDown: true, stack: [], id: generateId() };
+      if (!item) return null;
       if (typeof item === "string") {
         return { url: item, isTapped: false, isFaceDown: false, stack: [], id: generateId() };
       }
       return { ...item, isFaceDown: item.isFaceDown || false, stack: item.stack || [] };
-    });
+    }).filter(Boolean);
   };
 
   // DBへの保存 (stateの更新はGameTable側で行われるが、ここでも最新stateをsaveするヘルパーを提供)

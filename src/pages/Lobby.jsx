@@ -34,9 +34,13 @@ export default function Lobby() {
     const unsubDecks = onSnapshot(qDecks, (snapshot) => {
       const deckList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMyDecks(deckList);
+      const deckIds = deckList.map(d => d.id);
       if (deckList.length > 0) {
-        if (!selectedDeckId) setSelectedDeckId(deckList[0].id);
-        if (!selectedOpponentDeckId) setSelectedOpponentDeckId(deckList[0].id);
+        setSelectedDeckId(prev => (!prev || !deckIds.includes(prev)) ? deckList[0].id : prev);
+        setSelectedOpponentDeckId(prev => (!prev || !deckIds.includes(prev)) ? deckList[0].id : prev);
+      } else {
+        setSelectedDeckId("");
+        setSelectedOpponentDeckId("");
       }
     });
 
