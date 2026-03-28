@@ -12,7 +12,6 @@ export default function DeckBuilder() {
   const navigate = useNavigate();
   const user = auth.currentUser;
 
-  // デッキデータ
   const [deckName, setDeckName] = useState("");
   const [deckTags, setDeckTags] = useState([]);
   const [deckCards, setDeckCards] = useState([]);
@@ -22,19 +21,14 @@ export default function DeckBuilder() {
   const [newDeckTag, setNewDeckTag] = useState("");
 
   const isEditMode = !!deckId;
-
-  // ライブラリ（共通フック）
   const { library, allExistingTags, deleteCard, updateCard } = useLibrary();
   const [statusMsg, setStatusMsg] = useState("");
-
-  // UI制御
-  const [isDeckMinimized, setIsDeckMinimized] = useState(false);
   const [showThumbSelector, setShowThumbSelector] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const deckGridRef = useRef(null);
 
-  // --- デッキ読み込み ---
   useEffect(() => {
     if (!user || !isEditMode) return;
     const loadDeck = async () => {
@@ -55,7 +49,18 @@ export default function DeckBuilder() {
     loadDeck();
   }, [user, deckId, isEditMode, navigate]);
 
-  // --- ロジック ---
+  // ピンチズームを許可
+  useEffect(() => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    const original = viewport?.getAttribute('content');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+    }
+    return () => {
+      if (viewport && original) viewport.setAttribute('content', original);
+    };
+  }, []);
+
   const addToDeck = (url) => {
     if (addToHyperspace) {
       if (hyperspaceCards.length >= 8) { alert("超次元は8枚までです"); return; }
@@ -75,14 +80,12 @@ export default function DeckBuilder() {
   const saveDeck = async () => {
     if (!user) return;
     if (!deckName.trim()) { alert("デッキ名を入力してください"); return; }
-
     setStatusMsg("保存中...");
     try {
       const deckData = {
         name: deckName, tags: deckTags, cards: deckCards,
         hyperspaceCards, thumbnail: deckThumbnail, updatedAt: new Date()
       };
-
       if (isEditMode) {
         await updateDoc(doc(db, "users", user.uid, "decks", deckId), deckData);
         setStatusMsg("✅ 更新完了");
@@ -103,11 +106,8 @@ export default function DeckBuilder() {
   const exportImage = async () => {
     if (!deckGridRef.current) return;
     if (deckCards.length === 0) { alert("カードがありません"); return; }
-
-    setIsDeckMinimized(false);
     setIsCapturing(true);
     setStatusMsg("画像生成準備中...");
-
     setTimeout(async () => {
       try {
         setStatusMsg("📸 撮影中...");
@@ -122,7 +122,7 @@ export default function DeckBuilder() {
         setStatusMsg("✅ 画像保存完了");
       } catch (error) {
         console.error(error);
-        alert("画像の保存に失敗しました。\nWiki等の直リンク画像はセキュリティ制限により保存できません。");
+        alert("画像の保存に失敗しました。");
       } finally {
         setIsCapturing(false);
         setTimeout(() => setStatusMsg(""), 2000);
@@ -139,125 +139,107 @@ export default function DeckBuilder() {
   };
 
   return (
-    <div style={{ paddingBottom: "100px", maxWidth: "800px", margin: "0 auto" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 45px)", overflow: "hidden" }}>
 
-      {/* ヘッダー */}
-      <div style={{ background: "#1e1e1e", padding: "15px", borderBottom: "1px solid #333" }}>
-        <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-          <input
-            className="input-field"
-            placeholder="デッキ名"
-            value={deckName}
-            onChange={e => setDeckName(e.target.value)}
-            style={{ flex: 1, fontSize: "1.1rem", fontWeight: "bold" }}
-          />
-          <button className="btn btn-outline" onClick={() => setShowThumbSelector(true)} style={{ fontSize: "0.8rem", color: "#ddd", borderColor: "#555" }}>
-            サムネ設定
+      {/* 上部: デッキ名 + 保存 */}
+      <div style={{ display: "flex", gap: "6px", padding: "6px 8px", background: "var(--surface-color)", borderBottom: "1px solid var(--border-color)", flexShrink: 0 }}>
+        <input
+          className="input-field"
+          placeholder="デッキ名"
+          value={deckName}
+          onChange={e => setDeckName(e.target.value)}
+          style={{ flex: 1, padding: "6px 8px", fontSize: "0.9rem", fontWeight: "bold" }}
+        />
+        <button className="btn btn-primary" onClick={saveDeck} style={{ padding: "6px 12px", fontSize: "0.8rem" }}>保存</button>
+        <button className="btn btn-outline" onClick={() => setShowMenu(!showMenu)} style={{ padding: "6px 8px", fontSize: "0.8rem", borderColor: "#555", color: "#ddd" }}>⋯</button>
+        {statusMsg && <span style={{ color: "#42a5f5", fontSize: "0.75rem", alignSelf: "center" }}>{statusMsg}</span>}
+      </div>
+
+      {/* メニュー（タグ/サムネ/画像保存/超次元） */}
+      {showMenu && (
+        <div style={{ padding: "8px", background: "#252525", borderBottom: "1px solid var(--border-color)", flexShrink: 0, display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+          <button className="btn-mini" onClick={() => { setShowThumbSelector(true); setShowMenu(false); }}>サムネ設定</button>
+          <button className="btn-mini" onClick={() => { exportImage(); setShowMenu(false); }} disabled={isCapturing}>
+            {isCapturing ? "生成中..." : "📷 画像保存"}
           </button>
-          <button className="btn btn-primary" onClick={saveDeck} style={{ minWidth: "80px" }}>保存</button>
-        </div>
-
-        {showThumbSelector && (
-          <div className="overlay overlay-dark" style={{ zIndex: 2000, overflowY: "auto", padding: "20px" }}>
-            <h3 style={{ color: "white", textAlign: "center" }}>サムネイルを選択</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
-              {deckCards.map((url, i) => (
-                <div key={i} onClick={() => { setDeckThumbnail(url); setShowThumbSelector(false); }} style={{ cursor: "pointer" }}>
-                  <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "4px", border: deckThumbnail === url ? "3px solid yellow" : "none" }} />
-                </div>
-              ))}
-            </div>
-            <button className="btn" onClick={() => setShowThumbSelector(false)} style={{ display: "block", margin: "20px auto", background: "#333", color: "white" }}>閉じる</button>
-          </div>
-        )}
-
-        <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "5px" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", flex: 1 }}>
-            {deckTags.map(tag => (
-              <span key={tag} className="pill" style={{ background: "#333", color: "#ddd" }}>
-                {tag} <span onClick={() => setDeckTags(deckTags.filter(t => t !== tag))} style={{ marginLeft: "5px", color: "var(--danger-light)", cursor: "pointer" }}>×</span>
-              </span>
-            ))}
-            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-              <input
-                placeholder="+タグ"
-                value={newDeckTag}
-                onChange={e => setNewDeckTag(e.target.value)}
-                style={{ background: "transparent", border: "none", borderBottom: "1px solid #555", color: "#fff", width: "60px", fontSize: "0.8rem" }}
-              />
-              <button onClick={addDeckTag} style={{ background: "none", border: "none", color: "var(--accent-color)", fontSize: "1rem" }}>+</button>
-            </div>
-          </div>
-          <span style={{ color: "#42a5f5", fontSize: "0.8rem" }}>{statusMsg}</span>
-        </div>
-      </div>
-
-      {/* デッキ表示エリア */}
-      <div style={{ position: "sticky", top: "56px", zIndex: 50, background: "#121212", borderBottom: "2px solid #333", boxShadow: "0 4px 6px rgba(0,0,0,0.5)" }}>
-        <div style={{ padding: "5px 10px", background: "#252525", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
-            {deckName || "名称未設定"} ({deckCards.length}/40)
-          </span>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={exportImage} disabled={isCapturing} className="btn btn-outline" style={{ fontSize: "0.7rem", padding: "2px 8px", borderColor: "#555", color: "#ddd" }}>
-              {isCapturing ? "生成中..." : "📷 画像保存"}
-            </button>
-            <button onClick={() => setIsDeckMinimized(!isDeckMinimized)} className="btn btn-outline" style={{ fontSize: "0.7rem", padding: "2px 8px", borderColor: "#555", color: "#ddd" }}>
-              {isDeckMinimized ? "▼ 展開" : "▲ 最小化"}
-            </button>
-          </div>
-        </div>
-
-        {(!isDeckMinimized || isCapturing) && (
-          <div ref={deckGridRef} style={{ padding: "4px", background: "var(--surface-color)" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "1px" }}>
-              {deckCards.map((url, index) => (
-                <div key={index} style={{ position: "relative", cursor: "pointer" }} onClick={() => removeFromDeck(index)}>
-                  <img
-                    src={getProxyImageUrl(url)}
-                    crossOrigin={isCapturing ? "anonymous" : undefined}
-                    style={{ width: "100%", height: "auto", borderRadius: "1px", display: "block" }}
-                  />
-                </div>
-              ))}
-              {[...Array(Math.max(0, 40 - deckCards.length))].map((_, i) => (
-                <div key={`empty-${i}`} style={{ border: "1px dashed #333", borderRadius: "1px", aspectRatio: "2/3", background: "rgba(255,255,255,0.03)" }}></div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 超次元ゾーン */}
-      {hyperspaceCards.length > 0 && (
-        <div style={{ padding: "10px", background: "#0a1a2a", borderBottom: "1px solid var(--info-color)" }}>
-          <span style={{ color: "var(--info-color)", fontSize: "0.85rem", fontWeight: "bold" }}>超次元ゾーン ({hyperspaceCards.length})</span>
-          <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "5px", marginTop: "8px" }}>
-            {hyperspaceCards.map((hsCard, i) => (
-              <div key={i} style={{ position: "relative", flexShrink: 0, cursor: "pointer" }}
-                onClick={() => setHyperspaceCards(hyperspaceCards.filter((_, j) => j !== i))}>
-                <img src={getProxyImageUrl(hsCard.url)} style={{ width: "60px", borderRadius: "3px", border: "1px solid var(--info-color)" }} />
-                {hsCard.faces && hsCard.faces.length > 1 && (
-                  <div className="badge badge-faces" style={{ top: "2px", right: "2px" }}>{hsCard.faces.length}</div>
-                )}
-              </div>
-            ))}
+          <button
+            onClick={() => setAddToHyperspace(!addToHyperspace)}
+            className="btn-mini"
+            style={{ background: addToHyperspace ? "var(--info-color)" : undefined, color: addToHyperspace ? "#000" : undefined, fontWeight: addToHyperspace ? "bold" : "normal" }}
+          >
+            {addToHyperspace ? "超次元追加中" : "超次元モード"}
+          </button>
+          <div className="separator-v" style={{ height: "20px" }}></div>
+          {deckTags.map(tag => (
+            <span key={tag} className="pill" style={{ background: "#333", color: "#ddd", fontSize: "0.7rem" }}>
+              {tag} <span onClick={() => setDeckTags(deckTags.filter(t => t !== tag))} style={{ marginLeft: "3px", color: "var(--danger-light)", cursor: "pointer" }}>×</span>
+            </span>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+            <input placeholder="+タグ" value={newDeckTag} onChange={e => setNewDeckTag(e.target.value)}
+              style={{ background: "transparent", border: "none", borderBottom: "1px solid #555", color: "#fff", width: "50px", fontSize: "0.7rem" }} />
+            <button onClick={addDeckTag} style={{ background: "none", border: "none", color: "var(--accent-color)", fontSize: "0.9rem" }}>+</button>
           </div>
         </div>
       )}
 
-      {/* カード図鑑（常に表示） */}
-      <div style={{ padding: "10px" }}>
-        <div style={{ marginBottom: "10px" }}>
-          <button
-            onClick={() => setAddToHyperspace(!addToHyperspace)}
-            className="btn"
-            style={{ background: addToHyperspace ? "var(--info-color)" : "#333", color: addToHyperspace ? "#000" : "var(--text-secondary)", border: "1px solid var(--info-color)", fontSize: "0.8rem", padding: "6px 10px", fontWeight: addToHyperspace ? "bold" : "normal" }}
-          >
-            {addToHyperspace ? "超次元に追加中" : "超次元モード"}
-          </button>
+      {/* サムネ選択モーダル */}
+      {showThumbSelector && (
+        <div className="overlay overlay-dark" style={{ zIndex: 2000, overflowY: "auto", padding: "20px" }}>
+          <h3 style={{ color: "white", textAlign: "center" }}>サムネイルを選択</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+            {deckCards.map((url, i) => (
+              <div key={i} onClick={() => { setDeckThumbnail(url); setShowThumbSelector(false); }} style={{ cursor: "pointer" }}>
+                <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "4px", border: deckThumbnail === url ? "3px solid yellow" : "none" }} />
+              </div>
+            ))}
+          </div>
+          <button className="btn" onClick={() => setShowThumbSelector(false)} style={{ display: "block", margin: "20px auto", background: "#333", color: "white" }}>閉じる</button>
         </div>
+      )}
 
+      {/* 中部: デッキカード一覧（固定高さ） */}
+      <div ref={deckGridRef} style={{ padding: "3px", background: "#111", flexShrink: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px 2px" }}>
+          <span style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{deckName || "名称未設定"} ({deckCards.length}/40)</span>
+          {hyperspaceCards.length > 0 && (
+            <span style={{ color: "var(--info-color)", fontSize: "0.7rem" }}>超次元 {hyperspaceCards.length}</span>
+          )}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "1px" }}>
+          {deckCards.map((url, index) => (
+            <div key={index} style={{ cursor: "pointer" }} onClick={() => removeFromDeck(index)}>
+              <img
+                src={getProxyImageUrl(url)}
+                crossOrigin={isCapturing ? "anonymous" : undefined}
+                loading="lazy"
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: "1px" }}
+              />
+            </div>
+          ))}
+          {[...Array(Math.max(0, 40 - deckCards.length))].map((_, i) => (
+            <div key={`empty-${i}`} style={{ aspectRatio: "2/3", background: "rgba(255,255,255,0.02)", border: "1px dashed #222", borderRadius: "1px" }}></div>
+          ))}
+        </div>
+      </div>
+
+      {/* 超次元ゾーン */}
+      {hyperspaceCards.length > 0 && (
+        <div style={{ display: "flex", gap: "4px", padding: "4px 8px", background: "#0a1a2a", borderBottom: "1px solid var(--info-color)", flexShrink: 0, overflowX: "auto" }}>
+          {hyperspaceCards.map((hsCard, i) => (
+            <div key={i} style={{ position: "relative", flexShrink: 0, cursor: "pointer" }}
+              onClick={() => setHyperspaceCards(hyperspaceCards.filter((_, j) => j !== i))}>
+              <img src={getProxyImageUrl(hsCard.url)} style={{ height: "40px", borderRadius: "2px", border: "1px solid var(--info-color)" }} />
+              {hsCard.faces && hsCard.faces.length > 1 && (
+                <div className="badge badge-faces" style={{ top: "1px", right: "1px", width: "12px", height: "12px", fontSize: "0.5rem" }}>{hsCard.faces.length}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 下部: カード図鑑（残りの高さを全部使う） */}
+      <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", borderTop: "2px solid var(--border-color)" }}>
         <CardLibrary
           library={library}
           onAddToDeck={addToDeck}

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dm-online-v2';
+const CACHE_NAME = 'dm-online-v3';
 const IMAGE_CACHE_NAME = 'dm-online-images-v1';
 
 // インストール時に最低限のリソースをキャッシュ

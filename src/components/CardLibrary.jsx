@@ -49,13 +49,15 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
     return tagMatch && nameMatch && costMatch;
   }), [library, filterTag, searchName, searchCost]);
 
+  const isScroll = layout === "scroll";
+
   return (
-    <div className="card-box" style={{ border: "none", padding: 0, background: "transparent" }}>
-      <h3 style={{ margin: "0 0 15px 0", borderLeft: "5px solid #007bff", paddingLeft: "15px" }}>カード図鑑</h3>
-      
+    <div style={{ border: "none", padding: 0, background: "transparent", ...(isScroll ? { display: "flex", flexDirection: "column", overflow: "hidden", flex: 1 } : {}) }}>
+      {!isScroll && <h3 style={{ margin: "0 0 15px 0", borderLeft: "5px solid #007bff", paddingLeft: "15px" }}>カード図鑑</h3>}
+
       {/* 検索 & フィルタ */}
-      <div className="card-box" style={{ marginBottom: "20px" }}>
-        <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+      <div style={{ padding: isScroll ? "6px 8px" : "12px", background: "var(--surface-color)", border: isScroll ? "none" : "1px solid var(--border-color)", borderRadius: isScroll ? 0 : "8px", marginBottom: isScroll ? 0 : "20px", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: isScroll ? "6px" : "10px", marginBottom: isScroll ? "6px" : "15px" }}>
           {/* コスト検索欄 */}
           <input 
             className="input-field"
@@ -110,7 +112,7 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
       {/* カード一覧 */}
       {layout === "scroll" ? (
         // 横スクロールレイアウト（DeckBuilder用）
-        <div className="zone-scroll" style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "8px" }}>
+        <div className="zone-scroll" style={{ display: "flex", gap: "6px", overflowX: "auto", padding: "8px", flex: 1, alignItems: "flex-start" }}>
           {filteredCards.length === 0 && <p style={{ color: "#777", textAlign: "center", padding: "20px", whiteSpace: "nowrap" }}>該当なし</p>}
           {filteredCards.map((card) => (
             <div key={card.id} style={{ flexShrink: 0, width: "80px", cursor: "pointer", position: "relative" }} onClick={() => onAddToDeck?.(card.url)}>
