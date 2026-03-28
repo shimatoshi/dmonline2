@@ -212,7 +212,11 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   // --- デッキ操作 ---
   const shuffleDeck = () => {
     if (myDeck.length <= 1) return;
-    const newDeck = [...myDeck].sort(() => Math.random() - 0.5);
+    const newDeck = [...myDeck];
+    for (let i = newDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+    }
     syncToDB({ deck: newDeck });
     alert("山札をシャッフルしました");
   };
