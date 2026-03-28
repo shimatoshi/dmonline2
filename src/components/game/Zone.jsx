@@ -117,15 +117,11 @@ export const Zone = ({
                  <CardView url={cardData.url} isFaceDown={cardData.isFaceDown} isTapped={cardData.isTapped} onClick={() => {}} style={{ width }} />
                  {/* 重なりバッジ */}
                  {cardData.stack && cardData.stack.length > 0 && (
-                   <div style={{position:"absolute", top:-5, right:-5, background:"#d32f2f", color:"white", borderRadius:"50%", width:"20px", height:"20px", fontSize:"0.75rem", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid white", pointerEvents:"none"}}>
-                     {cardData.stack.length + 1}
-                   </div>
+                   <div className="badge badge-stack">{cardData.stack.length + 1}</div>
                  )}
                  {/* 超次元面バッジ */}
                  {cardData.faces && cardData.faces.length > 1 && (
-                   <div style={{position:"absolute", bottom:-3, right:-3, background:"#00bfff", color:"#000", borderRadius:"50%", width:"16px", height:"16px", fontSize:"0.6rem", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:"bold", pointerEvents:"none"}}>
-                     {cardData.faces.length}
-                   </div>
+                   <div className="badge badge-faces">{cardData.faces.length}</div>
                  )}
                </div>
              </DraggableCard>

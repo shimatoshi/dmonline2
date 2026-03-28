@@ -105,7 +105,7 @@ export const ChatSidebar = ({ roomId, user }) => {
       {isOpen && (
         <div 
           onClick={() => setIsOpen(false)}
-          style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 4900, background: "rgba(0,0,0,0.3)" }}
+          className="overlay overlay-dim" style={{ zIndex: 4900 }}
         />
       )}
     </>

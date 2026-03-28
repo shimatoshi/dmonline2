@@ -5,14 +5,26 @@
 
   /* カラーパレット定義 */
   --bg-color: #121212;
+  --bg-dark: #0a0a0a;
   --surface-color: #1e1e1e;
   --surface-color-light: #2c2c2c;
+  --surface-color-dark: #222;
   --text-primary: #e0e0e0;
-  --text-secondary: #aaaaaa;
+  --text-secondary: #aaa;
+  --text-muted: #888;
+  --text-dim: #777;
   --accent-color: #007bff;
-  --border-color: #333333;
+  --info-color: #00bfff;
+  --border-color: #333;
+  --border-color-light: #444;
+  --border-color-dark: #555;
   --danger-color: #d32f2f;
+  --danger-light: #ff6b6b;
   --success-color: #28a745;
+  --warning-color: #ffc107;
+  --purple-color: #6f42c1;
+  --gold-color: #ffd700;
+  --turn-first: #ffdd57;
 }
 
 body {
@@ -93,4 +105,98 @@ button, input, select, textarea {
 .input-field:focus {
   outline: 2px solid var(--accent-color);
   border-color: transparent;
+}
+
+/* --- オーバーレイ --- */
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+.overlay-dark { background: rgba(0,0,0,0.9); }
+.overlay-dim { background: rgba(0,0,0,0.3); }
+
+/* --- モーダル --- */
+.modal-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.95);
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+}
+
+/* --- バッジ --- */
+.badge {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-weight: bold;
+}
+.badge-stack {
+  top: -5px; right: -5px;
+  width: 20px; height: 20px;
+  background: var(--danger-color);
+  color: white;
+  font-size: 0.75rem;
+  border: 1px solid white;
+}
+.badge-faces {
+  top: -5px; right: -5px;
+  width: 16px; height: 16px;
+  background: var(--info-color);
+  color: #000;
+  font-size: 0.6rem;
+}
+.badge-cost {
+  top: 4px; left: 4px;
+  width: 24px; height: 24px;
+  background: var(--gold-color);
+  color: #333;
+  border: 2px solid #333;
+  font-size: 0.8rem;
+  z-index: 5;
+}
+
+/* --- 小型ボタン --- */
+.btn-mini {
+  background: none;
+  border: 1px solid var(--border-color-light);
+  color: var(--text-secondary);
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* --- タグ/ピル --- */
+.pill {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+}
+.pill-filter {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color-dark);
+  background: var(--border-color);
+  color: #fff;
+  cursor: pointer;
+}
+.pill-filter.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+/* --- セパレーター --- */
+.separator-v {
+  width: 1px;
+  background: var(--border-color-dark);
+  align-self: stretch;
 }

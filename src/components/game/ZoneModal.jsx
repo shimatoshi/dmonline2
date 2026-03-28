@@ -43,12 +43,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
 
                  {/* 複数面バッジ */}
                  {hasFaces && (
-                   <div style={{
-                     position:"absolute", top:2, right:2, background:"#00bfff", color:"#000",
-                     borderRadius:"50%", width:"18px", height:"18px", fontSize:"0.65rem",
-                     display:"flex", alignItems:"center", justifyContent:"center", fontWeight:"bold",
-                     pointerEvents:"none"
-                   }}>
+                   <div className="badge badge-faces" style={{ top: 2, right: 2, width: "18px", height: "18px", fontSize: "0.65rem" }}>
                      {faces.length}
                    </div>
                  )}

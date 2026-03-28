@@ -38,7 +38,7 @@ export const PlayerUtilityRow = ({
         </DraggableCard>
         <button 
           onClick={() => onViewMode("temp")}
-          style={{ marginTop: "12px", background: "none", border: "1px solid #444", color: "#aaa", fontSize: "0.6rem", padding: "2px 6px", borderRadius: "4px", cursor: "pointer" }}
+          className="btn-mini" style={{ marginTop: "12px" }}
         >
           👀
         </button>
@@ -87,7 +87,7 @@ export const PlayerUtilityRow = ({
            </DraggableCard>
            <button 
               onClick={() => onViewMode("deck")}
-              style={{ marginTop: "12px", background: "none", border: "1px solid #444", color: "#aaa", fontSize: "0.6rem", padding: "2px 4px", borderRadius: "4px", cursor: "pointer" }}
+              className="btn-mini" style={{ marginTop: "12px" }}
            >
              👁
            </button>
@@ -112,7 +112,7 @@ export const PlayerUtilityRow = ({
           </DraggableCard>
           <button 
             onClick={() => onViewMode("hyperspace")}
-            style={{ marginTop: "4px", background: "none", border: "1px solid #444", color: "#aaa", fontSize: "0.6rem", padding: "2px 4px", borderRadius: "4px", cursor: "pointer" }}
+            className="btn-mini" style={{ marginTop: "4px" }}
           >
             👁
           </button>
@@ -133,7 +133,7 @@ export const PlayerUtilityRow = ({
           </DraggableCard>
           <button 
             onClick={() => onViewMode("grave")}
-            style={{ marginTop: "4px", background: "none", border: "1px solid #444", color: "#aaa", fontSize: "0.6rem", padding: "2px 4px", borderRadius: "4px", cursor: "pointer" }}
+            className="btn-mini" style={{ marginTop: "4px" }}
           >
             👁
           </button>
