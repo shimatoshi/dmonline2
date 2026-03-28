@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
+import { uploadImage } from "../utils/uploadImage";
 
 export default function BBS() {
   const [threads, setThreads] = useState([]);
@@ -27,30 +28,7 @@ export default function BBS() {
     let imageUrl = null;
 
     try {
-      if (selectedFile) {
-        // Base64変換
-        const reader = new FileReader();
-        const base64Promise = new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedFile);
-        });
-        const base64Data = await base64Promise;
-
-        // JSON送信
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64Data }),
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          imageUrl = data.url;
-        } else {
-          console.error("Upload failed:", await res.text());
-        }
-      }
+      imageUrl = await uploadImage(selectedFile);
 
       const docRef = await addDoc(collection(db, "bbs_threads"), {
         title: title,

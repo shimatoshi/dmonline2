@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, runTransaction } from "firebase/firestore";
 import { db } from "../firebase";
 
 // ID生成用
@@ -30,15 +30,18 @@ export const useGameSync = (roomId, user) => {
       setRoomData(data);
       setFirstPlayerId(data.firstPlayerId);
 
-      // 先行後攻決め (本来のHostのみが実行)
+      // 先行後攻決め (本来のHostのみが実行、トランザクションで重複防止)
       if (data.hostId === user.uid && data.guestId && !data.firstPlayerId) {
-        if (data.guestId === "solo") {
-          updateDoc(doc(db, "rooms", roomId), { firstPlayerId: data.hostId });
-        } else {
-          const isHostFirst = Math.random() < 0.5;
-          const firstId = isHostFirst ? data.hostId : data.guestId;
-          updateDoc(doc(db, "rooms", roomId), { firstPlayerId: firstId });
-        }
+        const roomRef = doc(db, "rooms", roomId);
+        runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(roomRef);
+          if (!snap.exists() || snap.data().firstPlayerId) return;
+          const d = snap.data();
+          const firstId = d.guestId === "solo"
+            ? d.hostId
+            : (Math.random() < 0.5 ? d.hostId : d.guestId);
+          transaction.update(roomRef, { firstPlayerId: firstId });
+        });
       }
     });
     return () => unsubscribe();

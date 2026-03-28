@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { db, auth } from "../firebase";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProxyImageUrl } from "../utils/apiConfig";
+import { uploadImage } from "../utils/uploadImage";
 
 export default function BBSThread() {
   const { threadId } = useParams();
@@ -13,6 +14,7 @@ export default function BBSThread() {
   const [name, setName] = useState(auth.currentUser?.displayName || "名無しさん");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchThread = async () => {
@@ -43,30 +45,7 @@ export default function BBSThread() {
     let imageUrl = null;
 
     try {
-      if (selectedFile) {
-        // Base64変換
-        const reader = new FileReader();
-        const base64Promise = new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedFile);
-        });
-        const base64Data = await base64Promise;
-
-        // JSON送信
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: base64Data }),
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          imageUrl = data.url;
-        } else {
-          console.error("Upload failed:", await res.text());
-        }
-      }
+      imageUrl = await uploadImage(selectedFile);
 
       await addDoc(collection(db, "bbs_threads", threadId, "responses"), {
         name: name || "名無しさん",
@@ -84,8 +63,7 @@ export default function BBSThread() {
 
       setContent("");
       setSelectedFile(null);
-      const fileInput = document.getElementById('file-input');
-      if (fileInput) fileInput.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
 
     } catch (err) {
       console.error("Error posting response:", err);
@@ -188,9 +166,9 @@ export default function BBSThread() {
             style={{ width: "100%", height: "80px", padding: "8px", background: "#2c2c2c", border: "1px solid #444", color: "#fff", borderRadius: "4px", resize: "none" }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <input 
-              id="file-input"
-              type="file" 
+            <input
+              ref={fileInputRef}
+              type="file"
               accept="image/*"
               onChange={(e) => setSelectedFile(e.target.files[0])}
               style={{ fontSize: "0.8rem", color: "#aaa" }}
