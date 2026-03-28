@@ -209,19 +209,19 @@ export default function DeckBuilder() {
         </div>
 
         {(!isDeckMinimized || isCapturing) && (
-          <div ref={deckGridRef} style={{ padding: "5px", background: "var(--surface-color)", maxHeight: isCapturing ? "none" : "40vh", overflowY: "auto" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "2px", minHeight: "80px" }}>
+          <div ref={deckGridRef} style={{ padding: "4px", background: "var(--surface-color)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "1px" }}>
               {deckCards.map((url, index) => (
                 <div key={index} style={{ position: "relative", cursor: "pointer" }} onClick={() => removeFromDeck(index)}>
                   <img
                     src={getProxyImageUrl(url)}
                     crossOrigin={isCapturing ? "anonymous" : undefined}
-                    style={{ width: "100%", height: "auto", borderRadius: "2px", display: "block" }}
+                    style={{ width: "100%", height: "auto", borderRadius: "1px", display: "block" }}
                   />
                 </div>
               ))}
               {[...Array(Math.max(0, 40 - deckCards.length))].map((_, i) => (
-                <div key={`empty-${i}`} style={{ border: "1px dashed #444", borderRadius: "2px", aspectRatio: "2/3", background: "rgba(255,255,255,0.05)" }}></div>
+                <div key={`empty-${i}`} style={{ border: "1px dashed #333", borderRadius: "1px", aspectRatio: "2/3", background: "rgba(255,255,255,0.03)" }}></div>
               ))}
             </div>
           </div>
@@ -264,6 +264,7 @@ export default function DeckBuilder() {
           onDelete={deleteCard}
           onUpdate={updateCard}
           existingTags={allExistingTags}
+          layout="scroll"
         />
       </div>
     </div>
