@@ -57,7 +57,7 @@ export default function DeckBuilder() {
       viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
     }
     return () => {
-      if (viewport && original) viewport.setAttribute('content', original);
+      if (viewport && original != null) viewport.setAttribute('content', original);
     };
   }, []);
 
@@ -212,7 +212,7 @@ export default function DeckBuilder() {
               <img
                 src={getProxyImageUrl(url)}
                 crossOrigin={isCapturing ? "anonymous" : undefined}
-                loading="lazy"
+                loading={isCapturing ? "eager" : "lazy"}
                 style={{ width: "100%", height: "auto", display: "block", borderRadius: "1px" }}
               />
             </div>
