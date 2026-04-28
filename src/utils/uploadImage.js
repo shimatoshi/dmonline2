@@ -14,7 +14,8 @@ export const uploadImage = async (file) => {
       reader.readAsDataURL(file);
     });
 
-    const res = await fetch("/api/upload", {
+    const { getApiBaseUrl } = await import("./apiConfig");
+    const res = await fetch(`${getApiBaseUrl()}/api/upload`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ image: base64Data }),

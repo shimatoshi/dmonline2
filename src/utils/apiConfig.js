@@ -1,15 +1,35 @@
 // src/utils/apiConfig.js
 
-// Loophole経由の公開URL (HTTPS対応)
-export const API_BASE_URL = "";
+const RESOLVE_URL = "https://url-board.vercel.app/api/resolve/dmonline2";
+
+// 起動時にトンネルURLを解決して保持する
+let _baseUrl = "";
+let _resolved = false;
+
+export const resolveApiBase = async () => {
+  if (_resolved) return _baseUrl;
+  try {
+    const res = await fetch(RESOLVE_URL);
+    if (res.ok) {
+      const data = await res.json();
+      _baseUrl = data.url || "";
+      console.log("[apiConfig] resolved:", _baseUrl);
+    }
+  } catch (e) {
+    console.warn("[apiConfig] resolve failed, using same-origin:", e);
+  }
+  _resolved = true;
+  return _baseUrl;
+};
+
+export const getApiBaseUrl = () => _baseUrl;
 
 /**
  * 画像URLをプロキシ経由のURLに変換する関数
- * 直リンク(https://...) を http://PC_IP/api/image?url=... に変換します
  */
 export const getProxyImageUrl = (originalUrl) => {
-  if (!originalUrl) return "/card_back.jpg"; // URLがないなら裏面
-  
+  if (!originalUrl) return "/card_back.jpg";
+
   if (typeof originalUrl !== 'string') {
     console.warn("getProxyImageUrl received non-string url:", originalUrl);
     return "/card_back.jpg";
@@ -21,11 +41,9 @@ export const getProxyImageUrl = (originalUrl) => {
   // GitHub Release画像はプロキシ不要（直接アクセス可能）
   if (originalUrl.includes("github.com/") && originalUrl.includes("/releases/download/")) return originalUrl;
 
-  // 既にPCサーバー経由になっている場合はそのまま返す（無限ループ防止）
-  if (originalUrl.startsWith(API_BASE_URL)) return originalUrl;
+  // 既にサーバー経由になっている場合はそのまま返す
+  if (_baseUrl && originalUrl.startsWith(_baseUrl)) return originalUrl;
 
   // それ以外（外部直リンク）ならプロキシ経由にする
-  // URLエンコードを忘れずに
-  return `${API_BASE_URL}/api/image?url=${encodeURIComponent(originalUrl)}`;
+  return `${_baseUrl}/api/image?url=${encodeURIComponent(originalUrl)}`;
 };
-
