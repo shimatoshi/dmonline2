@@ -1,7 +1,7 @@
 // src/utils/apiConfig.js
 
 // Loophole経由の公開URL (HTTPS対応)
-export const API_BASE_URL = "https://dmonline2.loophole.site";
+export const API_BASE_URL = "https://parenting-ward-marion-interfaces.trycloudflare.com";
 
 /**
  * 画像URLをプロキシ経由のURLに変換する関数
