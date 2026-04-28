@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dm-online-v3';
-const IMAGE_CACHE_NAME = 'dm-online-images-v1';
+const CACHE_NAME = 'dm-online-v4';
+const IMAGE_CACHE_NAME = 'dm-online-images-v2';
 
 // インストール時に最低限のリソースをキャッシュ
 self.addEventListener('install', (event) => {
@@ -38,10 +38,9 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // 1. 画像リクエスト (Cache First)
-  // /api/image や firebasestorage、または画像拡張子
+  // GitHub Release画像、ローカル画像のみキャッシュ
   if (
-    url.pathname.startsWith('/api/image') ||
-    url.host.includes('firebasestorage') ||
+    url.host.includes('github.com') ||
     event.request.destination === 'image'
   ) {
     // console.log('SW: Fetching image', url.href); // デバッグ用

@@ -19,14 +19,17 @@ export const useLibrary = () => {
       // 初回のみ: 外部URLをGitHub Release URLに自動マイグレーション
       if (!migrated.current) {
         migrated.current = true;
+        console.log(`[migrate] checking ${cards.length} cards...`);
         cards.forEach(card => {
-          if (!card.url || !card.name) return;
-          if (card.url.includes("github.com/") && card.url.includes("/releases/download/")) return;
+          if (!card.url || !card.name) { console.log(`[migrate] SKIP no url/name:`, card.id); return; }
+          if (card.url.includes("github.com/") && card.url.includes("/releases/download/")) { return; }
           const ghUrl = getGithubImageUrl(card.name);
           if (ghUrl) {
             updateDoc(doc(db, "users", user.uid, "library", card.id), { url: ghUrl })
-              .then(() => console.log(`[migrate] ${card.name} → GitHub`))
-              .catch(() => {});
+              .then(() => console.log(`[migrate] OK: "${card.name}" → GitHub`))
+              .catch(e => console.error(`[migrate] FAIL: "${card.name}"`, e));
+          } else {
+            console.warn(`[migrate] NO MATCH: "${card.name}" (url: ${card.url.substring(0, 60)}...)`);
           }
         });
       }
