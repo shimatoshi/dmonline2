@@ -149,6 +149,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, f"File read error: {e}")
 
     def handle_image_proxy(self):
+        # 外部画像プロキシは無効化済み。キャッシュ済み画像のみ返す。
         try:
             query = urllib.parse.urlparse(self.path).query
             params = urllib.parse.parse_qs(query)
@@ -161,12 +162,11 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             ext = ".png" if ".png" in target_url else ".jpg"
             local_path = os.path.join(CACHE_DIR, f"{file_hash}{ext}")
 
-            if not os.path.exists(local_path):
-                req = urllib.request.Request(target_url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req) as response:
-                    with open(local_path, 'wb') as f:
-                        f.write(response.read())
-            self.serve_file(local_path)
+            if os.path.exists(local_path):
+                self.serve_file(local_path)
+            else:
+                # 外部へのアクセスは一切行わない
+                self.send_error(410, "External image proxy disabled")
         except Exception as e:
             self.send_error(500, str(e))
 
