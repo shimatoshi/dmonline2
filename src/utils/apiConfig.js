@@ -1,7 +1,7 @@
 // src/utils/apiConfig.js
 
 // Loophole経由の公開URL (HTTPS対応)
-export const API_BASE_URL = "https://url-board.vercel.app/api/proxy/dmonline2";
+export const API_BASE_URL = "";
 
 /**
  * 画像URLをプロキシ経由のURLに変換する関数
