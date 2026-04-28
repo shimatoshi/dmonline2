@@ -18,6 +18,9 @@ export const getProxyImageUrl = (originalUrl) => {
   // 既にローカル画像("/...")の場合はそのまま返す
   if (originalUrl.startsWith("/")) return originalUrl;
 
+  // GitHub Release画像はプロキシ不要（直接アクセス可能）
+  if (originalUrl.includes("github.com/") && originalUrl.includes("/releases/download/")) return originalUrl;
+
   // 既にPCサーバー経由になっている場合はそのまま返す（無限ループ防止）
   if (originalUrl.startsWith(API_BASE_URL)) return originalUrl;
 

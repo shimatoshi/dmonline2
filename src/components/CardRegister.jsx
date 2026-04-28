@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getProxyImageUrl } from "../utils/apiConfig";
+import cardImages from "../data/cardImages.json";
 
 export default function CardRegister({ onRegister, existingTags }) {
   const [name, setName] = useState("");
@@ -12,6 +13,8 @@ export default function CardRegister({ onRegister, existingTags }) {
   const [manualTag, setManualTag] = useState("");
   const [selectedCivs, setSelectedCivs] = useState([]);
   const [isTagsListOpen, setIsTagsListOpen] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [imageSearch, setImageSearch] = useState("");
 
   const defaultTags = ["S・トリガー", "ブロッカー", "スピードアタッカー", "マナ加速", "初動", "切札", "進化", "呪文"];
   const tagCandidates = Array.from(new Set([...defaultTags, ...existingTags]));
@@ -106,13 +109,51 @@ export default function CardRegister({ onRegister, existingTags }) {
             onChange={e => setCost(e.target.value)} 
             style={{ width: "80px" }}
           />
-          <input 
+          <input
             className="input-field"
-            placeholder="画像URL (https://...)" value={url} onChange={e => setUrl(e.target.value)} 
+            placeholder="画像URL (https://...)" value={url} onChange={e => setUrl(e.target.value)}
             style={{ flex: 1 }}
           />
+          <button
+            className="btn btn-outline"
+            onClick={() => setShowImagePicker(!showImagePicker)}
+            style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}
+          >
+            {showImagePicker ? "閉じる" : "画像選択"}
+          </button>
         </div>
       </div>
+
+      {showImagePicker && (
+        <div style={{ marginBottom: "15px", background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "10px" }}>
+          <input
+            className="input-field"
+            placeholder="カード名で検索..."
+            value={imageSearch}
+            onChange={e => setImageSearch(e.target.value)}
+            style={{ marginBottom: "10px" }}
+          />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", maxHeight: "300px", overflowY: "auto" }}>
+            {cardImages
+              .filter(c => !imageSearch || c.name.includes(imageSearch))
+              .map((card, i) => (
+                <div
+                  key={i}
+                  onClick={() => {
+                    setUrl(card.url);
+                    if (!name) setName(card.name);
+                    setShowImagePicker(false);
+                    setImageSearch("");
+                  }}
+                  style={{ cursor: "pointer", border: url === card.url ? "2px solid #00bfff" : "2px solid transparent", borderRadius: "4px", overflow: "hidden" }}
+                >
+                  <img src={card.url} alt={card.name} loading="lazy" style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", display: "block" }} />
+                  <p style={{ fontSize: "0.6rem", color: "#aaa", margin: "2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</p>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* 超次元カード面設定 */}
       <div style={{ marginBottom: "15px" }}>
