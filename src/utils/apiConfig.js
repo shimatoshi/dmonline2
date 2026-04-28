@@ -1,4 +1,5 @@
 // src/utils/apiConfig.js
+import cardImages from "../data/cardImages.json";
 
 const RESOLVE_URL = "https://url-board.vercel.app/api/resolve/dmonline2";
 
@@ -24,10 +25,37 @@ export const resolveApiBase = async () => {
 
 export const getApiBaseUrl = () => _baseUrl;
 
+// カード名 → GitHub Release URL のマップを構築
+const _cardImageMap = new Map();
+for (const card of cardImages) {
+  // 同名カードは最初の1枚を使う（レアリティ違いは別途対応）
+  if (!_cardImageMap.has(card.name)) {
+    _cardImageMap.set(card.name, card.url);
+  }
+}
+
+/**
+ * カード名からGitHub Release画像URLを取得
+ * マッチしなければnullを返す
+ */
+export const getGithubImageUrl = (cardName) => {
+  if (!cardName) return null;
+  return _cardImageMap.get(cardName) || null;
+};
+
 /**
  * 画像URLをプロキシ経由のURLに変換する関数
+ * cardName を渡すとGitHub Releaseから優先取得する
  */
-export const getProxyImageUrl = (originalUrl) => {
+export const getProxyImageUrl = (originalUrl, cardName) => {
+  if (!originalUrl && !cardName) return "/card_back.jpg";
+
+  // カード名でGitHub Release画像があればそれを使う
+  if (cardName) {
+    const ghUrl = getGithubImageUrl(cardName);
+    if (ghUrl) return ghUrl;
+  }
+
   if (!originalUrl) return "/card_back.jpg";
 
   if (typeof originalUrl !== 'string') {

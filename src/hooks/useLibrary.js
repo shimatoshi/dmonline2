@@ -1,16 +1,35 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, updateDoc, doc } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import { getGithubImageUrl } from "../utils/apiConfig";
 
 export const useLibrary = () => {
   const [library, setLibrary] = useState([]);
   const user = auth.currentUser;
 
+  const migrated = useRef(false);
+
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "users", user.uid, "library"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setLibrary(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      const cards = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setLibrary(cards);
+
+      // 初回のみ: 外部URLをGitHub Release URLに自動マイグレーション
+      if (!migrated.current) {
+        migrated.current = true;
+        cards.forEach(card => {
+          if (!card.url || !card.name) return;
+          if (card.url.includes("github.com/") && card.url.includes("/releases/download/")) return;
+          const ghUrl = getGithubImageUrl(card.name);
+          if (ghUrl) {
+            updateDoc(doc(db, "users", user.uid, "library", card.id), { url: ghUrl })
+              .then(() => console.log(`[migrate] ${card.name} → GitHub`))
+              .catch(() => {});
+          }
+        });
+      }
     });
     return () => unsubscribe();
   }, [user]);
