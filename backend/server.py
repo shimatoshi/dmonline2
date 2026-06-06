@@ -10,6 +10,12 @@ import uuid
 import json
 import base64
 
+# Termux bionic DNSが外部ホストを引けない環境向けのフォールバック
+try:
+    import dns_patch  # noqa: F401
+except ImportError:
+    pass
+
 # 設定
 PORT = 8002
 # Reactのビルド成果物があるディレクトリ
