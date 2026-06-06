@@ -38,22 +38,29 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // 1. 画像リクエスト (Cache First)
-  // GitHub Release画像、ローカル画像のみキャッシュ
+  // GitHub Release画像、アップロード画像、ローカル画像をキャッシュ
   if (
-    url.host.includes('github.com') ||
+    url.host.includes('github') ||
+    url.pathname.includes('/api/uploads/') ||
     event.request.destination === 'image'
   ) {
-    // console.log('SW: Fetching image', url.href); // デバッグ用
+    // アップロード画像はトンネルURL（ホスト名）が変わってもキャッシュが効くよう、
+    // パス名ベースのキーで保存・照合する
+    const uploadsIdx = url.pathname.indexOf('/api/uploads/');
+    const cacheKey = uploadsIdx >= 0
+      ? new Request(self.location.origin + url.pathname.slice(uploadsIdx))
+      : event.request;
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then((cache) => {
-        return cache.match(event.request).then((cachedResponse) => {
+        return cache.match(cacheKey).then((cachedResponse) => {
           if (cachedResponse) {
             return cachedResponse;
           }
           return fetch(event.request).then((networkResponse) => {
             // 画像取得成功ならキャッシュに追加
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(event.request, networkResponse.clone());
+            // クロスオリジン<img>はopaque(status 0)で返るので、200だけでなくopaqueも保存する
+            if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+              cache.put(cacheKey, networkResponse.clone());
             }
             return networkResponse;
           }).catch(() => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
-import { collection, addDoc, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy } from "firebase/firestore";
+import { collection, addDoc, setDoc, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 export default function Lobby() {
@@ -120,16 +120,20 @@ export default function Lobby() {
     if (opponentDeckCards.length === 0) { alert("相手用デッキを選択してください"); return; }
 
     try {
-      const docRef = await addDoc(collection(db, "rooms"), {
+      // オフラインでも動くよう、awaitせずローカルID生成→書き込みは投げっぱなしで即遷移する
+      // （オフライン時はFirestoreの書き込みPromiseがサーバーACK待ちで解決しないため）
+      const docRef = doc(collection(db, "rooms"));
+      setDoc(docRef, {
         hostId: user.uid,
         hostName: getUserName(),
         guestId: "solo",
         guestName: "1人回しモード",
         status: "playing",
+        firstPlayerId: user.uid, // ソロは常に自分が先行。トランザクション不要にしてオフラインでも動くように
         createdAt: new Date(),
         hostData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedDeckHyperspace() },
         guestData: { deck: opponentDeckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedOpponentDeckHyperspace() }
-      });
+      }).catch((error) => console.error("solo room write failed:", error));
       navigate(`/game/${docRef.id}`);
     } catch (error) {
       console.error(error);

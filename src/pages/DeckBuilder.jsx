@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebase";
-import { doc, getDoc, addDoc, collection, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, updateDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 
 import CardLibrary from "../components/CardLibrary";
@@ -86,13 +86,16 @@ export default function DeckBuilder() {
         name: deckName, tags: deckTags, cards: deckCards,
         hyperspaceCards, thumbnail: deckThumbnail, updatedAt: new Date()
       };
+      // awaitしない: オフライン時はFirestoreの書き込みPromiseが解決しないため、
+      // ローカルキャッシュへの書き込み（即時反映）を信頼して完了扱いにする
       if (isEditMode) {
-        await updateDoc(doc(db, "users", user.uid, "decks", deckId), deckData);
+        updateDoc(doc(db, "users", user.uid, "decks", deckId), deckData)
+          .catch((e) => console.error("deck update failed:", e));
         setStatusMsg("✅ 更新完了");
       } else {
-        const docRef = await addDoc(collection(db, "users", user.uid, "decks"), {
-          ...deckData, createdAt: new Date()
-        });
+        const docRef = doc(collection(db, "users", user.uid, "decks"));
+        setDoc(docRef, { ...deckData, createdAt: new Date() })
+          .catch((e) => console.error("deck create failed:", e));
         setStatusMsg("✅ 作成完了");
         navigate(`/deck/edit/${docRef.id}`, { replace: true });
       }

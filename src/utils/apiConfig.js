@@ -14,9 +14,18 @@ export const resolveApiBase = async () => {
       const data = await res.json();
       _baseUrl = data.url || "";
       console.log("[apiConfig] resolved:", _baseUrl);
+      // オフライン時のフォールバック用に記憶しておく
+      try { localStorage.setItem("apiBaseUrl", _baseUrl); } catch { /* ignore */ }
     }
   } catch (e) {
-    console.warn("[apiConfig] resolve failed, using same-origin:", e);
+    // オフライン等で解決できない場合は前回のURLを使う
+    const cached = (() => { try { return localStorage.getItem("apiBaseUrl"); } catch { return null; } })();
+    if (cached) {
+      _baseUrl = cached;
+      console.warn("[apiConfig] resolve failed, using cached:", cached);
+    } else {
+      console.warn("[apiConfig] resolve failed, using same-origin:", e);
+    }
   }
   _resolved = true;
   return _baseUrl;
@@ -57,9 +66,13 @@ export const getProxyImageUrl = (originalUrl, cardName) => {
   // GitHub Release画像
   if (originalUrl.includes("github.com/") && originalUrl.includes("/releases/download/")) return originalUrl;
 
-  // 自サーバーのアップロード画像
-  if (originalUrl.startsWith("/api/uploads/")) return originalUrl;
+  // 自サーバーのアップロード画像（相対パスで保存し、表示時に現在のトンネルURLを前置する。
+  // トンネルURLが変わっても保存データが壊れないようにするため）
+  if (originalUrl.startsWith("/api/uploads/")) return _baseUrl + originalUrl;
   if (_baseUrl && originalUrl.startsWith(_baseUrl)) return originalUrl;
+  // 過去のトンネルURL付きで保存されたアップロード画像 → 現在のトンネルURLに付け替え
+  const uploadsIdx = originalUrl.indexOf("/api/uploads/");
+  if (originalUrl.startsWith("http") && uploadsIdx > 0) return _baseUrl + originalUrl.slice(uploadsIdx);
 
   // ★★★ 外部URLは一切アクセスしない。カード裏面を返す ★★★
   return "/card_back.jpg";

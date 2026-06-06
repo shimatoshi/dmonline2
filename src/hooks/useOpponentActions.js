@@ -64,7 +64,10 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
       zones.deck = [...zones.deck, ...cardsToMove];
     }
 
-    await updateDoc(doc(db, "rooms", roomId), { [opponentRole]: zones });
+    // awaitしない: オフライン時に書き込みPromiseが解決せず後続処理（選択解除など）が
+    // 止まるのを防ぐ。反映はonSnapshotのローカルキャッシュ経由で即時行われる
+    updateDoc(doc(db, "rooms", roomId), { [opponentRole]: zones })
+      .catch((e) => console.error("opponent zone update failed:", e));
   };
 
   // state経由のアクション実行
