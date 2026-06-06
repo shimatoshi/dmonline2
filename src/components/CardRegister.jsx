@@ -1,7 +1,10 @@
 import { useState, useRef } from "react";
 import { getProxyImageUrl } from "../utils/apiConfig";
-import { uploadImage } from "../utils/uploadImage";
+import { uploadImage, fetchImageViaServer } from "../utils/uploadImage";
 import cardImages from "../data/cardImages.json";
+
+// 外部URL（クライアントから直接表示できない＝裏面になるURL）か判定
+const isExternalUrl = (u) => !!u && u.startsWith("http") && getProxyImageUrl(u) === "/card_back.jpg";
 
 export default function CardRegister({ onRegister, existingTags }) {
   const [name, setName] = useState("");
@@ -48,6 +51,23 @@ export default function CardRegister({ onRegister, existingTags }) {
     }
   };
 
+  // 外部URLならサーバー側で取得させて自サーバーURLに変換する
+  const convertIfExternal = async (value, target) => {
+    if (!isExternalUrl(value)) return;
+    setUploading(true);
+    const converted = await fetchImageViaServer(value);
+    setUploading(false);
+    if (!converted) {
+      alert("サーバーでの画像取得に失敗しました。URLを確認してください");
+      return;
+    }
+    if (target === "main") {
+      setUrl(converted);
+    } else {
+      setExtraFaces(prev => prev.map((f, i) => (i === target ? converted : f)));
+    }
+  };
+
   // ファイル選択 → サーバーにアップロード → URLをセット
   const openFilePicker = (target) => {
     uploadTargetRef.current = target;
@@ -80,7 +100,22 @@ export default function CardRegister({ onRegister, existingTags }) {
     setManualTag("");
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    // 外部URLが残っていればサーバー経由で変換してから登録（保険）
+    let finalUrl = url;
+    let finalFaces = [...extraFaces];
+    const needsConvert = isExternalUrl(finalUrl) || finalFaces.some(isExternalUrl);
+    if (needsConvert) {
+      setUploading(true);
+      if (isExternalUrl(finalUrl)) {
+        finalUrl = (await fetchImageViaServer(finalUrl)) || finalUrl;
+      }
+      finalFaces = await Promise.all(
+        finalFaces.map(async (f) => (isExternalUrl(f) ? (await fetchImageViaServer(f)) || f : f))
+      );
+      setUploading(false);
+    }
+
     let finalTags = [...selectedTags];
     selectedCivs.forEach(civName => {
       const civData = civilizations.find(c => c.name === civName);
@@ -96,11 +131,11 @@ export default function CardRegister({ onRegister, existingTags }) {
     }
 
     // faces配列を構築 (メインURL + 入力された追加面)
-    const validExtraFaces = extraFaces.filter(f => f.trim());
-    const faces = validExtraFaces.length > 0 ? [url, ...validExtraFaces] : null;
+    const validExtraFaces = finalFaces.filter(f => f.trim());
+    const faces = validExtraFaces.length > 0 ? [finalUrl, ...validExtraFaces] : null;
 
     // コストを含めて親コンポーネントへ渡す
-    onRegister(name, url, Array.from(new Set(finalTags)), cost, faces);
+    onRegister(name, finalUrl, Array.from(new Set(finalTags)), cost, faces);
 
     setName("");
     setUrl("");
@@ -149,6 +184,7 @@ export default function CardRegister({ onRegister, existingTags }) {
           <input
             className="input-field"
             placeholder="画像URL (https://...)" value={url} onChange={e => setUrl(e.target.value)}
+            onBlur={e => convertIfExternal(e.target.value, "main")}
             style={{ flex: 1 }}
           />
           <button
@@ -223,6 +259,7 @@ export default function CardRegister({ onRegister, existingTags }) {
                     newFaces[i] = e.target.value;
                     setExtraFaces(newFaces);
                   }}
+                  onBlur={(e) => convertIfExternal(e.target.value, i)}
                   style={{ flex: 1 }}
                 />
                 <button

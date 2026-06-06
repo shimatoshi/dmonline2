@@ -39,6 +39,9 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/api/upload':
             self.handle_upload_json()
             return
+        if self.path == '/api/fetch-image':
+            self.handle_fetch_image()
+            return
         self.send_error(404)
 
     def do_GET(self):
@@ -80,6 +83,48 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write(b"Backend Server Running.")
+
+    def handle_fetch_image(self):
+        # クライアントから渡されたURLの画像をサーバー側で取得してuploadsに保存する。
+        # （クライアントの外部アクセス遮断は維持したまま、登録だけサーバー経由で行う）
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            data = json.loads(self.rfile.read(content_length).decode('utf-8'))
+            target_url = data.get('url')
+            if not target_url or not target_url.startswith('http'):
+                self.send_error(400, "Missing or invalid 'url' field")
+                return
+
+            req = urllib.request.Request(target_url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                'Referer': f"{urllib.parse.urlparse(target_url).scheme}://{urllib.parse.urlparse(target_url).netloc}/",
+            })
+            with urllib.request.urlopen(req, timeout=15) as res:
+                content_type = res.headers.get('Content-Type', '')
+                file_bytes = res.read(10 * 1024 * 1024)  # 最大10MB
+
+            if not content_type.startswith('image/'):
+                self.send_error(415, f"Not an image: {content_type}")
+                return
+
+            ext_map = {'image/png': '.png', 'image/gif': '.gif', 'image/webp': '.webp'}
+            ext = ext_map.get(content_type.split(';')[0].strip(), '.jpg')
+
+            # 同じURLは同じファイルに保存（重複取得しても増えない）
+            file_hash = hashlib.md5(target_url.encode('utf-8')).hexdigest()
+            new_filename = f"fetch_{file_hash}{ext}"
+            with open(os.path.join(UPLOAD_DIR, new_filename), 'wb') as f:
+                f.write(file_bytes)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"url": f"/api/uploads/{new_filename}"}).encode('utf-8'))
+            print(f"[FetchImage] {target_url} -> {new_filename}")
+
+        except Exception as e:
+            print(f"[FetchImage Error] {e}")
+            self.send_error(502, str(e))
 
     def handle_upload_json(self):
         try:
