@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getProxyImageUrl } from "../utils/apiConfig";
+import { uploadImage } from "../utils/uploadImage";
 import cardImages from "../data/cardImages.json";
 
 export default function CardRegister({ onRegister, existingTags }) {
@@ -8,6 +9,9 @@ export default function CardRegister({ onRegister, existingTags }) {
   const [cost, setCost] = useState(""); // ★コスト追加
   const [extraFaces, setExtraFaces] = useState([""]); // 超次元用：追加面URL
   const [showFaces, setShowFaces] = useState(false); // 面入力エリア表示
+  const [uploading, setUploading] = useState(false); // 画像アップロード中
+  const fileInputRef = useRef(null);
+  const uploadTargetRef = useRef("main"); // "main" or 追加面のindex
 
   const [selectedTags, setSelectedTags] = useState([]);
   const [manualTag, setManualTag] = useState("");
@@ -41,6 +45,31 @@ export default function CardRegister({ onRegister, existingTags }) {
       setSelectedCivs(selectedCivs.filter(c => c !== civName));
     } else {
       setSelectedCivs([...selectedCivs, civName]);
+    }
+  };
+
+  // ファイル選択 → サーバーにアップロード → URLをセット
+  const openFilePicker = (target) => {
+    uploadTargetRef.current = target;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    const uploadedUrl = await uploadImage(file);
+    setUploading(false);
+    if (!uploadedUrl) {
+      alert("画像のアップロードに失敗しました（サーバーに接続できません）");
+      return;
+    }
+    const target = uploadTargetRef.current;
+    if (target === "main") {
+      setUrl(uploadedUrl);
+    } else {
+      setExtraFaces(prev => prev.map((f, i) => (i === target ? uploadedUrl : f)));
     }
   };
 
@@ -89,6 +118,14 @@ export default function CardRegister({ onRegister, existingTags }) {
         新規カード登録
       </h4>
       
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        style={{ display: "none" }}
+      />
+
       {url && (
         <div style={{ textAlign: "center", marginBottom: "15px", background: "#000", padding: "10px", borderRadius: "8px" }}>
           <img src={getProxyImageUrl(url)} alt="プレビュー" style={{ maxHeight: "150px", maxWidth: "100%" }} onError={(e) => e.target.style.display = 'none'} />
@@ -120,6 +157,14 @@ export default function CardRegister({ onRegister, existingTags }) {
             style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}
           >
             {showImagePicker ? "閉じる" : "画像選択"}
+          </button>
+          <button
+            className="btn btn-outline"
+            onClick={() => openFilePicker("main")}
+            disabled={uploading}
+            style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}
+          >
+            {uploading ? "送信中..." : "📁 ファイル"}
           </button>
         </div>
       </div>
@@ -180,6 +225,13 @@ export default function CardRegister({ onRegister, existingTags }) {
                   }}
                   style={{ flex: 1 }}
                 />
+                <button
+                  onClick={() => openFilePicker(i)}
+                  disabled={uploading}
+                  style={{ fontSize: "0.75rem", background: "none", border: "1px solid #555", color: "#aaa", padding: "2px 8px", borderRadius: "4px", cursor: "pointer", whiteSpace: "nowrap" }}
+                >
+                  📁
+                </button>
                 {extraFaces.length > 1 && (
                   <button onClick={() => setExtraFaces(extraFaces.filter((_, j) => j !== i))}
                     style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: "1rem" }}>×</button>
