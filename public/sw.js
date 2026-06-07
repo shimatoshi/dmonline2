@@ -1,5 +1,6 @@
-const CACHE_NAME = 'dm-online-v4';
-const IMAGE_CACHE_NAME = 'dm-online-images-v2';
+// v5/v3: opaqueキャッシュ廃止に伴い旧キャッシュ（毒入り・クォータ肥大の可能性）を破棄
+const CACHE_NAME = 'dm-online-v5';
+const IMAGE_CACHE_NAME = 'dm-online-images-v3';
 
 // インストール時に最低限のリソースをキャッシュ
 self.addEventListener('install', (event) => {
@@ -38,17 +39,17 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // 1. 画像リクエスト (Cache First)
-  // GitHub Release画像、アップロード画像、ローカル画像をキャッシュ
-  if (
-    url.host.includes('github') ||
-    url.pathname.includes('/api/uploads/') ||
-    event.request.destination === 'image'
-  ) {
-    // アップロード画像はトンネルURL（ホスト名）が変わってもキャッシュが効くよう、
-    // パス名ベースのキーで保存・照合する
-    const uploadsIdx = url.pathname.indexOf('/api/uploads/');
-    const cacheKey = uploadsIdx >= 0
-      ? new Request(self.location.origin + url.pathname.slice(uploadsIdx))
+  // 自サーバー画像（/api/image プロキシ・/api/uploads/）とローカル画像をキャッシュする。
+  // 注意: opaqueレスポンス（クロスオリジンno-cors）は絶対にキャッシュしない。
+  //   - ステータスが見えないため404/429等の失敗も「成功」として永久キャッシュされる
+  //   - Chromeはopaque 1件をクォータ計算上7MB相当として扱うため、数百枚で
+  //     オリジンのストレージが枯渇しCache API全体が死ぬ（全画像読込不能の原因）
+  const isApiImage = url.pathname.includes('/api/image') || url.pathname.includes('/api/uploads/');
+  if (isApiImage || event.request.destination === 'image') {
+    // トンネルURL（ホスト名）が変わってもキャッシュが効くよう、パス＋クエリをキーにする
+    const apiIdx = Math.max(url.pathname.indexOf('/api/image'), url.pathname.indexOf('/api/uploads/'));
+    const cacheKey = apiIdx >= 0
+      ? new Request(self.location.origin + url.pathname.slice(apiIdx) + url.search)
       : event.request;
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then((cache) => {
@@ -56,10 +57,13 @@ self.addEventListener('fetch', (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          return fetch(event.request).then((networkResponse) => {
-            // 画像取得成功ならキャッシュに追加
-            // クロスオリジン<img>はopaque(status 0)で返るので、200だけでなくopaqueも保存する
-            if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+          // 自サーバーAPI画像はCORSモードで取得（サーバーはACAO:*を返す）。
+          // これでレスポンスのステータスが見え、成功時のみ安全にキャッシュできる
+          const fetchPromise = isApiImage
+            ? fetch(event.request.url, { mode: 'cors' })
+            : fetch(event.request);
+          return fetchPromise.then((networkResponse) => {
+            if (networkResponse && networkResponse.ok && networkResponse.type !== 'opaque') {
               cache.put(cacheKey, networkResponse.clone());
             }
             return networkResponse;

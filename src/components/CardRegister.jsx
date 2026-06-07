@@ -228,7 +228,7 @@ export default function CardRegister({ onRegister, existingTags }) {
                   }}
                   style={{ cursor: "pointer", border: url === card.url ? "2px solid #00bfff" : "2px solid transparent", borderRadius: "4px", overflow: "hidden" }}
                 >
-                  <img src={card.url} alt={card.name} loading="lazy" style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", display: "block" }} />
+                  <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", display: "block" }} />
                   <p style={{ fontSize: "0.6rem", color: "#aaa", margin: "2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</p>
                 </div>
               ))}

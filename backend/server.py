@@ -199,8 +199,16 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_error(500, f"File read error: {e}")
 
+    # 自分のGitHub Release画像のみプロキシ許可（オープンプロキシ化を防ぐ）
+    ALLOWED_PROXY_PREFIXES = (
+        "https://github.com/shimatoshi/dmonline2/releases/download/",
+    )
+
     def handle_image_proxy(self):
-        # 外部画像プロキシは無効化済み。キャッシュ済み画像のみ返す。
+        # GitHub Release画像のキャッシュ付きプロキシ。
+        # クライアントが直接GitHubを叩くとopaqueレスポンスしか得られず
+        # SWで安全にキャッシュできない（ステータス不明・クォータ爆発）ため、
+        # 同一管理下のこのプロキシ経由でCORS付き・ステータス可視のレスポンスを返す。
         try:
             query = urllib.parse.urlparse(self.path).query
             params = urllib.parse.parse_qs(query)
@@ -210,16 +218,29 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
             file_hash = hashlib.md5(target_url.encode('utf-8')).hexdigest()
-            ext = ".png" if ".png" in target_url else ".jpg"
+            ext = os.path.splitext(urllib.parse.urlparse(target_url).path)[1] or ".jpg"
             local_path = os.path.join(CACHE_DIR, f"{file_hash}{ext}")
 
             if os.path.exists(local_path):
                 self.serve_file(local_path)
-            else:
-                # 外部へのアクセスは一切行わない
-                self.send_error(410, "External image proxy disabled")
+                return
+
+            if not target_url.startswith(self.ALLOWED_PROXY_PREFIXES):
+                self.send_error(403, "URL not allowed")
+                return
+
+            req = urllib.request.Request(target_url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+            })
+            with urllib.request.urlopen(req, timeout=20) as res:
+                file_bytes = res.read(10 * 1024 * 1024)
+
+            with open(local_path, 'wb') as f:
+                f.write(file_bytes)
+            self.serve_file(local_path)
         except Exception as e:
-            self.send_error(500, str(e))
+            print(f"[ImageProxy Error] {e}")
+            self.send_error(502, str(e))
 
 if __name__ == '__main__':
     socketserver.TCPServer.allow_reuse_address = True
