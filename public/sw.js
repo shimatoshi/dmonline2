@@ -1,5 +1,5 @@
 // v5/v3: opaqueキャッシュ廃止に伴い旧キャッシュ（毒入り・クォータ肥大の可能性）を破棄
-const CACHE_NAME = 'dm-online-v5';
+const CACHE_NAME = 'dm-online-v6';
 const IMAGE_CACHE_NAME = 'dm-online-images-v3';
 
 // インストール時に最低限のリソースをキャッシュ
@@ -11,7 +11,8 @@ self.addEventListener('install', (event) => {
         '/',
         '/index.html',
         '/vite.svg',
-        '/manifest.webmanifest'
+        '/manifest.webmanifest',
+        '/debug-note.js'
       ]);
     })
   );
