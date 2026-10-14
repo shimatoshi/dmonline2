@@ -1,0 +1,11 @@
+{
+  "id": "dmonline2",
+  "type": "pwa",
+  "app": {
+    "name": "デュエマオンライン2",
+    "icon": "https://raw.githubusercontent.com/shimatoshi/app-store-releases/main/icons/dmonline2.png",
+    "description": "React+Pythonバックエンドのカードゲーム",
+    "category": "ゲーム",
+    "url": "https://dmonline2.vercel.app"
+  }
+}
