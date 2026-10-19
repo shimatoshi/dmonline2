@@ -1,6 +1,6 @@
 // v5/v3: opaqueキャッシュ廃止に伴い旧キャッシュ（毒入り・クォータ肥大の可能性）を破棄
-const CACHE_NAME = 'dm-online-v6';
-const IMAGE_CACHE_NAME = 'dm-online-images-v3';
+const CACHE_NAME = 'dm-online-v7';
+const IMAGE_CACHE_NAME = 'dm-online-images-v4'; // v4: HTML等の非画像応答が混入したキャッシュを破棄
 
 // インストール時に最低限のリソースをキャッシュ
 self.addEventListener('install', (event) => {
@@ -64,7 +64,8 @@ self.addEventListener('fetch', (event) => {
             ? fetch(event.request.url, { mode: 'cors' })
             : fetch(event.request);
           return fetchPromise.then((networkResponse) => {
-            if (networkResponse && networkResponse.ok && networkResponse.type !== 'opaque') {
+            const ct = networkResponse && networkResponse.headers.get('content-type') || '';
+            if (networkResponse && networkResponse.ok && networkResponse.type !== 'opaque' && ct.startsWith('image/')) {
               cache.put(cacheKey, networkResponse.clone());
             }
             return networkResponse;
