@@ -132,5 +132,41 @@ export const useLibrary = () => {
     }
   };
 
-  return { library, allExistingTags, registerCard, deleteCard, updateCard, buildDedupePlan, applyDedupePlan };
+  // デッキが参照しているURLの集合（確認画面の表示用）
+  const getUsedUrls = async () => {
+    const used = new Set();
+    if (!user) return used;
+    const deckSnap = await getDocs(collection(db, "users", user.uid, "decks"));
+    deckSnap.docs.forEach(d => {
+      const data = d.data();
+      (data.cards || []).forEach(u => used.add(typeof u === "string" ? u : u?.url));
+      (data.hyperspaceCards || []).forEach(h => used.add(typeof h === "string" ? h : h?.url));
+    });
+    return used;
+  };
+
+  // 確認画面で決めた内容を反映: deletes=削除ID配列, updates=[{id, data}]。実行前にバックアップJSONをDL
+  const applyReview = async (deletes, updates) => {
+    if (!user) return;
+    const backup = JSON.stringify(library.map(c => ({ ...c, createdAt: c.createdAt?.toDate?.().toISOString?.() || null })), null, 2);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([backup], { type: "application/json" }));
+    a.download = `library-backup-${Date.now()}.json`;
+    a.click();
+    const ops = [
+      ...updates.map(u => ({ type: "update", id: u.id, data: u.data })),
+      ...deletes.map(id => ({ type: "delete", id })),
+    ];
+    for (let i = 0; i < ops.length; i += 400) {
+      const batch = writeBatch(db);
+      ops.slice(i, i + 400).forEach(op => {
+        const ref = doc(db, "users", user.uid, "library", op.id);
+        if (op.type === "update") batch.update(ref, op.data);
+        else batch.delete(ref);
+      });
+      await batch.commit();
+    }
+  };
+
+  return { library, allExistingTags, registerCard, deleteCard, updateCard, buildDedupePlan, applyDedupePlan, getUsedUrls, applyReview };
 };

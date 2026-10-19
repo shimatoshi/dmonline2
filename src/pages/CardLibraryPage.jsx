@@ -2,9 +2,11 @@ import { useState } from "react";
 import CardRegister from "../components/CardRegister";
 import CardLibrary from "../components/CardLibrary";
 import { useLibrary } from "../hooks/useLibrary";
+import DedupeReview from "../components/DedupeReview";
 
 export default function CardLibraryPage() {
-  const { library, allExistingTags, registerCard, deleteCard, updateCard, buildDedupePlan, applyDedupePlan } = useLibrary();
+  const { library, allExistingTags, registerCard, deleteCard, updateCard, buildDedupePlan, applyDedupePlan, getUsedUrls, applyReview } = useLibrary();
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [plan, setPlan] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -64,12 +66,21 @@ export default function CardLibraryPage() {
 
       {statusMsg && <div style={{ color: "#42a5f5", fontSize: "0.85rem", marginBottom: "10px" }}>{statusMsg}</div>}
 
+      {reviewOpen && (
+        <DedupeReview
+          library={library} getUsedUrls={getUsedUrls} applyReview={applyReview}
+          onClose={() => setReviewOpen(false)}
+          onDone={(msg) => { setReviewOpen(false); setStatusMsg(msg); }}
+        />
+      )}
+
       <CardRegister onRegister={handleRegister} existingTags={allExistingTags} />
 
       <hr style={{ margin: "20px 0", borderTop: "1px solid #333" }} />
 
       <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid #333", borderRadius: "6px", fontSize: "0.85rem" }}>
         <button className="btn" onClick={exportFetchList} style={{ marginRight: "8px" }}>📋 取得リスト出力（重複除去）</button>
+        <button className="btn" onClick={() => setReviewOpen(true)} style={{ marginRight: "8px" }}>🔍 類似カードを確認して整理</button>
         <button className="btn" onClick={previewDedupe} disabled={busy}>🧹 重複カードを整理（確認から）</button>
         {plan && (
           <div style={{ marginTop: "10px" }}>
