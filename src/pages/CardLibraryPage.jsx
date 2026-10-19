@@ -8,6 +8,33 @@ export default function CardLibraryPage() {
   const [plan, setPlan] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  // 重複を除いた「取得リスト」をJSONで出力（削除はしない）。画像がGitHub Releasesに無いものは needsFetch: true
+  const exportFetchList = () => {
+    const norm = (n) => (n || "").normalize("NFKC").replace(/\s+/g, "");
+    const map = new Map();
+    library.forEach(c => {
+      const key = norm(c.name);
+      if (!key) return;
+      const isGh = !!c.url?.includes("/releases/download/");
+      const cur = map.get(key);
+      if (!cur) {
+        map.set(key, { name: c.name, url: c.url, tags: [...(c.tags || [])], cost: c.cost || null, faces: c.faces || null, needsFetch: !isGh, count: 1 });
+      } else {
+        cur.count++;
+        cur.tags = Array.from(new Set([...cur.tags, ...(c.tags || [])]));
+        cur.cost = cur.cost || c.cost || null;
+        if (!cur.faces && c.faces) cur.faces = c.faces;
+        if (isGh && cur.needsFetch) { cur.url = c.url; cur.needsFetch = false; }
+      }
+    });
+    const list = Array.from(map.values());
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(list, null, 2)], { type: "application/json" }));
+    a.download = `fetch-list-${Date.now()}.json`;
+    a.click();
+    setStatusMsg(`取得リスト出力: ${list.length}種類（要取得 ${list.filter(x => x.needsFetch).length}）`);
+  };
+
   const previewDedupe = async () => {
     setBusy(true);
     try { setPlan(await buildDedupePlan()); }
@@ -42,6 +69,7 @@ export default function CardLibraryPage() {
       <hr style={{ margin: "20px 0", borderTop: "1px solid #333" }} />
 
       <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid #333", borderRadius: "6px", fontSize: "0.85rem" }}>
+        <button className="btn" onClick={exportFetchList} style={{ marginRight: "8px" }}>📋 取得リスト出力（重複除去）</button>
         <button className="btn" onClick={previewDedupe} disabled={busy}>🧹 重複カードを整理（確認から）</button>
         {plan && (
           <div style={{ marginTop: "10px" }}>
