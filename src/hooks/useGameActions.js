@@ -86,19 +86,19 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     if (zone === "battle") {
       if (!isValid(myBattleZone, index)) return;
       const newZone = [...myBattleZone];
-      if (type === "tap") newZone[index].isTapped = !newZone[index].isTapped;
-      if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
+      if (type === "tap") newZone[index] = { ...newZone[index], isTapped: !newZone[index].isTapped };
+      if (type === "face") newZone[index] = { ...newZone[index], isFaceDown: !newZone[index].isFaceDown };
       syncToDB({ battleZone: newZone });
     } else if (zone === "mana") {
       if (!isValid(myManaZone, index)) return;
       const newZone = [...myManaZone];
-      if (type === "tap") newZone[index].isTapped = !newZone[index].isTapped;
-      if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
+      if (type === "tap") newZone[index] = { ...newZone[index], isTapped: !newZone[index].isTapped };
+      if (type === "face") newZone[index] = { ...newZone[index], isFaceDown: !newZone[index].isFaceDown };
       syncToDB({ manaZone: newZone });
     } else if (zone === "temp") {
       if (!isValid(myTempZone, index)) return;
       const newZone = [...myTempZone];
-      if (type === "face") newZone[index].isFaceDown = !newZone[index].isFaceDown;
+      if (type === "face") newZone[index] = { ...newZone[index], isFaceDown: !newZone[index].isFaceDown };
       syncToDB({ tempZone: newZone });
     }
   };
@@ -109,12 +109,12 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     if (zone === "battle") {
       if (!isValid(myBattleZone, index)) return;
       const newZone = [...myBattleZone];
-      newZone[index].isTapped = !newZone[index].isTapped;
+      newZone[index] = { ...newZone[index], isTapped: !newZone[index].isTapped };
       syncToDB({ battleZone: newZone });
     } else if (zone === "mana") {
       if (!isValid(myManaZone, index)) return;
       const newZone = [...myManaZone];
-      newZone[index].isTapped = !newZone[index].isTapped;
+      newZone[index] = { ...newZone[index], isTapped: !newZone[index].isTapped };
       syncToDB({ manaZone: newZone });
     }
   };

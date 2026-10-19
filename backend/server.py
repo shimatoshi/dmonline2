@@ -180,7 +180,11 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         path = path.split('?',1)[0].split('#',1)[0]
         path = urllib.parse.unquote(path).lstrip('/')
-        return os.path.join(WEB_ROOT, os.path.normpath(path))
+        full = os.path.normpath(os.path.join(WEB_ROOT, os.path.normpath(path)))
+        # WEB_ROOT外へのパストラバーサル（../）を防ぐ
+        if full != WEB_ROOT and not full.startswith(WEB_ROOT + os.sep):
+            return os.path.join(WEB_ROOT, 'index.html')
+        return full
 
     def serve_file(self, filepath):
         try:
