@@ -2,6 +2,7 @@
 // backend/server.py の /api/image と同じ仕様（許可プレフィックスのみ）
 const ALLOWED_PREFIXES = [
   "https://github.com/shimatoshi/dmonline2/releases/download/",
+  "https://github.com/shimatoshi/dmonline2-images/releases/download/",
 ];
 
 export default async function handler(req, res) {

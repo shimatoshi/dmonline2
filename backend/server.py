@@ -206,6 +206,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
     # 自分のGitHub Release画像のみプロキシ許可（オープンプロキシ化を防ぐ）
     ALLOWED_PROXY_PREFIXES = (
         "https://github.com/shimatoshi/dmonline2/releases/download/",
+        "https://github.com/shimatoshi/dmonline2-images/releases/download/",
     )
 
     def handle_image_proxy(self):
