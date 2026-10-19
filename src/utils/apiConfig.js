@@ -73,7 +73,8 @@ export const getProxyImageUrl = (originalUrl, cardName) => {
   // GitHub直リンクはCORS非対応でopaqueレスポンスになり、SWで安全にキャッシュ
   // できない（ステータス不明＆クォータの opaque padding 問題）ため。
   if (originalUrl.includes("github.com/") && originalUrl.includes("/releases/download/")) {
-    return `${_baseUrl}/api/image?url=${encodeURIComponent(originalUrl)}`;
+    // 同一オリジン（Vercel関数 api/image.js）経由。トンネルに依存しない固定URL
+    return `/api/image?url=${encodeURIComponent(originalUrl)}`;
   }
 
   if (_baseUrl && originalUrl.startsWith(_baseUrl)) return originalUrl;
