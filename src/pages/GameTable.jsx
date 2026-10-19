@@ -77,7 +77,7 @@ export default function GameTable() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#0a0a0a", color: "#e0e0e0", userSelect: "none" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 42px)", overflow: "hidden", background: "#0a0a0a", color: "#e0e0e0", userSelect: "none" }}>
       <ChatSidebar roomId={roomId} user={user} />
 
       {/* ターン情報バー */}

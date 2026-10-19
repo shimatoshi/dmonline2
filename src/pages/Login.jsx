@@ -36,6 +36,8 @@ export default function Login() {
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         <input
           type="email"
+          name="email"
+          autoComplete="username"
           placeholder="メールアドレス"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -44,6 +46,8 @@ export default function Login() {
         />
         <input
           type="password"
+          name="password"
+          autoComplete={isLoginMode ? "current-password" : "new-password"}
           placeholder="パスワード (6文字以上)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

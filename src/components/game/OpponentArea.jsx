@@ -47,7 +47,7 @@ export const OpponentArea = ({
   const deckCards = opponent?.deck || [];
 
   return (
-    <div style={{ flex: 1, borderBottom: "1px solid #333", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden", borderBottom: "1px solid #333", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
       
       {/* モード表示 & コントロール (邪魔にならない左上に固定) */}
       {interactionMode && (
@@ -75,10 +75,10 @@ export const OpponentArea = ({
       )}
 
       {/* 手札・マナエリア */}
-      <div style={{ padding: "5px", display: "flex", flexDirection: "column", gap: "2px", alignItems: "center" }}>
+      <div style={{ padding: "2px 5px", display: "flex", flexDirection: "column", gap: "1px", alignItems: "center", flexShrink: 0 }}>
          <div style={{ width: "100%", transform: "rotate(180deg)" }}>
             <Zone 
-                type="row" zoneId="opponent-hand" cards={handCards} cardSize={{ width: "30px", height: "42px" }}
+                type="row" zoneId="opponent-hand" cards={handCards} cardSize={{ width: "24px", height: "34px" }}
                 getDragProps={getZoneDragProps("hand")}
                 isOpponent={true}
                 revealHand={revealHand} // Zone側にも渡す
@@ -87,7 +87,7 @@ export const OpponentArea = ({
 
          <div style={{ width: "100%", transform: "rotate(180deg)" }}>
             <Zone 
-                type="row" zoneId="opponent-mana" cards={manaZone} cardSize={{ width: "25px", height: "35px" }}
+                type="row" zoneId="opponent-mana" cards={manaZone} cardSize={{ width: "22px", height: "31px" }}
                 getDragProps={getZoneDragProps("mana")}
                 isOpponent={true}
             />
@@ -95,35 +95,35 @@ export const OpponentArea = ({
       </div>
       
       {/* ミドルエリア */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "5px", transform: "rotate(180deg)" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "8px", alignItems: "center", padding: "2px 5px", flexShrink: 0, transform: "rotate(180deg)" }}>
+          <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
             <div onClick={onOpenHyperspace}>
-               <Zone type="stack" zoneId="opponent-hyperspace" cards={hyperspaceCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("hyperspace")} isOpponent={true} style={{ border: "1px dashed #00bfff" }} />
+               <Zone type="stack" zoneId="opponent-hyperspace" cards={hyperspaceCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("hyperspace")} isOpponent={true} style={{ border: "1px dashed #00bfff" }} />
             </div>
             <div onClick={onOpenGrave}>
-               <Zone type="stack" zoneId="opponent-grave" cards={graveCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("grave")} isOpponent={true} />
+               <Zone type="stack" zoneId="opponent-grave" cards={graveCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("grave")} isOpponent={true} />
             </div>
           </div>
           
           {tempCards.length > 0 && (
             <div onClick={onOpenTemp}>
-                <Zone type="stack" zoneId="opponent-temp" cards={tempCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("temp")} isOpponent={true} />
+                <Zone type="stack" zoneId="opponent-temp" cards={tempCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("temp")} isOpponent={true} />
             </div>
           )}
 
           <div style={{ maxWidth: "200px" }}>
-             <Zone type="row" zoneId="opponent-shield" cards={shieldCards} cardSize={{ width: "32px", height: "45px" }} getDragProps={getZoneDragProps("shield")} isOpponent={true} />
+             <Zone type="row" zoneId="opponent-shield" cards={shieldCards} cardSize={{ width: "26px", height: "36px" }} getDragProps={getZoneDragProps("shield")} isOpponent={true} />
           </div>
 
           <div>
-             <Zone type="stack" zoneId="opponent-deck" cards={deckCards} cardSize={{ width: "40px", height: "56px" }} getDragProps={getZoneDragProps("deck")} isOpponent={true} />
+             <Zone type="stack" zoneId="opponent-deck" cards={deckCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("deck")} isOpponent={true} />
           </div>
       </div>
 
       {/* バトルゾーン */}
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", transform: "rotate(180deg)", borderTop: "1px dashed #333" }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", transform: "rotate(180deg)", borderTop: "1px dashed #333" }}>
          <Zone 
-            type="grid" zoneId="opponent-battle" cards={battleZone} cardSize={{ width: "55px" }}
+            type="grid" zoneId="opponent-battle" cards={battleZone} cardSize={{ width: "46px" }}
             getDragProps={getZoneDragProps("battle")}
             isOpponent={true}
          />

@@ -8,7 +8,7 @@ export const PlayerUtilityRow = ({
   selectedCard, onViewMode, onDeckTap, onZoneTap, getDragProps
 }) => {
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "5px 10px", background: "#111" }}>
+    <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "2px 10px", background: "#111", flexShrink: 0 }}>
       
       {/* 一時ゾーン */}
       <div 
@@ -18,11 +18,11 @@ export const PlayerUtilityRow = ({
           padding: "2px", border: "1px solid #333", borderRadius: "5px", background: "rgba(111, 66, 193, 0.05)" 
         }}
       >
-        <DraggableCard {...getDragProps("temp", tempZone.length-1, tempZone.length > 0 ? tempZone[tempZone.length-1] : {})} style={{ height: "63px" }}>
+        <DraggableCard {...getDragProps("temp", tempZone.length-1, tempZone.length > 0 ? tempZone[tempZone.length-1] : {})} style={{ height: "50px" }}>
            <div 
              onClick={() => onViewMode("temp")}
              style={{ 
-               width: "45px", height: "63px", border: "2px dashed #6f42c1", borderRadius: "3px", 
+               width: "36px", height: "50px", border: "2px dashed #6f42c1", borderRadius: "3px", 
                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
                background: "#1a1a1a"
              }}
@@ -38,7 +38,7 @@ export const PlayerUtilityRow = ({
         </DraggableCard>
         <button 
           onClick={() => onViewMode("temp")}
-          className="btn-mini" style={{ marginTop: "12px" }}
+          className="btn-mini" style={{ marginTop: "10px" }}
         >
           👀
         </button>
@@ -52,14 +52,14 @@ export const PlayerUtilityRow = ({
           display: "flex", gap: "4px", flexWrap: "wrap",
           justifyContent: "center",
           maxWidth: "180px", paddingBottom: "4px",
-          minHeight: "50px", minWidth: "80px",
+          minHeight: "40px", minWidth: "80px",
           transform: "rotate(180deg)",
           direction: "rtl"
         }}
       >
          {[...shields].map((s, i) => ({s, i})).map(({s, i}) => (
            <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })} style={{ flexShrink: 0, transform: "rotate(180deg)" }}>
-             <div style={{ width: "36px", height: "50px", cursor: "pointer" }}>
+             <div style={{ width: "28px", height: "39px", cursor: "pointer" }}>
                 <img src={CARD_BACK_URL} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid #b8860b", boxShadow: selectedCard?.zone === "shield" && selectedCard?.index === i ? "0 0 0 2px yellow" : "none" }} />
              </div>
            </DraggableCard>
@@ -71,11 +71,11 @@ export const PlayerUtilityRow = ({
         
         {/* 山札 */}
         <div data-zone-id="deckTop" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-           <DraggableCard {...getDragProps("deck", 0, deck.length > 0 ? { url: deck[0] } : {})} style={{ height: "63px" }}>
+           <DraggableCard {...getDragProps("deck", 0, deck.length > 0 ? { url: deck[0] } : {})} style={{ height: "50px" }}>
              <div 
                onClick={onDeckTap}
                style={{ 
-                 width: "45px", height: "63px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
+                 width: "36px", height: "50px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
                  boxShadow: selectedCard?.zone === "deck" ? "0 0 8px 2px cyan" : "none"
                }}
              >
@@ -87,7 +87,7 @@ export const PlayerUtilityRow = ({
            </DraggableCard>
            <button 
               onClick={() => onViewMode("deck")}
-              className="btn-mini" style={{ marginTop: "12px" }}
+              className="btn-mini" style={{ marginTop: "10px" }}
            >
              👁
            </button>
@@ -95,10 +95,10 @@ export const PlayerUtilityRow = ({
 
         {/* 超次元 */}
         <div data-zone-id="hyperspace" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-          <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].url : hyperspace[hyperspace.length-1], faces: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].faces : null } : {})} style={{ height: "63px" }}>
+          <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].url : hyperspace[hyperspace.length-1], faces: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].faces : null } : {})} style={{ height: "50px" }}>
             <div
               onClick={() => onZoneTap("hyperspace")}
-              style={{ width: "45px", height: "63px", border: "1px dashed #00bfff", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
+              style={{ width: "36px", height: "50px", border: "1px dashed #00bfff", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {hyperspace.length > 0 ?
                 (() => {
@@ -120,10 +120,10 @@ export const PlayerUtilityRow = ({
 
         {/* 墓地 */}
         <div data-zone-id="grave" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-          <DraggableCard {...getDragProps("grave", graveyard.length-1, graveyard.length > 0 ? { url: graveyard[graveyard.length-1] } : {})} style={{ height: "63px" }}>
+          <DraggableCard {...getDragProps("grave", graveyard.length-1, graveyard.length > 0 ? { url: graveyard[graveyard.length-1] } : {})} style={{ height: "50px" }}>
             <div 
               onClick={() => onZoneTap("grave")} 
-              style={{ width: "45px", height: "63px", border: "1px dashed #444", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
+              style={{ width: "36px", height: "50px", border: "1px dashed #444", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {graveyard.length > 0 ? 
                 <img src={getProxyImageUrl(graveyard[graveyard.length-1])} style={{width:"100%", height:"100%", opacity:0.8}} /> : 

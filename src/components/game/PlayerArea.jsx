@@ -34,7 +34,7 @@ export const PlayerArea = ({
   });
 
   return (
-    <div style={{ flex: "1 0 auto", display: "flex", flexDirection: "column", background: "#0a0a0a", position: "relative" }}>
+    <div style={{ flex: "1 1 0", minHeight: 0, display: "flex", flexDirection: "column", background: "#0a0a0a", position: "relative" }}>
       
       <SideControlMenu  
         onShuffle={onShuffle}

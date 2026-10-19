@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8-FWyi0m-MvNCiRZp4FinNdGSUVbOV7U",
@@ -24,7 +24,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const auth = getAuth(app);
+// ログイン状態を永続化（IndexedDB → localStorage の順でフォールバック）
+export const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+});
+
+// ブラウザのストレージ自動削除（容量逼迫時の退避）からログイン情報を守る
+if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
+  navigator.storage.persist().catch(() => { /* ignore */ });
+}
 
 // オフライン永続化を有効にする
 if (typeof window !== 'undefined') {
