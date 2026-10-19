@@ -5,3 +5,4 @@ dist/
 build.log
 dist.zip
 .vercel
+.env*

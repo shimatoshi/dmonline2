@@ -1,0 +1,5 @@
+scrape
+*.zip
+backend
+firebase-debug.log
+dm_zukan.html
