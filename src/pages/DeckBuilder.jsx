@@ -4,8 +4,9 @@ import { doc, getDoc, setDoc, collection, updateDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 
 import CardLibrary from "../components/CardLibrary";
-import { useLibrary } from "../hooks/useLibrary";
-import { getProxyImageUrl } from "../utils/apiConfig";
+import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
+
+const CIVIL_TAGS = ["火", "水", "自然", "光", "闇", "ゼロ"];
 
 export default function DeckBuilder() {
   const { deckId } = useParams();
@@ -21,7 +22,8 @@ export default function DeckBuilder() {
   const [newDeckTag, setNewDeckTag] = useState("");
 
   const isEditMode = !!deckId;
-  const { library, allExistingTags, deleteCard, updateCard } = useLibrary();
+  // カード一覧はサーバー配信の公式カードデータ(新図鑑と共通)を使う
+  const [library, setLibrary] = useState([]);
   const [statusMsg, setStatusMsg] = useState("");
   const [showThumbSelector, setShowThumbSelector] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -48,6 +50,21 @@ export default function DeckBuilder() {
     };
     loadDeck();
   }, [user, deckId, isEditMode, navigate]);
+
+  useEffect(() => {
+    let alive = true;
+    resolveApiBase().catch(() => {}).then(() => fetch("/data/official_cards.json"))
+      .then((r) => r.json())
+      .then((cards) => {
+        if (!alive) return;
+        setLibrary(cards.filter((c) => c.img).map((c) => ({
+          id: c.id, url: c.img, name: c.name, cost: c.cost,
+          tags: c.civil ? String(c.civil).split(/[\/・]/).filter(Boolean) : [],
+        })));
+      })
+      .catch((e) => console.error("official cards load failed:", e));
+    return () => { alive = false; };
+  }, []);
 
   // ピンチズームを許可
   useEffect(() => {
@@ -246,9 +263,7 @@ export default function DeckBuilder() {
         <CardLibrary
           library={library}
           onAddToDeck={addToDeck}
-          onDelete={deleteCard}
-          onUpdate={updateCard}
-          existingTags={allExistingTags}
+          existingTags={CIVIL_TAGS}
           layout="scroll"
         />
       </div>

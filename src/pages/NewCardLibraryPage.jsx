@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import MigrationBanner from "../components/MigrationBanner";
-import { useLibrary } from "../hooks/useLibrary";
 import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
 
 const CIVILS = ["火", "水", "自然", "光", "闇", "ゼロ"];
@@ -16,18 +15,7 @@ export default function NewCardLibraryPage() {
   const [civil, setCivil] = useState("");
   const [limit, setLimit] = useState(PAGE);
   const [sel, setSel] = useState(null);
-  const [msg, setMsg] = useState("");
   const [, setReady] = useState(false);
-  const { library, registerCard } = useLibrary();
-  const ownedUrls = useMemo(() => new Set(library.map((c) => c.url)), [library]);
-
-  const addToMyLibrary = async (c) => {
-    try {
-      const tags = (c.civil || "").split("/").filter(Boolean).map((x) => x + "文明");
-      await registerCard(c.name, c.img, tags, c.cost, null);
-      setMsg(`「${c.name}」をマイ図鑑に追加しました`);
-    } catch (e) { setMsg("追加に失敗しました: " + e.message); }
-  };
 
   useEffect(() => {
     // 自サーバー(/api/uploads)のURL基点を解決してから描画し直す
@@ -62,7 +50,6 @@ export default function NewCardLibraryPage() {
           ))}
         </div>
         <div style={{ fontSize: "0.75rem", color: "#aaa" }}>{cards ? `${filtered.length}件 / 全${cards.length}枚` : "読み込み中..."}</div>
-        {msg && <div style={{ color: "#42a5f5", fontSize: "0.85rem" }}>{msg}</div>}
         {error && <div style={{ color: "#ff8080" }}>{error}</div>}
       </div>
 
@@ -91,11 +78,6 @@ export default function NewCardLibraryPage() {
             </div>
             <div style={{ fontSize: "0.75rem", color: "#888", margin: "2px 0 8px" }}>{sel.pack} {sel.rarelity}</div>
             <div style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>{sel.text}</div>
-            {sel.img ? (
-              ownedUrls.has(sel.img)
-                ? <div style={{ marginTop: "12px", textAlign: "center", color: "#8bc34a", fontSize: "0.85rem" }}>✓ マイ図鑑に追加済み</div>
-                : <button onClick={() => addToMyLibrary(sel)} className="btn btn-outline" style={{ marginTop: "12px", width: "100%", borderColor: "#007bff", color: "#007bff" }}>マイ図鑑に追加（デッキで使えます）</button>
-            ) : <div style={{ marginTop: "12px", textAlign: "center", color: "#888", fontSize: "0.8rem" }}>このカードは画像が未対応のため、まだデッキには使えません</div>}
             <button onClick={() => setSel(null)} className="btn btn-outline" style={{ marginTop: "12px", width: "100%" }}>閉じる</button>
           </div>
         </div>
