@@ -6,3 +6,5 @@ build.log
 dist.zip
 .vercel
 .env*
+scrape/official_cards/images/
+__pycache__/
