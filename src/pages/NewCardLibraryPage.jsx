@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import MigrationBanner from "../components/MigrationBanner";
 import { useLibrary } from "../hooks/useLibrary";
+import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
 
 const CIVILS = ["火", "水", "自然", "光", "闇", "ゼロ"];
 const PAGE = 60;
 const norm = (s) => (s || "").normalize("NFKC").replace(/\s+/g, "").toLowerCase();
-// 公式サイトへは直接リクエストしない。画像は自前配信(GitHub Release)のものだけ使う
-const imgOf = (c) => c.img || "/card_back.jpg";
+// 公式サイトへは直接リクエストしない。画像は自前配信(GitHub Release経由 / 自サーバー /api/uploads)のみ
+const imgOf = (c) => getProxyImageUrl(c.img);
 
 export default function NewCardLibraryPage() {
   const [cards, setCards] = useState(null);
@@ -16,6 +17,7 @@ export default function NewCardLibraryPage() {
   const [limit, setLimit] = useState(PAGE);
   const [sel, setSel] = useState(null);
   const [msg, setMsg] = useState("");
+  const [, setReady] = useState(false);
   const { library, registerCard } = useLibrary();
   const ownedUrls = useMemo(() => new Set(library.map((c) => c.url)), [library]);
 
@@ -28,6 +30,8 @@ export default function NewCardLibraryPage() {
   };
 
   useEffect(() => {
+    // 自サーバー(/api/uploads)のURL基点を解決してから描画し直す
+    resolveApiBase().then(() => setReady(true));
     fetch("/data/official_cards.json")
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(setCards)
