@@ -2,6 +2,7 @@ import { useState } from "react";
 import CardRegister from "../components/CardRegister";
 import CardLibrary from "../components/CardLibrary";
 import { useLibrary } from "../hooks/useLibrary";
+import MigrationBanner from "../components/MigrationBanner";
 import DedupeReview from "../components/DedupeReview";
 
 export default function CardLibraryPage() {
@@ -62,7 +63,8 @@ export default function CardLibraryPage() {
 
   return (
     <div style={{ padding: "10px", maxWidth: "800px", margin: "0 auto", paddingBottom: "80px" }}>
-      <h2 style={{ borderBottom: "1px solid #333", paddingBottom: "10px", color: "#e0e0e0", marginBottom: "15px" }}>カード図鑑</h2>
+      <h2 style={{ borderBottom: "1px solid #333", paddingBottom: "10px", color: "#e0e0e0", marginBottom: "15px" }}>カード図鑑（旧）</h2>
+      <MigrationBanner isOld />
 
       {statusMsg && <div style={{ color: "#42a5f5", fontSize: "0.85rem", marginBottom: "10px" }}>{statusMsg}</div>}
 
