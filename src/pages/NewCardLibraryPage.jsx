@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { dedupeByName } from "../utils/dedupeCards";
 import MigrationBanner from "../components/MigrationBanner";
 import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
 
@@ -22,7 +23,7 @@ export default function NewCardLibraryPage() {
     resolveApiBase().then(() => setReady(true));
     fetch("/data/official_cards.json")
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(setCards)
+      .then((d) => setCards(dedupeByName(d)))
       .catch((e) => setError("カードデータの読み込みに失敗しました: " + e.message));
   }, []);
 

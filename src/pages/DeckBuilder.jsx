@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, collection, updateDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 
 import CardLibrary from "../components/CardLibrary";
+import { dedupeByName } from "../utils/dedupeCards";
 import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
 
 const CIVIL_TAGS = ["火", "水", "自然", "光", "闇", "ゼロ"];
@@ -57,7 +58,7 @@ export default function DeckBuilder() {
       .then((r) => r.json())
       .then((cards) => {
         if (!alive) return;
-        setLibrary(cards.filter((c) => c.img).map((c) => ({
+        setLibrary(dedupeByName(cards.filter((c) => c.img)).map((c) => ({
           id: c.id, url: c.img, name: c.name, cost: c.cost,
           tags: c.civil ? String(c.civil).split(/[/・]/).filter(Boolean) : [],
         })));
