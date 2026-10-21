@@ -13,8 +13,7 @@ for i,c in off.items():
     if not c.get("name"): continue
     d={k:c.get(k) for k in keys}
     d["img"]=gh.get(i) or ""
-    d["off"]=c["images"][0] if c.get("images") else ""
     out.append(d)
 dst=os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","public","data"); os.makedirs(dst,exist_ok=True)
 json.dump(out,open(dst+"/official_cards.json","w"),ensure_ascii=False,separators=(",",":"))
-print(len(out),sum(1 for d in out if d["img"]),sum(1 for d in out if d["off"]))
+print(len(out),sum(1 for d in out if d["img"]))

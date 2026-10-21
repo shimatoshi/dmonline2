@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import MigrationBanner from "../components/MigrationBanner";
 import { useLibrary } from "../hooks/useLibrary";
 
-const OFFICIAL = "https://dm.takaratomy.co.jp";
 const CIVILS = ["火", "水", "自然", "光", "闇", "ゼロ"];
 const PAGE = 60;
 const norm = (s) => (s || "").normalize("NFKC").replace(/\s+/g, "").toLowerCase();
-const imgOf = (c) => c.img || (c.off ? OFFICIAL + c.off : "");
+// 公式サイトへは直接リクエストしない。画像は自前配信(GitHub Release)のものだけ使う
+const imgOf = (c) => c.img || "/card_back.jpg";
 
 export default function NewCardLibraryPage() {
   const [cards, setCards] = useState(null);
