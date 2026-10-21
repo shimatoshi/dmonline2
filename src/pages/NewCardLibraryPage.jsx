@@ -31,17 +31,15 @@ export default function NewCardLibraryPage() {
     );
   }, [cards, q, civil]);
 
-  useEffect(() => { setLimit(PAGE); }, [q, civil]);
-
   return (
     <div style={{ color: "#e0e0e0" }}>
       <MigrationBanner />
       <div style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="カード名・種族・テキストで検索"
+        <input value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} placeholder="カード名・種族・テキストで検索"
           style={{ padding: "8px", borderRadius: "6px", border: "1px solid #444", background: "#222", color: "#fff" }} />
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           {["", ...CIVILS].map((c) => (
-            <button key={c || "all"} onClick={() => setCivil(c)}
+            <button key={c || "all"} onClick={() => { setCivil(c); setLimit(PAGE); }}
               style={{ padding: "4px 10px", borderRadius: "12px", border: "1px solid #555", background: civil === c ? "#007bff" : "#2a2a2a", color: "#fff", fontSize: "0.8rem" }}>
               {c || "すべて"}
             </button>
