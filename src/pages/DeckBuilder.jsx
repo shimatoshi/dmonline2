@@ -59,7 +59,7 @@ export default function DeckBuilder() {
         if (!alive) return;
         setLibrary(cards.filter((c) => c.img).map((c) => ({
           id: c.id, url: c.img, name: c.name, cost: c.cost,
-          tags: c.civil ? String(c.civil).split(/[\/・]/).filter(Boolean) : [],
+          tags: c.civil ? String(c.civil).split(/[/・]/).filter(Boolean) : [],
         })));
       })
       .catch((e) => console.error("official cards load failed:", e));
