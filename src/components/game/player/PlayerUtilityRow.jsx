@@ -90,7 +90,7 @@ export const PlayerUtilityRow = ({
             <div
               data-zone-id="deckBottom"
               style={{
-                minWidth: "30px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center",
+                width: "36px", height: "50px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
                 border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
                 background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.7rem", whiteSpace: "nowrap"
               }}
@@ -120,7 +120,7 @@ export const PlayerUtilityRow = ({
             <div
               data-zone-id="deckTop"
               style={{
-                minWidth: "30px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center",
+                width: "36px", height: "50px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
                 border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
                 background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.7rem", whiteSpace: "nowrap"
               }}
