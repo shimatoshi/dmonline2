@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { auth } from "../firebase";
 
@@ -18,6 +18,9 @@ import { useGameSync } from "../hooks/useGameSync";
 import { useGameActions } from "../hooks/useGameActions";
 import { useOpponentActions } from "../hooks/useOpponentActions";
 import { useGameInteractions } from "../hooks/useGameInteractions";
+import { useGameLog } from "../hooks/useGameLog";
+import { GameLogPanel } from "../components/game/GameLogPanel";
+import { ensureCardNames } from "../utils/cardNames";
 
 export default function GameTable() {
   const { roomId } = useParams();
@@ -32,11 +35,13 @@ export default function GameTable() {
     setSoloSide, isSolo, undo, canUndo
   } = gameState;
 
+  const { logs, addLog } = useGameLog(roomId, user, gameState.mySide);
   const {
     performMoveWithData, performStack, toggleStatus, handleQuickTap,
-    startTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
+    startTurn, autoStartTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
     changeFace
-  } = useGameActions(syncToDB, gameState, generateId, roomId, user);
+  } = useGameActions(syncToDB, { ...gameState, addLog }, generateId, roomId);
+  const { turn, turnSide, mySide, isMyTurn } = gameState;
 
   const {
     selectedOpponentCard, setSelectedOpponentCard,
@@ -53,6 +58,20 @@ export default function GameTable() {
   const [faceSelectCard, setFaceSelectCard] = useState(null);
   const [showHint, setShowHint] = useState(shouldShowHintFirst);
   const closeHint = () => { markHintSeen(); setShowHint(false); };
+  const [showLog, setShowLog] = useState(false);
+
+  useEffect(() => { ensureCardNames(); }, []);
+
+  // 相手がターンを終えたら、自分のターン開始処理(アンタップ+ドロー)を自動で行う
+  const autoStartedTurn = useRef(0);
+  useEffect(() => {
+    if (!roomData?.firstPlayerId || turn <= 1) return;
+    if (turnSide !== mySide || roomData.startedTurn === turn) return;
+    if (autoStartedTurn.current === turn) return;
+    autoStartedTurn.current = turn;
+    autoStartTurn();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turn, turnSide, mySide, roomData?.startedTurn, roomData?.firstPlayerId]);
 
   const {
     selectedCard, setSelectedCard,
@@ -95,7 +114,17 @@ export default function GameTable() {
           aria-label="操作のヒント"
           style={{ position: "absolute", left: "5px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: "50%", width: "28px", height: "28px", fontSize: "0.85rem", cursor: "pointer" }}
         >?</button>
-        {turnInfo}
+        <button
+          onClick={() => setShowLog(true)}
+          aria-label="対戦ログ"
+          style={{ position: "absolute", left: "38px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: "14px", height: "28px", padding: "0 10px", fontSize: "0.8rem", cursor: "pointer" }}
+        >📜ログ</button>
+        {firstPlayerId ? (
+          <span>
+            ターン{turn}<span style={{ marginLeft: "10px" }}></span><span style={{ color: isMyTurn ? "#69f0ae" : "#ef9a9a" }}>{isMyTurn ? "あなたの番" : "相手の番"}</span>
+            <span style={{ color: "#888", fontWeight: "normal", marginLeft: "8px" }}>手{myHand.length} 山{myDeck.length}</span>
+          </span>
+        ) : turnInfo}
         {isSolo && (
           <button
             onClick={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
@@ -111,6 +140,7 @@ export default function GameTable() {
       </div>
 
       {showHint && <GameHint onClose={closeHint} />}
+      {showLog && <GameLogPanel logs={logs} mySide={mySide} onClose={() => setShowLog(false)} />}
 
       <GameModals
         viewMode={viewMode} setViewMode={setViewMode}

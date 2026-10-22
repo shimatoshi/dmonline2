@@ -157,7 +157,15 @@ export const useGameSync = (roomId, user) => {
       .catch((e) => console.error("undo failed:", e));
   };
 
+  // ターン情報(旧データはターン1・先攻側から開始とみなす)
+  const mySide = isHost ? "host" : "guest";
+  const firstSide = roomData?.firstPlayerId ? (roomData.firstPlayerId === roomData.hostId ? "host" : "guest") : null;
+  const turn = roomData?.turn || 1;
+  const turnSide = roomData?.turnSide || firstSide;
+  const isMyTurn = !!turnSide && turnSide === mySide;
+
   return {
+    turn, turnSide, mySide, firstSide, isMyTurn,
     undo, canUndo: undoCount > 0,
     isHost, roomData, firstPlayerId,
     myHand, setMyHand,

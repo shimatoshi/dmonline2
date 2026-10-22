@@ -1,12 +1,15 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { showToast } from "../utils/toast";
+import { getCardName } from "../utils/cardNames";
 import { removeCardFromZone, addCardToZone, shuffle } from "../utils/zoneUtils";
 
-export const useGameActions = (syncToDB, gameState, generateId, roomId, user) => {
+export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
   const {
-    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace
+    myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
+    turn, turnSide, mySide, firstSide, isMyTurn, isSolo, setSoloSide, roomData, normalizeZone, addLog
   } = gameState;
+  const log = (text) => { if (addLog) addLog(text); };
 
   const getZones = () => ({
     hand: [...myHand], battleZone: [...myBattleZone], manaZone: [...myManaZone],
@@ -31,6 +34,12 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     addCardToZone(zones, targetZoneName, cardUrl, cardFaces, generateId);
     syncToDB(zones);
     showToast(`${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`, 1200);
+
+    // ログ: 公開ゾーンが絡む移動だけカード名を出す(手札・山札・シールド同士は枚数のみ)
+    const PUBLIC = ["battle", "grave", "mana", "hyperspace"];
+    const reveal = PUBLIC.includes(fromZone) || PUBLIC.includes(targetZoneName);
+    const name = reveal ? (getCardName(cardUrl) || "カード") : "1枚";
+    log(`${name}: ${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`);
   };
 
   // --- スタック (進化/封印) ---
@@ -93,6 +102,8 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     zones.battleZone[adjustedToIndex] = targetCard;
     syncToDB(zones);
+    const MODE_LABELS = { evolve: "進化(上に重ねる)", under: "下に入れる", seal: "封印" };
+    log(`${getCardName(cardUrl) || "カード"}: ${MODE_LABELS[mode] || mode} → ${getCardName(oldTop) || "カード"}`);
   };
 
   // --- タップ状態トグル ---
@@ -139,29 +150,63 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   };
 
   // --- ターン制御 ---
-  const startTurn = () => {
-    const newBattle = myBattleZone.map(c => ({ ...c, isTapped: false }));
-    const newMana = myManaZone.map(c => ({ ...c, isTapped: false }));
-    let newDeck = [...myDeck];
-    let newHand = [...myHand];
-    if (newDeck.length > 0) {
+  const roomRef = () => doc(db, "rooms", roomId);
+
+  // アンタップ+ドロー。src は盤面(手動は現在のstate、自動は最新のroomData)
+  const runStartTurn = (src, { draw }) => {
+    const newBattle = src.battleZone.map(c => ({ ...c, isTapped: false }));
+    const newMana = src.manaZone.map(c => ({ ...c, isTapped: false }));
+    let newDeck = [...src.deck];
+    let newHand = [...src.hand];
+    let drew = false;
+    if (draw && newDeck.length > 0) {
       newHand.push(newDeck[0]);
       newDeck = newDeck.slice(1);
+      drew = true;
     }
-    syncToDB({ battleZone: newBattle, manaZone: newMana, deck: newDeck, hand: newHand });
+    syncToDB({
+      ...src, battleZone: newBattle, manaZone: newMana, deck: newDeck, hand: newHand,
+    });
+    updateDoc(roomRef(), { startedTurn: turn }).catch((e) => console.error(e));
+    log(`ターン${turn}開始${drew ? "(1枚ドロー)" : draw ? "(山札なし)" : "(先攻1ターン目はドローなし)"}`);
   };
 
-  const handleEndTurn = async () => {
-    try {
-      await addDoc(collection(db, "rooms", roomId, "messages"), {
-        text: "⚡ ターン終了",
-        senderId: user.uid,
-        senderName: user.displayName || user.email?.split("@")[0] || "Guest",
-        createdAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error("ターン終了ログ送信エラー:", error);
-    }
+  const currentSrc = () => ({
+    hand: myHand, battleZone: myBattleZone, manaZone: myManaZone, graveyard: myGraveyard,
+    hyperspace: myHyperspace, shields: myShields, deck: myDeck, tempZone: myTempZone,
+  });
+
+  // 先攻の最初のターンはドローしない
+  const shouldDraw = () => !(turn === 1 && turnSide === firstSide);
+
+  // 手動の「開始」ボタン
+  const startTurn = () => {
+    if (!isMyTurn && !isSolo) showToast("相手のターンです");
+    // 自動開始済みのターンで押すと二重ドローになるため確認する
+    if (roomData?.startedTurn === turn && !window.confirm("このターンはすでに開始済みです。もう一度開始しますか？")) return;
+    runStartTurn(currentSrc(), { draw: shouldDraw() });
+  };
+
+  // 相手のターン終了を受けて自動で開始(最新のroomDataから読む)
+  const autoStartTurn = () => {
+    const d = roomData?.[mySide === "host" ? "hostData" : "guestData"];
+    if (!d) return;
+    const z = (v) => normalizeZone(v);
+    runStartTurn({
+      hand: d.hand || [], battleZone: z(d.battleZone), manaZone: z(d.manaZone), graveyard: d.graveyard || [],
+      hyperspace: d.hyperspace || [], shields: d.shields || [], deck: d.deck || [], tempZone: z(d.tempZone),
+    }, { draw: true });
+  };
+
+  const handleEndTurn = () => {
+    if (!turnSide) { showToast("対戦相手が揃っていません"); return; }
+    if (!isMyTurn && !isSolo) { showToast("あなたのターンではありません"); return; }
+    const nextSide = turnSide === "host" ? "guest" : "host";
+    log(`ターン${turn}終了`);
+    updateDoc(roomRef(), { turn: turn + 1, turnSide: nextSide })
+      .catch((e) => console.error("end turn failed:", e));
+    if (isSolo && setSoloSide) setSoloSide(nextSide);
+    showToast(`ターン${turn + 1}へ`);
   };
 
   // --- デッキ操作 ---
@@ -169,6 +214,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     if (myDeck.length <= 1) return;
     syncToDB({ deck: shuffle(myDeck) });
     showToast("山札をシャッフルしました");
+    log("山札をシャッフル");
   };
 
   const drawCard = () => {
@@ -177,6 +223,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     const newDeck = myDeck.slice(1);
     const newHand = [...myHand, card];
     syncToDB({ deck: newDeck, hand: newHand });
+    log("1枚ドロー");
   };
 
   const setupGame = () => {
@@ -200,6 +247,12 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
       battleZone: [], manaZone: [], graveyard: [], tempZone: [],
       hyperspace: myHyperspace
     });
+    // ターンを1に戻す(先攻側から)
+    if (firstSide) {
+      updateDoc(roomRef(), { turn: 1, turnSide: firstSide, startedTurn: null })
+        .catch((e) => console.error("turn reset failed:", e));
+    }
+    log("ゲーム準備(シャッフル・シールド5・手札5)");
   };
 
   const toggleTempAll = () => {
@@ -232,7 +285,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
   return {
     performMoveWithData, performStack, toggleStatus, handleQuickTap,
-    startTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
+    startTurn, autoStartTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
     changeFace
   };
 };
