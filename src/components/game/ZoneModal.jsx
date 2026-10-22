@@ -10,7 +10,7 @@ const MULTI_TARGETS = [
   { id: "hyperspace", label: "超次元" }, { id: "deckTop", label: "山上" }, { id: "deckBottom", label: "山下" },
 ];
 
-export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCardTap, onToggleFace, onMoveMany }) => {
+export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCardTap, onToggleFace, onMoveMany, alwaysClose }) => {
   const [multi, setMulti] = useState(false);
   const [picked, setPicked] = useState([]); // 触った順のインデックス
 
@@ -111,6 +111,9 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
           </div>
         )}
 
+        {onMoveMany && alwaysClose && (
+          <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
+        )}
         {onMoveMany ? (
           <button className="btn" onClick={toggleMulti} style={{ marginTop: "8px", minHeight: "44px", flexShrink: 0, color: "#fff", background: multi ? "var(--accent-color)" : "var(--border-color)" }}>
             {multi ? "複数選択中(タップで解除)" : "複数選択"}

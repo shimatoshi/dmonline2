@@ -7,7 +7,7 @@ export const OpponentArea = ({
   opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, 
   onOpenGrave, onOpenTemp, onOpenHyperspace,
   onDragStart, onDragMove, onDragEnd,
-  revealHand
+  revealHand, breakPicks = []
 }) => {
   
   const getZoneDragProps = (zoneName) => (index, data) => ({
@@ -20,9 +20,9 @@ export const OpponentArea = ({
       if (zoneName === "grave") { onOpenGrave(); return; }
       if (zoneName === "temp") { onOpenTemp(); return; }
       if (zoneName === "hyperspace") { onOpenHyperspace(); return; }
-      onTapCard(data);
+      onTapCard(data, zoneName, index);
     },
-    onLongPress: () => onTapCard(data)
+    onLongPress: () => onTapCard(data, zoneName, index)
   });
 
   const battleZone = normalizeZone(opponent?.battleZone);
@@ -38,6 +38,7 @@ export const OpponentArea = ({
   const shieldCards = [...Array(opponent?.shields?.length || 0)].map((_, i) => ({ 
     url: CARD_BACK_URL, 
     isFaceDown: true, 
+    highlight: breakPicks.includes(i),
     id: `opp-shield-${i}` 
   }));
   

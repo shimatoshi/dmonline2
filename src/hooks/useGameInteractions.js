@@ -7,7 +7,8 @@ export const useGameInteractions = ({
   setViewMode,
   myDeck,
   setStackViewCards,
-  setZoomedUrl
+  setZoomedUrl,
+  onAttackStart
 }) => {
   // UI State
   const [selectedCard, setSelectedCard] = useState(null);
@@ -53,7 +54,9 @@ export const useGameInteractions = ({
     document.body.classList.remove("is-dragging", "is-dragging-opponent");
   };
 
+  const dragOrigin = useRef(null);
   const handleDragStart = (data, pos) => {
+    dragOrigin.current = pos;
     dragIsOpponent.current = !!data.isOpponent;
     document.body.classList.add(data.isOpponent ? "is-dragging-opponent" : "is-dragging");
     setSelectedCard(null);
@@ -75,6 +78,20 @@ export const useGameInteractions = ({
       if (!element) return;
 
       const zoneElement = element.closest("[data-zone-id]");
+
+      // 自分のバトルゾーンのカードを上へスワイプ → 攻撃対象の選択へ
+      if (onAttackStart && !data.isOpponent && data.zone === "battle" && dragOrigin.current) {
+        const dx = pos.x - dragOrigin.current.x;
+        const dy = dragOrigin.current.y - pos.y;
+        const zid = zoneElement?.getAttribute("data-zone-id");
+        const onOwnCard = zid === "battle" && element.closest("[data-index]");
+        const ok = !zid || zid === "battle" || zid.startsWith("opponent-");
+        if (ok && !onOwnCard && dy >= 60 && dy > Math.abs(dx)) {
+          onAttackStart(data.index);
+          return;
+        }
+      }
+
       if (zoneElement) {
         const targetZone = zoneElement.getAttribute("data-zone-id");
 

@@ -6,7 +6,7 @@ import { cloneZones } from "../utils/zoneUtils";
 // ゾーン名 → データキー
 const ZONE_KEYS = {
   battle: "battleZone", mana: "manaZone", shield: "shields",
-  hand: "hand", grave: "graveyard", deck: "deck", hyperspace: "hyperspace",
+  hand: "hand", grave: "graveyard", deck: "deck", hyperspace: "hyperspace", temp: "tempZone",
 };
 
 export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
@@ -19,7 +19,8 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
   };
 
   // 相手ゾーン操作の共通ロジック
-  const executeOpponentActionLogic = async (zone, index, actionType) => {
+  // indices: 取り出すインデックスの配列(指定順に移動先へ積む)
+  const executeOpponentManyLogic = async (zone, indices, actionType) => {
     if (!roomData) return;
     const opponentRole = isHost ? "guestData" : "hostData";
     const opponentData = roomData[opponentRole];
@@ -31,10 +32,13 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
     const key = ZONE_KEYS[zone];
     if (!key || !zones[key]) return;
     const list = zones[key];
-    const targetCard = list[index];
-    if (!targetCard) return;
-    list.splice(index, 1);
+    const picked = indices.filter((i) => list[i] !== undefined);
+    if (!picked.length) return;
+    const taken = picked.map((i) => list[i]);
+    [...picked].sort((a, b) => b - a).forEach((i) => list.splice(i, 1));
 
+    const topAcc = [];
+    taken.forEach((targetCard) => {
     // カード情報の正規化
     const targetUrl = typeof targetCard === "object" ? targetCard.url : targetCard;
     const targetStack = typeof targetCard === "object" ? (targetCard.stack || []) : [];
@@ -59,16 +63,25 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
         cardsToMove.forEach(c => zones.hyperspace.push(c));
       }
     } else if (actionType === "deck" || actionType === "deckTop") {
-      zones.deck = [...cardsToMove, ...zones.deck];
+      topAcc.push(...cardsToMove);
     } else if (actionType === "deckBottom") {
       zones.deck = [...zones.deck, ...cardsToMove];
+    } else if (actionType === "temp") {
+      cardsToMove.forEach(c => zones.tempZone.push({ url: c, isFaceDown: false }));
     }
+    });
+    if (topAcc.length) zones.deck = [...topAcc, ...zones.deck];
 
     // awaitしない: オフライン時に書き込みPromiseが解決せず後続処理（選択解除など）が
     // 止まるのを防ぐ。反映はonSnapshotのローカルキャッシュ経由で即時行われる
     updateDoc(doc(db, "rooms", roomId), { [opponentRole]: zones })
       .catch((e) => console.error("opponent zone update failed:", e));
   };
+
+  const executeOpponentActionLogic = (zone, index, actionType) => executeOpponentManyLogic(zone, [index], actionType);
+
+  // 一覧ウィンドウからの複数移動
+  const moveOpponentMany = (zone, indices, actionType) => executeOpponentManyLogic(zone, indices, actionType);
 
   // state経由のアクション実行
   const executeOpponentAction = async (actionType) => {
@@ -90,7 +103,7 @@ export const useOpponentActions = (roomId, isHost, roomData, generateId) => {
     handleOpponentInteract,
     executeOpponentAction,
     performOpponentActionDirect,
-    executeOpponentActionLogic,
+    executeOpponentActionLogic, moveOpponentMany,
     revealOpponentHand,
     setRevealOpponentHand
   };

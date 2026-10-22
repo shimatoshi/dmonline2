@@ -24,6 +24,7 @@ import { MultiSelectContext } from "../components/game/MultiSelectContext";
 import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
+import { AttackUI } from "../components/game/AttackUI";
 import { ensureCardNames } from "../utils/cardNames";
 
 export default function GameTable() {
@@ -51,8 +52,8 @@ export default function GameTable() {
     selectedOpponentCard, setSelectedOpponentCard,
     interactionMode, setInteractionMode,
     handleOpponentInteract, executeOpponentAction,
-    performOpponentActionDirect,
-    revealOpponentHand, setRevealOpponentHand
+    performOpponentActionDirect, moveOpponentMany,
+    revealOpponentHand
   } = useOpponentActions(roomId, isHost, roomData, generateId);
 
   // UI State
@@ -90,6 +91,36 @@ export default function GameTable() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turn, turnSide, mySide, roomData?.startedTurn, roomData?.firstPlayerId]);
 
+  // 攻撃: target(対象選択) → confirm(能力解決の確認) → resolving(解決中) → break(シールド選択)
+  const [attack, setAttack] = useState(null);
+  const startAttack = (idx) => { setSelectedCard(null); setAttack({ phase: "target", idx, target: null, count: 1, picks: [] }); };
+  const attackerCard = () => (attack ? myBattleZone[attack.idx] : null);
+  const chooseTarget = (target) => {
+    const c = attackerCard();
+    if (c && !c.isTapped) handleQuickTap("battle", attack.idx);
+    setAttack((a) => ({ ...a, phase: "confirm", target }));
+    addLog && addLog(target.type === "player" ? "プレイヤーを攻撃" : "クリーチャーを攻撃");
+  };
+  const afterResolve = () => {
+    if (attack?.target?.type === "player" && (opponent?.shields?.length || 0) > 0) {
+      setAttack((a) => ({ ...a, phase: "break", picks: [] }));
+    } else setAttack(null);
+  };
+  const answerResolve = (yes) => {
+    if (yes) setAttack((a) => ({ ...a, phase: "resolving" })); else afterResolve();
+  };
+  const setBreakCount = (n) => setAttack((a) => ({ ...a, count: n, picks: a.picks.slice(0, n) }));
+  const toggleBreakPick = (i) => setAttack((a) => {
+    if (a.picks.includes(i)) return { ...a, picks: a.picks.filter((x) => x !== i) };
+    if (a.picks.length >= a.count) return a;
+    return { ...a, picks: [...a.picks, i] };
+  });
+  const doBreak = () => {
+    moveOpponentMany("shield", attack.picks, "hand");
+    addLog && addLog(`シールドを${attack.picks.length}枚ブレイク`);
+    setAttack(null);
+  };
+
   const {
     selectedCard, setSelectedCard,
     stackTarget, setStackTarget,
@@ -99,15 +130,18 @@ export default function GameTable() {
     handleDeckTap, handleCardTap, handleZoneTap
   } = useGameInteractions({
     performMoveWithData, performOpponentActionDirect, interactionMode,
-    setViewMode, myDeck, setStackViewCards, setZoomedUrl
+    setViewMode, myDeck, setStackViewCards, setZoomedUrl,
+    onAttackStart: startAttack
   });
 
   const opponent = isHost ? roomData?.guestData : roomData?.hostData;
   const amIFirst = firstPlayerId === user?.uid;
   const turnInfo = firstPlayerId ? (amIFirst ? "あなたは【先攻】です" : "あなたは【後攻】です") : "対戦相手待ち...";
 
-  const handleOpponentCardTap = (card) => {
+  const handleOpponentCardTap = (card, zone, index) => {
     if (!card) return;
+    if (attack?.phase === "target" && zone === "battle") { chooseTarget({ type: "creature", index }); return; }
+    if (attack?.phase === "break" && zone === "shield") { toggleBreakPick(index); return; }
     if (card.stack && Array.isArray(card.stack) && card.stack.length > 0) {
       setStackViewCards([card.url, ...card.stack].map(u => ({ url: u, isFaceDown: false })));
       setViewMode("stackView");
@@ -167,7 +201,7 @@ export default function GameTable() {
         opponent={opponent} stackViewCards={stackViewCards}
         zoomedUrl={zoomedUrl} setZoomedUrl={setZoomedUrl}
         selectedCard={selectedCard} handleCardTap={handleCardTap} toggleTempAll={toggleTempAll}
-        moveMany={performMoveMany}
+        moveMany={performMoveMany} moveOpponentMany={moveOpponentMany}
       />
 
       <FaceSelector
@@ -176,6 +210,14 @@ export default function GameTable() {
       />
 
       <DragOverlay draggingCard={draggingCard} currentPos={dragPos} />
+      <AttackUI
+        attack={attack} draggingCard={draggingCard} dragPos={dragPos}
+        shieldCount={opponent?.shields?.length || 0}
+        onAttackPlayer={() => chooseTarget({ type: "player" })}
+        onCancel={() => setAttack(null)} onAnswer={answerResolve}
+        onFinishResolve={afterResolve} onSetCount={setBreakCount}
+        onBreak={doBreak} onSkipBreak={() => setAttack(null)}
+      />
       <CardZoomOverlay />
 
       <OpponentArea
@@ -187,6 +229,7 @@ export default function GameTable() {
         onOpenTemp={() => setViewMode("opponentTemp")}
         onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
         revealHand={revealOpponentHand}
+        breakPicks={attack?.phase === "break" ? attack.picks : []}
       />
 
       <PlayerArea
@@ -243,7 +286,7 @@ export default function GameTable() {
         multiMode={multiMode} onToggleMulti={toggleMulti}
         counts={{ hand: myHand.length, deck: myDeck.length, grave: myGraveyard.length, hyperspace: myHyperspace.length, temp: myTempZone.length }}
         interactionMode={interactionMode} onToggleInteract={() => setInteractionMode(!interactionMode)}
-        revealHand={revealOpponentHand} onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
+        revealHand={viewMode === "opponentHand"} onToggleRevealHand={() => toggleViewMode("opponentHand")}
       />
     </div>
     </MultiSelectContext.Provider>
