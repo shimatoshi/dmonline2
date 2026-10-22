@@ -35,11 +35,6 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", color: "white" }}>
           <h3 style={{ margin: 0, fontSize: "1rem" }}>{title} ({cards.length})</h3>
           <div style={{ display: "flex", gap: "10px" }}>
-            {onMoveMany && (
-              <button className="btn" onClick={toggleMulti} style={{background: multi ? "var(--accent-color)" : "var(--border-color)", fontSize: "0.75rem", padding: "4px 8px"}}>
-                {multi ? "複数選択中" : "複数選択"}
-              </button>
-            )}
             {zoneName === "temp" && (
               <button className="btn" onClick={onToggleFace} style={{background: "var(--accent-color)", fontSize: "0.75rem", padding: "4px 8px"}}>
                 公開/非公開
@@ -116,7 +111,13 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
           </div>
         )}
 
-        <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
+        {onMoveMany ? (
+          <button className="btn" onClick={toggleMulti} style={{ marginTop: "8px", minHeight: "44px", flexShrink: 0, color: "#fff", background: multi ? "var(--accent-color)" : "var(--border-color)" }}>
+            {multi ? "複数選択中(タップで解除)" : "複数選択"}
+          </button>
+        ) : (
+          <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
+        )}
       </div>
     </div>
   );
