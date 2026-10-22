@@ -47,7 +47,7 @@ export const PlayerArea = ({
       {/* 右上：アクションボタン群 (セットアップ/終了/開始) */}
       <div style={{ position: "absolute", top: "-44px", right: "4px", zIndex: 10, display: "flex", gap: "6px" }}>
          <button className="btn btn-outline" onClick={onUndo} disabled={!canUndo} style={{ fontSize: "0.85rem", padding: "8px 10px", minHeight: "40px", border: "1px solid #aaa", boxShadow: "0 2px 4px black", color: "white", opacity: canUndo ? 1 : 0.4 }}>↩ 戻す</button>
-         <button className="btn btn-success" onClick={onSetup} style={{ fontSize: "0.85rem", padding: "8px 10px", minHeight: "40px", border: "1px solid #28a745", boxShadow: "0 2px 4px black", color: "white" }}>🎲準備</button>
+         <button className="btn btn-success" onClick={onSetup} title="ゲーム開始(盤面リセット)" style={{ fontSize: "0.85rem", padding: "8px 10px", minHeight: "40px", border: "1px solid #28a745", boxShadow: "0 2px 4px black", color: "white", marginRight: "12px" }}>🎲準備</button>
          <button className="btn btn-danger" onClick={onEndTurn} style={{ fontSize: "0.85rem", padding: "8px 10px", minHeight: "40px", border: "1px solid #dc3545", boxShadow: "0 2px 4px black", color: "white" }}>🛑終了</button>
          <button className="btn btn-primary" onClick={onStartTurn} style={{ fontSize: "0.85rem", padding: "8px 10px", minHeight: "40px", border: "1px solid #007bff", boxShadow: "0 2px 4px black", color: "white" }}>⚡開始</button>
       </div>

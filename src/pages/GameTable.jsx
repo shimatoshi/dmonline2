@@ -11,6 +11,8 @@ import { PlayerArea } from "../components/game/PlayerArea";
 import { ChatSidebar } from "../components/game/ChatSidebar";
 import { DragOverlay } from "../components/game/DragOverlay";
 import { FaceSelector } from "../components/game/FaceSelector";
+import { GameHint } from "../components/game/GameHint";
+import { shouldShowHintFirst, markHintSeen } from "../utils/gameHint";
 
 import { useGameSync } from "../hooks/useGameSync";
 import { useGameActions } from "../hooks/useGameActions";
@@ -49,6 +51,8 @@ export default function GameTable() {
   const [stackViewCards, setStackViewCards] = useState([]);
   const [viewMode, setViewMode] = useState(null);
   const [faceSelectCard, setFaceSelectCard] = useState(null);
+  const [showHint, setShowHint] = useState(shouldShowHintFirst);
+  const closeHint = () => { markHintSeen(); setShowHint(false); };
 
   const {
     selectedCard, setSelectedCard,
@@ -86,6 +90,11 @@ export default function GameTable() {
         fontSize: "0.85rem", borderBottom: "1px solid #444", fontWeight: "bold",
         display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", position: "relative"
       }}>
+        <button
+          onClick={() => setShowHint(true)}
+          aria-label="操作のヒント"
+          style={{ position: "absolute", left: "5px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: "50%", width: "28px", height: "28px", fontSize: "0.85rem", cursor: "pointer" }}
+        >?</button>
         {turnInfo}
         {isSolo && (
           <button
@@ -100,6 +109,8 @@ export default function GameTable() {
           </button>
         )}
       </div>
+
+      {showHint && <GameHint onClose={closeHint} />}
 
       <GameModals
         viewMode={viewMode} setViewMode={setViewMode}

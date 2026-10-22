@@ -15,6 +15,10 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   });
 
   // --- カード移動ロジック ---
+  const ZONE_LABELS = {
+    hand: "手札", battle: "バトルゾーン", mana: "マナ", shield: "シールド", grave: "墓地",
+    temp: "一時ゾーン", hyperspace: "超次元", deck: "山札", deckTop: "山札の上", deckBottom: "山札の下",
+  };
   const VALID_TARGETS = ["hand", "battle", "mana", "shield", "grave", "temp", "hyperspace", "deckTop", "deckBottom"];
 
   const performMoveWithData = (sourceData, targetZoneName) => {
@@ -26,6 +30,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     if (!cardUrl) return;
     addCardToZone(zones, targetZoneName, cardUrl, cardFaces, generateId);
     syncToDB(zones);
+    showToast(`${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`, 1200);
   };
 
   // --- スタック (進化/封印) ---
