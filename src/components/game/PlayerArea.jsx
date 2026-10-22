@@ -8,7 +8,7 @@ export const PlayerArea = ({
   hand, battleZone, manaZone, shields, graveyard, deck, tempZone, hyperspace,
   selectedCard, interactionMode,
   onZoneTap, onCardTap, onQuickTap, onDeckTap, onDrawCard, onViewMode, 
-  onSetup, onStartTurn, onEndTurn, onShuffle, onSetInteractionMode,
+  onUndo, canUndo, onSetup, onStartTurn, onEndTurn, onShuffle, onSetInteractionMode,
   onDragStart, onDragMove, onDragEnd 
 }) => {
   
@@ -46,6 +46,7 @@ export const PlayerArea = ({
 
       {/* 右上：アクションボタン群 (セットアップ/終了/開始) */}
       <div style={{ position: "absolute", top: "-28px", right: "4px", zIndex: 10, display: "flex", gap: "6px" }}>
+         <button className="btn btn-outline" onClick={onUndo} disabled={!canUndo} style={{ fontSize: "0.8rem", padding: "4px 10px", border: "1px solid #aaa", boxShadow: "0 2px 4px black", color: "white", opacity: canUndo ? 1 : 0.4 }}>↩ 戻す</button>
          <button className="btn btn-success" onClick={onSetup} style={{ fontSize: "0.7rem", padding: "2px 6px", border: "1px solid #28a745", boxShadow: "0 2px 4px black", color: "white" }}>🎲準備</button>
          <button className="btn btn-danger" onClick={onEndTurn} style={{ fontSize: "0.7rem", padding: "2px 6px", border: "1px solid #dc3545", boxShadow: "0 2px 4px black", color: "white" }}>🛑終了</button>
          <button className="btn btn-primary" onClick={onStartTurn} style={{ fontSize: "0.7rem", padding: "2px 6px", border: "1px solid #007bff", boxShadow: "0 2px 4px black", color: "white" }}>⚡開始</button>

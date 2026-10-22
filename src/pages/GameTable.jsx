@@ -27,7 +27,7 @@ export default function GameTable() {
     isHost, roomData, firstPlayerId,
     myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
     syncToDB, generateId, normalizeZone,
-    setSoloSide, isSolo
+    setSoloSide, isSolo, undo, canUndo
   } = gameState;
 
   const {
@@ -134,6 +134,7 @@ export default function GameTable() {
         onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap}
         onDeckTap={handleDeckTap} onDrawCard={drawCard}
         onViewMode={setViewMode}
+        onUndo={undo} canUndo={canUndo}
         onSetup={setupGame} onStartTurn={startTurn} onEndTurn={handleEndTurn}
         onShuffle={shuffleDeck} onSetInteractionMode={setInteractionMode}
         onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}

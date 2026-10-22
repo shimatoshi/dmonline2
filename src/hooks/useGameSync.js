@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, onSnapshot, updateDoc, runTransaction } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -20,6 +20,10 @@ export const useGameSync = (roomId, user) => {
   const [myHyperspace, setMyHyperspace] = useState([]);
   const [myDeck, setMyDeck] = useState([]);
   const [myTempZone, setMyTempZone] = useState([]);
+
+  // 取り消し用: 操作前の自分の盤面スナップショット(新しい順に積む)
+  const undoStack = useRef([]);
+  const [undoCount, setUndoCount] = useState(0);
 
   // 1. RoomData同期 & 初期設定
   useEffect(() => {
@@ -114,6 +118,17 @@ export const useGameSync = (roomId, user) => {
     // ここでは単純に「最新のstateを保持する」機能と「DB更新関数」を返す。
     
     const fieldName = isHost ? "hostData" : "guestData";
+
+    // 操作前の盤面を取り消し用に保存(最大30件)
+    undoStack.current.push({
+      fieldName,
+      data: {
+        hand: myHand, battleZone: myBattleZone, manaZone: myManaZone, graveyard: myGraveyard,
+        hyperspace: myHyperspace, shields: myShields, deck: myDeck, tempZone: myTempZone,
+      },
+    });
+    if (undoStack.current.length > 30) undoStack.current.shift();
+    setUndoCount(undoStack.current.length);
     
     // newData に含まれていないフィールドは現在のstateを使う
     // ※注意: Reactのstate更新は非同期なので、連続処理で古いstateを参照しないよう注意が必要だが、
@@ -133,7 +148,17 @@ export const useGameSync = (roomId, user) => {
     await updateDoc(doc(db, "rooms", roomId), { [fieldName]: dataToSave });
   };
 
+  // 直前の操作を取り消す(操作前の盤面に戻す)
+  const undo = () => {
+    const last = undoStack.current.pop();
+    setUndoCount(undoStack.current.length);
+    if (!last) return;
+    updateDoc(doc(db, "rooms", roomId), { [last.fieldName]: last.data })
+      .catch((e) => console.error("undo failed:", e));
+  };
+
   return {
+    undo, canUndo: undoCount > 0,
     isHost, roomData, firstPlayerId,
     myHand, setMyHand,
     myBattleZone, setMyBattleZone,

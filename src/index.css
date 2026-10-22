@@ -200,3 +200,22 @@ button, input, select, textarea {
   background: var(--border-color-dark);
   align-self: stretch;
 }
+/* ドラッグ中のドロップ先表示 */
+body.is-dragging [data-zone-id]:not([data-zone-id^="opponent-"]) {
+  outline: 2px dashed rgba(66, 165, 245, 0.7);
+  outline-offset: -2px;
+}
+body.is-dragging-opponent [data-zone-id^="opponent-"] {
+  outline: 2px dashed rgba(255, 193, 7, 0.7);
+  outline-offset: -2px;
+}
+[data-zone-id].drop-hover {
+  outline: 3px solid #ffd54f !important;
+  outline-offset: -3px;
+  background-color: rgba(255, 213, 79, 0.18) !important;
+}
+[data-zone-id].drop-invalid {
+  outline: 3px solid #e53935 !important;
+  outline-offset: -3px;
+  background-color: rgba(229, 57, 53, 0.18) !important;
+}

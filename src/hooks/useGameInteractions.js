@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export const useGameInteractions = ({
   performMoveWithData,
@@ -28,17 +28,45 @@ export const useGameInteractions = ({
     }
   };
 
+  // ドラッグ中のドロップ先ハイライト(DOMに直接クラスを付け外しして再描画を避ける)
+  const dragIsOpponent = useRef(false);
+  const hoverEl = useRef(null);
+  const clearHover = () => {
+    if (hoverEl.current) {
+      hoverEl.current.classList.remove("drop-hover", "drop-invalid");
+      hoverEl.current = null;
+    }
+  };
+  const updateHover = (pos) => {
+    const el = pos ? document.elementFromPoint(pos.x, pos.y)?.closest("[data-zone-id]") : null;
+    if (el === hoverEl.current) return;
+    clearHover();
+    if (!el) return;
+    const id = el.getAttribute("data-zone-id");
+    const isOppZone = id.startsWith("opponent-");
+    const valid = dragIsOpponent.current ? (isOppZone && interactionMode) : !isOppZone;
+    el.classList.add(valid ? "drop-hover" : "drop-invalid");
+    hoverEl.current = el;
+  };
+  const endDragVisuals = () => {
+    clearHover();
+    document.body.classList.remove("is-dragging", "is-dragging-opponent");
+  };
+
   const handleDragStart = (data, pos) => {
+    dragIsOpponent.current = !!data.isOpponent;
+    document.body.classList.add(data.isOpponent ? "is-dragging-opponent" : "is-dragging");
     setSelectedCard(null);
     const isFaceDown = data.zone === "deck" || data.zone === "shield" || (data.isFaceDown);
     setDraggingCard({ data, isFaceDown });
     setDragPos(pos);
   };
 
-  const handleDragMove = (pos) => setDragPos(pos);
+  const handleDragMove = (pos) => { setDragPos(pos); updateHover(pos); };
 
   const handleDragEnd = (data, pos) => {
     try {
+      endDragVisuals();
       setDraggingCard(null);
       
       if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') return;
