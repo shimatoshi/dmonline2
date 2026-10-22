@@ -1,0 +1,52 @@
+// 盤面右の操作ボタンバー。ゲーム中の全ボタンをここに集約する。
+const barBtn = (bg, extra = {}) => ({
+  width: "100%", minHeight: "44px", padding: "4px 2px", display: "flex", flexDirection: "column",
+  alignItems: "center", justifyContent: "center", gap: "1px", lineHeight: 1.1,
+  background: bg, color: "#fff", border: "1px solid var(--border-color-dark)",
+  borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: "0.65rem", flexShrink: 0,
+  ...extra,
+});
+
+const Item = ({ icon, label, count, bg = "var(--border-color)", onClick, disabled, active }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    style={barBtn(active ? "var(--accent-color)" : bg, { opacity: disabled ? 0.4 : 1 })}
+  >
+    <span style={{ fontSize: "1.05rem" }}>{icon}</span>
+    <span>{label}{count !== undefined ? ` ${count}` : ""}</span>
+  </button>
+);
+
+const Divider = () => <div style={{ height: "1px", background: "var(--border-color-light)", margin: "2px 0", flexShrink: 0 }} />;
+
+export const ActionBar = ({
+  onStartTurn, onEndTurn, onDraw, onShuffle, onUndo, canUndo, onSetup,
+  counts, interactionMode, onToggleInteract, revealHand, onToggleRevealHand,
+}) => {
+  return (
+  <div
+    className="zone-scroll"
+    style={{
+      width: "54px", flexShrink: 0, boxSizing: "border-box", padding: "4px",
+      display: "flex", flexDirection: "column", gap: "4px", overflowY: "auto",
+      background: "var(--surface-color-dark)", borderLeft: "1px solid var(--border-color-light)",
+    }}
+  >
+    <Item icon="⚡" label="開始" bg="var(--accent-color)" onClick={onStartTurn} />
+    <Item icon="🛑" label="終了" bg="var(--danger-color)" onClick={onEndTurn} />
+    <Divider />
+    <Item icon="🃏" label="ドロー" bg="var(--success-color)" onClick={onDraw} disabled={counts.deck === 0} />
+    <Item icon="🔀" label="混ぜる" onClick={onShuffle} />
+    <Item icon="↩" label="戻す" onClick={onUndo} disabled={!canUndo} />
+    <Divider />
+    <Divider />
+    <Item icon="⚡" label={interactionMode ? "干渉中" : "干渉"} bg={interactionMode ? "var(--danger-color)" : "var(--border-color)"} onClick={onToggleInteract} />
+    {interactionMode && (
+      <Item icon={revealHand ? "🙈" : "👁"} label={revealHand ? "隠す" : "手札見"} bg={revealHand ? "var(--warning-color)" : "var(--border-color)"} onClick={onToggleRevealHand} />
+    )}
+    <Divider />
+    <Item icon="🔄" label="開始前" bg="var(--success-color)" onClick={onSetup} />
+  </div>
+  );
+};

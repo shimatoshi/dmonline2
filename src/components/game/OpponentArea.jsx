@@ -7,7 +7,7 @@ export const OpponentArea = ({
   opponent, normalizeZone, onTapCard, interactionMode, onOpponentInteract, 
   onOpenGrave, onOpenTemp, onOpenHyperspace,
   onDragStart, onDragMove, onDragEnd,
-  revealHand, onToggleRevealHand // ★追加
+  revealHand
 }) => {
   
   const getZoneDragProps = (zoneName) => (index, data) => ({
@@ -61,16 +61,6 @@ export const OpponentArea = ({
           }}>
             干渉中
           </div>
-          <button 
-            onClick={onToggleRevealHand}
-            style={{
-              background: revealHand ? "var(--warning-color)" : "#6c757d", border: "none", 
-              color: "black", fontSize: "0.7rem", padding: "4px 6px", 
-              borderRadius: "var(--radius-sm)", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.5)"
-            }}
-          >
-            {revealHand ? "🙈 隠す" : "👁 見る"}
-          </button>
         </div>
       )}
 

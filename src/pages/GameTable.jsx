@@ -19,6 +19,7 @@ import { useGameActions } from "../hooks/useGameActions";
 import { useOpponentActions } from "../hooks/useOpponentActions";
 import { useGameInteractions } from "../hooks/useGameInteractions";
 import { useGameLog } from "../hooks/useGameLog";
+import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
 import { ensureCardNames } from "../utils/cardNames";
@@ -56,6 +57,8 @@ export default function GameTable() {
   const [zoomedUrl, setZoomedUrl] = useState(null);
   const [stackViewCards, setStackViewCards] = useState([]);
   const [viewMode, setViewMode] = useState(null);
+  // 一覧は同じボタンをもう一度押すと閉じる
+  const toggleViewMode = (id) => setViewMode((cur) => (cur === id ? null : id));
   const [faceSelectCard, setFaceSelectCard] = useState(null);
   const [showHint, setShowHint] = useState(shouldShowHintFirst);
   const closeHint = () => { markHintSeen(); setShowHint(false); };
@@ -101,8 +104,9 @@ export default function GameTable() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 42px)", overflow: "hidden", background: "var(--bg-dark)", color: "var(--text-primary)", userSelect: "none" }}>
+    <div style={{ display: "flex", flexDirection: "row", height: "calc(100dvh - 42px)", overflow: "hidden", background: "var(--bg-dark)", color: "var(--text-primary)", userSelect: "none" }}>
       <ChatSidebar roomId={roomId} user={user} />
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
 
       {/* ターン情報バー */}
       <div style={{
@@ -168,19 +172,16 @@ export default function GameTable() {
         onOpenHyperspace={() => setViewMode("opponentHyperspace")}
         onOpenTemp={() => setViewMode("opponentTemp")}
         onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
-        revealHand={revealOpponentHand} onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
+        revealHand={revealOpponentHand}
       />
 
       <PlayerArea
         hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields}
         graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone} hyperspace={myHyperspace}
-        selectedCard={selectedCard} interactionMode={interactionMode}
+        selectedCard={selectedCard}
         onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap}
-        onDeckTap={handleDeckTap} onDrawCard={drawCard}
-        onViewMode={setViewMode}
-        onUndo={undo} canUndo={canUndo}
-        onSetup={setupGame} onStartTurn={startTurn} onEndTurn={handleEndTurn}
-        onShuffle={shuffleDeck} onSetInteractionMode={setInteractionMode}
+        onDeckTap={handleDeckTap}
+        onViewMode={toggleViewMode}
         onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
       />
 
@@ -212,6 +213,15 @@ export default function GameTable() {
       <StackMenu
         stackTarget={stackTarget} selectedCard={selectedCard}
         performStack={performStack} setStackTarget={setStackTarget} setSelectedCard={setSelectedCard}
+      />
+      </div>
+
+      <ActionBar
+        onStartTurn={startTurn} onEndTurn={handleEndTurn} onDraw={drawCard} onShuffle={shuffleDeck}
+        onUndo={undo} canUndo={canUndo} onSetup={setupGame}
+        counts={{ hand: myHand.length, deck: myDeck.length, grave: myGraveyard.length, hyperspace: myHyperspace.length, temp: myTempZone.length }}
+        interactionMode={interactionMode} onToggleInteract={() => setInteractionMode(!interactionMode)}
+        revealHand={revealOpponentHand} onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
       />
     </div>
   );

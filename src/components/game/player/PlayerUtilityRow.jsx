@@ -5,7 +5,7 @@ const CARD_BACK_URL = "/card_back.jpg";
 
 export const PlayerUtilityRow = ({ 
   deck, hyperspace, graveyard, tempZone, shields,
-  selectedCard, onViewMode, onDeckTap, onDrawCard, onZoneTap, getDragProps
+  selectedCard, onViewMode, onDeckTap, onZoneTap, getDragProps
 }) => {
   return (
     <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "2px 10px", background: "#111", flexShrink: 0 }}>
@@ -87,7 +87,6 @@ export const PlayerUtilityRow = ({
            </DraggableCard>
            <div style={{ display: "flex", gap: "3px", alignItems: "center", marginTop: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-              <button onClick={onDrawCard} className="btn-mini" disabled={deck.length === 0}>ドロー</button>
               <button onClick={() => onViewMode("deck")} className="btn-mini">👁</button>
             </div>
             <div
