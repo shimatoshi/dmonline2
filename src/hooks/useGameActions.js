@@ -32,6 +32,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     if (fromZone === "battle" && fromIndex === toIndex) return;
 
     const zones = getZones();
+    if (!zones.battleZone[toIndex]) return;
 
     let cardUrl = "";
     let sourceStack = [];
@@ -44,6 +45,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
         zones.battleZone.splice(fromIndex, 1);
     } else if (fromZone === "mana") { cardUrl = zones.manaZone[fromIndex].url; zones.manaZone.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = zones.graveyard[fromIndex]; zones.graveyard.splice(fromIndex, 1); }
+    else if (fromZone === "shield") { cardUrl = zones.shields[fromIndex]; zones.shields.splice(fromIndex, 1); }
     else if (fromZone === "hyperspace") {
         const hsCard = zones.hyperspace[fromIndex];
         cardUrl = typeof hsCard === 'object' ? hsCard.url : hsCard;
@@ -51,6 +53,8 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     }
     else if (fromZone === "deck") { cardUrl = zones.deck[fromIndex]; zones.deck.splice(fromIndex, 1); }
     else if (fromZone === "temp") { cardUrl = zones.tempZone[fromIndex].url; zones.tempZone.splice(fromIndex, 1); }
+
+    if (!cardUrl) return;
 
     let adjustedToIndex = toIndex;
     if (fromZone === "battle" && fromIndex < toIndex) adjustedToIndex -= 1;
@@ -166,7 +170,8 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     const allCards = [
       ...myDeck, ...myHand, ...myShields, ...myGraveyard, ...myTempZone.map(c => c.url),
-      ...myBattleZone.map(c => c.url), ...myManaZone.map(c => c.url)
+      ...myBattleZone.flatMap(c => [c.url, ...(c.stack || [])]),
+      ...myManaZone.map(c => c.url)
     ];
     if (allCards.length < 10) { alert("カード不足"); return; }
 

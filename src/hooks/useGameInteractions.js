@@ -58,6 +58,9 @@ export const useGameInteractions = ({
           }
           return;
         }
+        // 干渉モードOFFで相手カードをドラッグした場合は何もしない
+        // (相手のindexで自分のカードを動かしてしまうのを防ぐ)
+        if (data.isOpponent) return;
 
         // ターゲットがバトルゾーンの場合、カードの上にドロップされたか判定
         if (targetZone === "battle") {

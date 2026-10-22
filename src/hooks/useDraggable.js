@@ -1,10 +1,10 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 
 export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, onLongPress }) => {
   const ref = useRef(null);
   const timeoutRef = useRef(null);
   const startPos = useRef({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
 
   const handleTouchStart = (e) => {
     // 複数の指は無視
@@ -33,8 +33,8 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
         timeoutRef.current = null;
       }
       
-      if (!isDragging) {
-        setIsDragging(true);
+      if (!isDraggingRef.current) {
+        isDraggingRef.current = true;
         // ドラッグ開始を親に通知
         onDragStart && onDragStart(data, { x: touch.clientX, y: touch.clientY });
       } else {
@@ -53,13 +53,13 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
       clearTimeout(timeoutRef.current);
       // タイマーが生きていた＝長押し発動前＝タップとみなす
       // ただしドラッグしてない場合に限る
-      if (!isDragging) {
+      if (!isDraggingRef.current) {
          onTap && onTap();
       }
     }
 
-    if (isDragging) {
-      setIsDragging(false);
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
       // ドロップ処理
       // e.changedTouches[0] で離した場所を取得
       const touch = e.changedTouches[0];
