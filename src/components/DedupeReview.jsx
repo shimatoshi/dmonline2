@@ -113,26 +113,26 @@ export default function DedupeReview({ library, getUsedUrls, applyReview, onClos
           <h3 style={{ margin: 0 }}>類似カードの整理（{groups.length}グループ）</h3>
           <button className="btn" onClick={onClose}>閉じる</button>
         </div>
-        <div style={{ fontSize: "0.8rem", color: "#aaa", marginBottom: "10px" }}>
+        <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "10px" }}>
           各カードの「残す/消す」を切り替えてください。初期は各グループで最も情報が揃った1枚だけ残す設定です。別物なら「別物(全部残す)」を押してください。削除は図鑑のみで、デッキは変わりません（デッキ使用中のカードには🎴が付きます）。
         </div>
         {groups.length === 0 && <div>類似するカードは見つかりませんでした。</div>}
         {groups.map((g, gi) => (
-          <div key={gi} style={{ border: "1px solid #444", borderRadius: "6px", padding: "8px", marginBottom: "10px", opacity: skipped[gi] ? 0.5 : 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#ffc107", marginBottom: "6px" }}>
+          <div key={gi} style={{ border: "1px solid var(--border-color-light)", borderRadius: "6px", padding: "8px", marginBottom: "10px", opacity: skipped[gi] ? 0.5 : 1 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--warning-color)", marginBottom: "6px" }}>
               <span>{g.reasons.join(" / ") || "類似"}</span>
               <button className="btn-mini" onClick={() => setSkipped({ ...skipped, [gi]: !skipped[gi] })}>
                 {skipped[gi] ? "対象に戻す" : "別物(全部残す)"}
               </button>
             </div>
             {g.cards.map(c => (
-              <div key={c.id} style={{ display: "flex", gap: "8px", alignItems: "center", padding: "4px 0", borderTop: "1px solid #222" }}>
-                <img src={getProxyImageUrl(c.url)} loading="lazy" style={{ width: "44px", aspectRatio: "2/3", objectFit: "cover", borderRadius: "3px", background: "#222" }} />
+              <div key={c.id} style={{ display: "flex", gap: "8px", alignItems: "center", padding: "4px 0", borderTop: "1px solid var(--surface-color-dark)" }}>
+                <img src={getProxyImageUrl(c.url)} loading="lazy" style={{ width: "44px", aspectRatio: "2/3", objectFit: "cover", borderRadius: "3px", background: "var(--surface-color-dark)" }} />
                 <div style={{ flex: 1, minWidth: 0, fontSize: "0.8rem" }}>
                   <div style={{ fontWeight: "bold", wordBreak: "break-all" }}>
                     {used.has(c.url) && <span title="デッキで使用中">🎴 </span>}{c.name}
                   </div>
-                  <div style={{ color: "#888", fontSize: "0.7rem" }}>
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>
                     コスト {c.cost ?? "-"} ／ タグ {c.tags?.length || 0}{c.faces?.length > 1 ? " ／ 面あり" : ""}{c.url?.includes("/releases/download/") ? " ／ ✅画像あり" : " ／ 画像なし(要取得)"}
                   </div>
                 </div>
@@ -140,7 +140,7 @@ export default function DedupeReview({ library, getUsedUrls, applyReview, onClos
                   className="btn"
                   disabled={!!skipped[gi]}
                   onClick={() => setKeep({ ...keep, [c.id]: !keep[c.id] })}
-                  style={{ background: keep[c.id] || skipped[gi] ? "#28a745" : "#dc3545", color: "white", minWidth: "60px" }}
+                  style={{ background: keep[c.id] || skipped[gi] ? "var(--success-color)" : "#dc3545", color: "white", minWidth: "60px" }}
                 >
                   {keep[c.id] || skipped[gi] ? "残す" : "消す"}
                 </button>
@@ -149,7 +149,7 @@ export default function DedupeReview({ library, getUsedUrls, applyReview, onClos
           </div>
         ))}
       </div>
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#111", borderTop: "1px solid #444", padding: "10px", textAlign: "center", zIndex: 5001 }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#111", borderTop: "1px solid var(--border-color-light)", padding: "10px", textAlign: "center", zIndex: 5001 }}>
         <span style={{ marginRight: "10px", fontSize: "0.85rem" }}>削除予定 {deletes.length}件</span>
         <button className="btn btn-danger" onClick={run} disabled={busy || deletes.length === 0}>反映する</button>
       </div>

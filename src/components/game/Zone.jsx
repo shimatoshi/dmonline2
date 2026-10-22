@@ -83,7 +83,7 @@ export const Zone = ({
                    <CardView url={cardData.url} isFaceDown={!revealHand && cardData.isFaceDown} isTapped={cardData.isTapped} onClick={() => {}} style={{ width, height }} />
                  ) : (
                    <div style={{ width, height, position: "relative" }}>
-                      <img src={url} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid #555" }} />
+                      <img src={url} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid var(--border-color-dark)" }} />
                    </div>
                  )}
                </DraggableCard>
@@ -108,7 +108,7 @@ export const Zone = ({
           overflowY: "auto", minHeight: "80px", ...style 
         }}
       >
-         {cards.length === 0 && <span style={{fontSize:"0.8rem", color:"#333"}}>{zoneId}</span>}
+         {cards.length === 0 && <span style={{fontSize:"0.8rem", color:"var(--border-color)"}}>{zoneId}</span>}
          {cards.map((card, i) => {
            const cardData = typeof card === 'string' ? { url: card } : card;
            return (
@@ -138,7 +138,7 @@ export const Zone = ({
     const cardData = topCard ? (typeof topCard === 'string' ? { url: topCard } : topCard) : null;
     
     // 表示内容
-    let content = <span style={{fontSize:"0.6rem", color:"#555"}}>{zoneId}</span>;
+    let content = <span style={{fontSize:"0.6rem", color:"var(--border-color-dark)"}}>{zoneId}</span>;
     if (cardData) {
        // 自分または相手の山札は常に裏向き
        const isDeck = zoneId === "deck" || zoneId === "opponent-deck";
@@ -152,13 +152,13 @@ export const Zone = ({
         onClick={onZoneTap}
         style={{ 
           width, height, 
-          border: zoneId === "temp" ? "2px dashed #6f42c1" : "1px dashed #444", 
+          border: zoneId === "temp" ? "2px dashed var(--purple-color)" : "1px dashed var(--border-color-light)", 
           borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", 
           cursor: "pointer", position: "relative", background: "#1a1a1a"
         }}
       >
         {content}
-        <span style={{ position: "absolute", bottom: "-14px", fontSize: "0.7rem", color: "#aaa", pointerEvents: "none" }}>{cards.length}</span>
+        <span style={{ position: "absolute", bottom: "-14px", fontSize: "0.7rem", color: "var(--text-secondary)", pointerEvents: "none" }}>{cards.length}</span>
       </div>
     );
 

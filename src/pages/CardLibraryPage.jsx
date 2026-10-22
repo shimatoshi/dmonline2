@@ -63,7 +63,7 @@ export default function CardLibraryPage() {
 
   return (
     <div style={{ padding: "10px", maxWidth: "800px", margin: "0 auto", paddingBottom: "80px" }}>
-      <h2 style={{ borderBottom: "1px solid #333", paddingBottom: "10px", color: "#e0e0e0", marginBottom: "15px" }}>カード図鑑（旧）</h2>
+      <h2 style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "10px", color: "var(--text-primary)", marginBottom: "15px" }}>カード図鑑（旧）</h2>
       <MigrationBanner isOld />
 
       {statusMsg && <div style={{ color: "#42a5f5", fontSize: "0.85rem", marginBottom: "10px" }}>{statusMsg}</div>}
@@ -78,9 +78,9 @@ export default function CardLibraryPage() {
 
       <CardRegister onRegister={handleRegister} existingTags={allExistingTags} />
 
-      <hr style={{ margin: "20px 0", borderTop: "1px solid #333" }} />
+      <hr style={{ margin: "20px 0", borderTop: "1px solid var(--border-color)" }} />
 
-      <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid #333", borderRadius: "6px", fontSize: "0.85rem" }}>
+      <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid var(--border-color)", borderRadius: "6px", fontSize: "0.85rem" }}>
         <button className="btn" onClick={exportFetchList} style={{ marginRight: "8px" }}>📋 取得リスト出力（重複除去）</button>
         <button className="btn" onClick={() => setReviewOpen(true)} style={{ marginRight: "8px" }}>🔍 類似カードを確認して整理</button>
         <button className="btn" onClick={previewDedupe} disabled={busy}>🧹 重複カードを整理（確認から）</button>
@@ -89,9 +89,9 @@ export default function CardLibraryPage() {
             {plan.groups.length === 0 ? "重複はありません" : (
               <>
                 <div>同名 {plan.groups.length} 種類から、重複 {plan.deleteIds.length} 件を削除します（図鑑のみ。デッキは変わりません）。</div>
-                {plan.keptForDeck > 0 && <div style={{ color: "#aaa" }}>デッキが参照中の面付きカード {plan.keptForDeck} 件は残します。</div>}
-                <div style={{ color: "#aaa", margin: "6px 0" }}>例: {plan.groups.slice(0, 5).map(g => `${g.keeper.name}(-${g.removed.length})`).join("、")}</div>
-                <div style={{ color: "#aaa" }}>実行すると、バックアップJSONが自動でダウンロードされます。</div>
+                {plan.keptForDeck > 0 && <div style={{ color: "var(--text-secondary)" }}>デッキが参照中の面付きカード {plan.keptForDeck} 件は残します。</div>}
+                <div style={{ color: "var(--text-secondary)", margin: "6px 0" }}>例: {plan.groups.slice(0, 5).map(g => `${g.keeper.name}(-${g.removed.length})`).join("、")}</div>
+                <div style={{ color: "var(--text-secondary)" }}>実行すると、バックアップJSONが自動でダウンロードされます。</div>
                 <button className="btn btn-danger" onClick={runDedupe} disabled={busy} style={{ marginTop: "6px" }}>実行する</button>
               </>
             )}

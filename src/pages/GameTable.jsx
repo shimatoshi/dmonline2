@@ -100,36 +100,36 @@ export default function GameTable() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 42px)", overflow: "hidden", background: "#0a0a0a", color: "#e0e0e0", userSelect: "none" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 42px)", overflow: "hidden", background: "var(--bg-dark)", color: "var(--text-primary)", userSelect: "none" }}>
       <ChatSidebar roomId={roomId} user={user} />
 
       {/* ターン情報バー */}
       <div style={{
-        background: "#222", color: amIFirst ? "#ffdd57" : "#aaa", textAlign: "center", padding: "4px",
-        fontSize: "0.85rem", borderBottom: "1px solid #444", fontWeight: "bold",
+        background: "var(--surface-color-dark)", color: amIFirst ? "var(--turn-first)" : "var(--text-secondary)", textAlign: "center", padding: "4px",
+        fontSize: "0.85rem", borderBottom: "1px solid var(--border-color-light)", fontWeight: "bold",
         display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", position: "relative"
       }}>
         <button
           onClick={() => setShowHint(true)}
           aria-label="操作のヒント"
-          style={{ position: "absolute", left: "5px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: "50%", width: "28px", height: "28px", fontSize: "0.85rem", cursor: "pointer" }}
+          style={{ position: "absolute", left: "5px", background: "var(--border-color)", color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "50%", width: "28px", height: "28px", fontSize: "0.85rem", cursor: "pointer" }}
         >?</button>
         <button
           onClick={() => setShowLog(true)}
           aria-label="対戦ログ"
-          style={{ position: "absolute", left: "38px", background: "#333", color: "#fff", border: "1px solid #555", borderRadius: "14px", height: "28px", padding: "0 10px", fontSize: "0.8rem", cursor: "pointer" }}
+          style={{ position: "absolute", left: "38px", background: "var(--border-color)", color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "14px", height: "28px", padding: "0 10px", fontSize: "0.8rem", cursor: "pointer" }}
         >📜ログ</button>
         {firstPlayerId ? (
           <span>
             ターン{turn}<span style={{ marginLeft: "10px" }}></span><span style={{ color: isMyTurn ? "#69f0ae" : "#ef9a9a" }}>{isMyTurn ? "あなたの番" : "相手の番"}</span>
-            <span style={{ color: "#888", fontWeight: "normal", marginLeft: "8px" }}>手{myHand.length} 山{myDeck.length}</span>
+            <span style={{ color: "var(--text-muted)", fontWeight: "normal", marginLeft: "8px" }}>手{myHand.length} 山{myDeck.length}</span>
           </span>
         ) : turnInfo}
         {isSolo && (
           <button
             onClick={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
             style={{
-              background: "#007bff", color: "white", border: "none", borderRadius: "4px",
+              background: "var(--accent-color)", color: "white", border: "none", borderRadius: "4px",
               padding: "2px 8px", fontSize: "0.75rem", cursor: "pointer",
               position: "absolute", right: "5px"
             }}

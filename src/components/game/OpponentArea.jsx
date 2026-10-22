@@ -47,7 +47,7 @@ export const OpponentArea = ({
   const deckCards = opponent?.deck || [];
 
   return (
-    <div style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden", borderBottom: "1px solid #333", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden", borderBottom: "1px solid var(--border-color)", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
       
       {/* モード表示 & コントロール (邪魔にならない左上に固定) */}
       {interactionMode && (
@@ -64,7 +64,7 @@ export const OpponentArea = ({
           <button 
             onClick={onToggleRevealHand}
             style={{
-              background: revealHand ? "#ffc107" : "#6c757d", border: "none", 
+              background: revealHand ? "var(--warning-color)" : "#6c757d", border: "none", 
               color: "black", fontSize: "0.65rem", padding: "4px 6px", 
               borderRadius: "4px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.5)"
             }}
@@ -98,7 +98,7 @@ export const OpponentArea = ({
       <div style={{ display: "flex", justifyContent: "center", gap: "8px", alignItems: "center", padding: "2px 5px", flexShrink: 0, transform: "rotate(180deg)" }}>
           <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
             <div onClick={onOpenHyperspace}>
-               <Zone type="stack" zoneId="opponent-hyperspace" cards={hyperspaceCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("hyperspace")} isOpponent={true} style={{ border: "1px dashed #00bfff" }} />
+               <Zone type="stack" zoneId="opponent-hyperspace" cards={hyperspaceCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("hyperspace")} isOpponent={true} style={{ border: "1px dashed var(--info-color)" }} />
             </div>
             <div onClick={onOpenGrave}>
                <Zone type="stack" zoneId="opponent-grave" cards={graveCards} cardSize={{ width: "30px", height: "42px" }} getDragProps={getZoneDragProps("grave")} isOpponent={true} />
@@ -121,7 +121,7 @@ export const OpponentArea = ({
       </div>
 
       {/* バトルゾーン */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", transform: "rotate(180deg)", borderTop: "1px dashed #333" }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", transform: "rotate(180deg)", borderTop: "1px dashed var(--border-color)" }}>
          <Zone 
             type="grid" zoneId="opponent-battle" cards={battleZone} cardSize={{ width: "46px" }}
             getDragProps={getZoneDragProps("battle")}

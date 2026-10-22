@@ -15,14 +15,14 @@ export const PlayerUtilityRow = ({
         data-zone-id="temp" 
         style={{ 
           display:"flex", flexDirection:"column", alignItems:"center",
-          padding: "2px", border: "1px solid #333", borderRadius: "5px", background: "rgba(111, 66, 193, 0.05)" 
+          padding: "2px", border: "1px solid var(--border-color)", borderRadius: "5px", background: "rgba(111, 66, 193, 0.05)" 
         }}
       >
         <DraggableCard {...getDragProps("temp", tempZone.length-1, tempZone.length > 0 ? tempZone[tempZone.length-1] : {})} style={{ height: "50px" }}>
            <div 
              onClick={() => onViewMode("temp")}
              style={{ 
-               width: "36px", height: "50px", border: "2px dashed #6f42c1", borderRadius: "3px", 
+               width: "36px", height: "50px", border: "2px dashed var(--purple-color)", borderRadius: "3px", 
                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
                background: "#1a1a1a"
              }}
@@ -32,8 +32,8 @@ export const PlayerUtilityRow = ({
                  const top = tempZone[tempZone.length-1];
                  return <img src={top.isFaceDown ? CARD_BACK_URL : getProxyImageUrl(top.url)} style={{width:"100%", height:"100%", opacity:0.8, pointerEvents: "none"}} />;
                })()
-             ) : <span style={{fontSize:"0.6rem", color:"#6f42c1", pointerEvents: "none"}}>一時</span>}
-             <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.6rem", color: "#aaa", pointerEvents: "none" }}>{tempZone.length}</span>
+             ) : <span style={{fontSize:"0.6rem", color:"var(--purple-color)", pointerEvents: "none"}}>一時</span>}
+             <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.6rem", color: "var(--text-secondary)", pointerEvents: "none" }}>{tempZone.length}</span>
            </div>
         </DraggableCard>
         <button 
@@ -81,8 +81,8 @@ export const PlayerUtilityRow = ({
              >
                 {deck.length > 0 ? (
                   <img src={CARD_BACK_URL} style={{width:"100%", height:"100%", borderRadius:"3px"}} />
-                ) : <span style={{fontSize:"0.6rem", color:"#555"}}>0</span>}
-                <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.6rem", color: "#aaa" }}>山 {deck.length}</span>
+                ) : <span style={{fontSize:"0.6rem", color:"var(--border-color-dark)"}}>0</span>}
+                <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.6rem", color: "var(--text-secondary)" }}>山 {deck.length}</span>
              </div>
            </DraggableCard>
            <button 
@@ -98,7 +98,7 @@ export const PlayerUtilityRow = ({
           <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].url : hyperspace[hyperspace.length-1], faces: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].faces : null } : {})} style={{ height: "50px" }}>
             <div
               onClick={() => onZoneTap("hyperspace")}
-              style={{ width: "36px", height: "50px", border: "1px dashed #00bfff", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
+              style={{ width: "36px", height: "50px", border: "1px dashed var(--info-color)", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {hyperspace.length > 0 ?
                 (() => {
@@ -106,7 +106,7 @@ export const PlayerUtilityRow = ({
                   const topUrl = typeof top === 'object' ? top.url : top;
                   return <img src={getProxyImageUrl(topUrl)} style={{width:"100%", height:"100%", opacity:0.8}} />;
                 })() :
-                <span style={{fontSize:"0.5rem", color:"#00bfff"}}>超 {hyperspace.length}</span>
+                <span style={{fontSize:"0.5rem", color:"var(--info-color)"}}>超 {hyperspace.length}</span>
               }
             </div>
           </DraggableCard>
@@ -123,11 +123,11 @@ export const PlayerUtilityRow = ({
           <DraggableCard {...getDragProps("grave", graveyard.length-1, graveyard.length > 0 ? { url: graveyard[graveyard.length-1] } : {})} style={{ height: "50px" }}>
             <div 
               onClick={() => onZoneTap("grave")} 
-              style={{ width: "36px", height: "50px", border: "1px dashed #444", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
+              style={{ width: "36px", height: "50px", border: "1px dashed var(--border-color-light)", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {graveyard.length > 0 ? 
                 <img src={getProxyImageUrl(graveyard[graveyard.length-1])} style={{width:"100%", height:"100%", opacity:0.8}} /> : 
-                <span style={{fontSize:"0.6rem", color:"#555"}}>墓 {graveyard.length}</span>
+                <span style={{fontSize:"0.6rem", color:"var(--border-color-dark)"}}>墓 {graveyard.length}</span>
               }
             </div>
           </DraggableCard>

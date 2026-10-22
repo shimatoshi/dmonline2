@@ -198,14 +198,14 @@ export default function Lobby() {
 
   return (
     <div style={{ padding: "15px", maxWidth: "600px", margin: "0 auto", paddingBottom: "80px" }}>
-      <h2 style={{ borderBottom: "1px solid #333", paddingBottom: "10px", color: "#e0e0e0" }}>対戦ロビー</h2>
+      <h2 style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "10px", color: "var(--text-primary)" }}>対戦ロビー</h2>
       
       {activeGames.length > 0 && (
         <div style={{ marginBottom: "30px" }}>
-          <h3 style={{ color: "#ff6b6b", borderLeft: "4px solid #ff6b6b", paddingLeft: "10px" }}>🔴 進行中の対戦</h3>
+          <h3 style={{ color: "var(--danger-light)", borderLeft: "4px solid var(--danger-light)", paddingLeft: "10px" }}>🔴 進行中の対戦</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {activeGames.map(game => (
-              <div key={game.id} className="card-box" style={{ background: "#331515", border: "1px solid #ff6b6b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div key={game.id} className="card-box" style={{ background: "#331515", border: "1px solid var(--danger-light)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontWeight: "bold", color: "#fff" }}>
                     VS {game.role === "host" ? (game.guestName || "待機中...") : game.hostName}
@@ -214,7 +214,7 @@ export default function Lobby() {
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
                   <button onClick={() => enterGame(game.id)} className="btn btn-success" style={{ padding: "8px 16px" }}>再開</button>
-                  <button onClick={(e) => deleteRoom(e, game.id)} className="btn btn-outline" style={{ padding: "8px", fontSize: "0.8rem", borderColor: "#ff6b6b", color: "#ff6b6b" }}>削除</button>
+                  <button onClick={(e) => deleteRoom(e, game.id)} className="btn btn-outline" style={{ padding: "8px", fontSize: "0.8rem", borderColor: "var(--danger-light)", color: "var(--danger-light)" }}>削除</button>
                 </div>
               </div>
             ))}
@@ -222,15 +222,15 @@ export default function Lobby() {
         </div>
       )}
 
-      <div className="card-box" style={{ marginBottom: "30px", background: "#1e1e1e" }}>
+      <div className="card-box" style={{ marginBottom: "30px", background: "var(--surface-color)" }}>
         <h4 style={{ margin: "0 0 10px 0", color: "#ccc" }}>対戦準備</h4>
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", fontSize: "0.85rem", color: "#aaa", marginBottom: "5px" }}>使用デッキ:</label>
+          <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "5px" }}>使用デッキ:</label>
           <select 
             className="input-field"
             value={selectedDeckId} 
             onChange={(e) => setSelectedDeckId(e.target.value)}
-            style={{ width: "100%", background: "#2c2c2c", color: "white" }}
+            style={{ width: "100%", background: "var(--surface-color-light)", color: "white" }}
           >
             {myDecks.length === 0 && <option value="">デッキがありません</option>}
             {myDecks.map(deck => (
@@ -240,12 +240,12 @@ export default function Lobby() {
         </div>
         
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", fontSize: "0.85rem", color: "#aaa", marginBottom: "5px" }}>1人回し用：相手デッキ:</label>
+          <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "5px" }}>1人回し用：相手デッキ:</label>
           <select 
             className="input-field"
             value={selectedOpponentDeckId} 
             onChange={(e) => setSelectedOpponentDeckId(e.target.value)}
-            style={{ width: "100%", background: "#2c2c2c", color: "white" }}
+            style={{ width: "100%", background: "var(--surface-color-light)", color: "white" }}
           >
             {myDecks.length === 0 && <option value="">デッキがありません</option>}
             {myDecks.map(deck => (
@@ -266,31 +266,31 @@ export default function Lobby() {
           className="btn btn-outline"
           onClick={createSoloRoom}
           disabled={myDecks.length === 0}
-          style={{ width: "100%", padding: "12px", fontSize: "1.1rem", fontWeight: "bold", marginTop: "10px", borderColor: "#aaa", color: "#ddd" }}
+          style={{ width: "100%", padding: "12px", fontSize: "1.1rem", fontWeight: "bold", marginTop: "10px", borderColor: "var(--text-secondary)", color: "#ddd" }}
         >
           一人回し（練習）
         </button>
       </div>
 
-      <h3 style={{ color: "#e0e0e0" }}>対戦待ちの部屋</h3>
+      <h3 style={{ color: "var(--text-primary)" }}>対戦待ちの部屋</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        {rooms.length === 0 && <p style={{ color: "#777", textAlign: "center", padding: "20px" }}>現在募集中の部屋はありません</p>}
+        {rooms.length === 0 && <p style={{ color: "var(--text-dim)", textAlign: "center", padding: "20px" }}>現在募集中の部屋はありません</p>}
 
         {rooms.map((room) => {
           const isMyRoom = room.hostId === user.uid;
           return (
-            <div key={room.id} className="card-box" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#252525", borderLeft: isMyRoom ? "4px solid #007bff" : "none" }}>
+            <div key={room.id} className="card-box" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#252525", borderLeft: isMyRoom ? "4px solid var(--accent-color)" : "none" }}>
               <div>
                 <div style={{ fontWeight: "bold", color: "#fff", marginBottom: "3px" }}>
                   {isMyRoom ? "あなたの部屋" : `Host: ${room.hostName}`}
                 </div>
-                <div style={{ fontSize: "0.8rem", color: "#aaa" }}>募集中...</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>募集中...</div>
               </div>
               <div>
                 {isMyRoom ? (
                   <div style={{ display: "flex", gap: "10px" }}>
                     <button onClick={() => enterGame(room.id)} className="btn btn-success" style={{ padding: "6px 12px", fontSize: "0.85rem" }}>待機</button>
-                    <button onClick={(e) => deleteRoom(e, room.id)} className="btn btn-outline" style={{ padding: "6px 12px", fontSize: "0.85rem", color: "#aaa", borderColor: "#555" }}>取消</button>
+                    <button onClick={(e) => deleteRoom(e, room.id)} className="btn btn-outline" style={{ padding: "6px 12px", fontSize: "0.85rem", color: "var(--text-secondary)", borderColor: "var(--border-color-dark)" }}>取消</button>
                   </div>
                 ) : (
                   <button className="btn btn-primary" onClick={() => joinRoom(room.id)}>対戦する！</button>

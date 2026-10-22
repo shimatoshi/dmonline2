@@ -54,7 +54,7 @@ export default function Login() {
           required
           style={{ padding: "10px" }}
         />
-        <button type="submit" style={{ padding: "10px", background: "#007bff", color: "white", border: "none", borderRadius: "5px" }}>
+        <button type="submit" style={{ padding: "10px", background: "var(--accent-color)", color: "white", border: "none", borderRadius: "5px" }}>
           {isLoginMode ? "ログインする" : "登録する"}
         </button>
       </form>
@@ -65,7 +65,7 @@ export default function Login() {
       
       <button 
         onClick={() => setIsLoginMode(!isLoginMode)}
-        style={{ background: "none", border: "none", color: "#007bff", textDecoration: "underline", cursor: "pointer" }}
+        style={{ background: "none", border: "none", color: "var(--accent-color)", textDecoration: "underline", cursor: "pointer" }}
       >
         {isLoginMode ? "アカウントをお持ちでない方はこちら (新規登録)" : "すでにアカウントをお持ちの方はこちら (ログイン)"}
       </button>

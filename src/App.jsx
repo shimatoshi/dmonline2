@@ -39,23 +39,23 @@ function App() {
 
   return (
     <div>
-      <header style={{ background: "#1e1e1e", borderBottom: "1px solid #333", color: "#fff", padding: "10px 15px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 1000 }}>
+      <header style={{ background: "var(--surface-color)", borderBottom: "1px solid var(--border-color)", color: "#fff", padding: "10px 15px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 1000 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "bold" }}>Duema Online</h1>
         </div>
         
         <nav style={{ fontSize: "0.85rem", display: "flex", gap: "12px", alignItems: "center" }}>
-          <Link to="/" style={{ color: "#e0e0e0", textDecoration: "none" }}>ロビー</Link>
-          <Link to="/decks" style={{ color: "#e0e0e0", textDecoration: "none" }}>デッキ</Link>
-          <Link to="/library-new" style={{ color: "#e0e0e0", textDecoration: "none" }}>図鑑(新)</Link>
-          <Link to="/library" style={{ color: "#e0e0e0", textDecoration: "none" }}>図鑑(旧)</Link>
-          <Link to="/bbs" style={{ color: "#e0e0e0", textDecoration: "none" }}>掲示板</Link>
-          <Link to="/profile" style={{ color: "#e0e0e0", textDecoration: "none" }}>設定</Link>
-          <button onClick={handleLogout} style={{ background: "#333", color: "#aaa", border: "1px solid #555", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontSize: "0.75rem" }}>ログアウト</button>
+          <Link to="/" style={{ color: "var(--text-primary)", textDecoration: "none" }}>ロビー</Link>
+          <Link to="/decks" style={{ color: "var(--text-primary)", textDecoration: "none" }}>デッキ</Link>
+          <Link to="/library-new" style={{ color: "var(--text-primary)", textDecoration: "none" }}>図鑑(新)</Link>
+          <Link to="/library" style={{ color: "var(--text-primary)", textDecoration: "none" }}>図鑑(旧)</Link>
+          <Link to="/bbs" style={{ color: "var(--text-primary)", textDecoration: "none" }}>掲示板</Link>
+          <Link to="/profile" style={{ color: "var(--text-primary)", textDecoration: "none" }}>設定</Link>
+          <button onClick={handleLogout} style={{ background: "var(--border-color)", color: "var(--text-secondary)", border: "1px solid var(--border-color-dark)", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontSize: "0.75rem" }}>ログアウト</button>
         </nav>
       </header>
 
-      <Suspense fallback={<div style={{ padding: "20px", color: "#aaa" }}>読み込み中...</div>}>
+      <Suspense fallback={<div style={{ padding: "20px", color: "var(--text-secondary)" }}>読み込み中...</div>}>
         <Routes>
           <Route path="/" element={<Lobby />} />
           <Route path="/decks" element={<DeckList />} />

@@ -16,7 +16,7 @@ export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps
         justifyContent: "center", // 中央寄せ
         padding: "2px 6px", 
         gap: "2px", 
-        borderTop: "1px solid #222",
+        borderTop: "1px solid var(--surface-color-dark)",
         transform: "rotate(180deg)",
         direction: "rtl"
       }}

@@ -30,21 +30,21 @@ export default function Profile() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "500px", margin: "0 auto", color: "#e0e0e0" }}>
-      <h2 style={{ borderBottom: "1px solid #333", paddingBottom: "10px" }}>プロフィール設定</h2>
+    <div style={{ padding: "20px", maxWidth: "500px", margin: "0 auto", color: "var(--text-primary)" }}>
+      <h2 style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "10px" }}>プロフィール設定</h2>
       
-      <div className="card-box" style={{ marginTop: "20px", background: "#1e1e1e" }}>
+      <div className="card-box" style={{ marginTop: "20px", background: "var(--surface-color)" }}>
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#aaa" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
             メールアドレス (非公開)
           </label>
-          <div style={{ padding: "10px", background: "#333", borderRadius: "4px", color: "#888" }}>
+          <div style={{ padding: "10px", background: "var(--border-color)", borderRadius: "4px", color: "var(--text-muted)" }}>
             {user?.email}
           </div>
         </div>
 
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#aaa" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
             ユーザー名 (表示名)
           </label>
           <input 
@@ -65,7 +65,7 @@ export default function Profile() {
         </button>
         
         {statusMsg && (
-          <p style={{ textAlign: "center", marginTop: "10px", color: statusMsg.includes("✅") ? "#28a745" : "#dc3545" }}>
+          <p style={{ textAlign: "center", marginTop: "10px", color: statusMsg.includes("✅") ? "var(--success-color)" : "#dc3545" }}>
             {statusMsg}
           </p>
         )}

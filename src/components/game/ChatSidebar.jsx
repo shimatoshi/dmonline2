@@ -49,7 +49,7 @@ export const ChatSidebar = ({ roomId, user }) => {
           onClick={() => setIsOpen(true)}
           style={{
             position: "fixed", top: "50%", left: 0, transform: "translateY(-50%)",
-            background: "#007bff", color: "white", border: "none",
+            background: "var(--accent-color)", color: "white", border: "none",
             borderRadius: "0 8px 8px 0", padding: "15px 5px", zIndex: 4500,
             cursor: "pointer", boxShadow: "2px 0 5px rgba(0,0,0,0.5)"
           }}
@@ -60,14 +60,14 @@ export const ChatSidebar = ({ roomId, user }) => {
 
       <div style={{
         position: "fixed", top: 0, left: 0, height: "100%", width: "280px",
-        background: "#222", borderRight: "1px solid #444", zIndex: 5000,
+        background: "var(--surface-color-dark)", borderRight: "1px solid var(--border-color-light)", zIndex: 5000,
         transform: isOpen ? "translateX(0)" : "translateX(-100%)",
         transition: "transform 0.3s ease", display: "flex", flexDirection: "column",
         boxShadow: "5px 0 15px rgba(0,0,0,0.5)"
       }}>
-        <div style={{ padding: "10px", background: "#333", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ padding: "10px", background: "var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontWeight: "bold", color: "#ddd" }}>チャット</span>
-          <button onClick={() => setIsOpen(false)} style={{ background: "none", border: "none", color: "#aaa", fontSize: "1.2rem" }}>×</button>
+          <button onClick={() => setIsOpen(false)} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "1.2rem" }}>×</button>
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -75,12 +75,12 @@ export const ChatSidebar = ({ roomId, user }) => {
             const isMe = msg.senderId === user.uid;
             return (
               <div key={msg.id} style={{ alignSelf: isMe ? "flex-end" : "flex-start", maxWidth: "85%" }}>
-                <div style={{ fontSize: "0.7rem", color: "#aaa", marginBottom: "2px", textAlign: isMe ? "right" : "left" }}>
+                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "2px", textAlign: isMe ? "right" : "left" }}>
                   {msg.senderName}
                 </div>
                 <div style={{ 
                   padding: "8px 12px", fontSize: "0.9rem", wordBreak: "break-word",
-                  background: isMe ? "#007bff" : "#444", color: "white",
+                  background: isMe ? "var(--accent-color)" : "var(--border-color-light)", color: "white",
                   borderRadius: isMe ? "12px 12px 0 12px" : "12px 12px 12px 0"
                 }}>
                   {msg.text}
@@ -91,14 +91,14 @@ export const ChatSidebar = ({ roomId, user }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={sendMessage} style={{ padding: "10px", borderTop: "1px solid #444", display: "flex", gap: "5px" }}>
+        <form onSubmit={sendMessage} style={{ padding: "10px", borderTop: "1px solid var(--border-color-light)", display: "flex", gap: "5px" }}>
           <input 
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="メッセージ..."
-            style={{ flex: 1, padding: "8px", borderRadius: "4px", border: "1px solid #555", background: "#111", color: "white" }}
+            style={{ flex: 1, padding: "8px", borderRadius: "4px", border: "1px solid var(--border-color-dark)", background: "#111", color: "white" }}
           />
-          <button type="submit" style={{ padding: "8px 12px", background: "#28a745", color: "white", border: "none", borderRadius: "4px" }}>➤</button>
+          <button type="submit" style={{ padding: "8px 12px", background: "var(--success-color)", color: "white", border: "none", borderRadius: "4px" }}>➤</button>
         </form>
       </div>
       

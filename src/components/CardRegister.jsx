@@ -27,12 +27,12 @@ export default function CardRegister({ onRegister, existingTags }) {
   const tagCandidates = Array.from(new Set([...defaultTags, ...existingTags]));
 
   const civilizations = [
-    { name: "光", color: "#ffee58", tag: "光文明", textColor: "#333" },
+    { name: "光", color: "#ffee58", tag: "光文明", textColor: "var(--border-color)" },
     { name: "水", color: "#42a5f5", tag: "水文明", textColor: "#fff" },
     { name: "闇", color: "#757575", tag: "闇文明", textColor: "#fff" },
     { name: "火", color: "#ef5350", tag: "火文明", textColor: "#fff" },
     { name: "自然", color: "#66bb6a", tag: "自然文明", textColor: "#fff" },
-    { name: "ゼロ", color: "#b0b0b0", tag: "ゼロ文明", textColor: "#333" }, // ★ゼロ文明追加
+    { name: "ゼロ", color: "#b0b0b0", tag: "ゼロ文明", textColor: "var(--border-color)" }, // ★ゼロ文明追加
   ];
 
   const toggleTag = (tag) => {
@@ -149,7 +149,7 @@ export default function CardRegister({ onRegister, existingTags }) {
 
   return (
     <div className="card-box" style={{ marginBottom: "20px" }}>
-      <h4 style={{ margin: "0 0 15px 0", fontSize: "1.1rem", borderBottom:"1px solid #333", paddingBottom:"10px", color: "#e0e0e0" }}>
+      <h4 style={{ margin: "0 0 15px 0", fontSize: "1.1rem", borderBottom:"1px solid var(--border-color)", paddingBottom:"10px", color: "var(--text-primary)" }}>
         新規カード登録
       </h4>
       
@@ -206,7 +206,7 @@ export default function CardRegister({ onRegister, existingTags }) {
       </div>
 
       {showImagePicker && (
-        <div style={{ marginBottom: "15px", background: "#1a1a1a", border: "1px solid #333", borderRadius: "8px", padding: "10px" }}>
+        <div style={{ marginBottom: "15px", background: "#1a1a1a", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "10px" }}>
           <input
             className="input-field"
             placeholder="カード名で検索..."
@@ -226,10 +226,10 @@ export default function CardRegister({ onRegister, existingTags }) {
                     setShowImagePicker(false);
                     setImageSearch("");
                   }}
-                  style={{ cursor: "pointer", border: url === card.url ? "2px solid #00bfff" : "2px solid transparent", borderRadius: "4px", overflow: "hidden" }}
+                  style={{ cursor: "pointer", border: url === card.url ? "2px solid var(--info-color)" : "2px solid transparent", borderRadius: "4px", overflow: "hidden" }}
                 >
                   <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", display: "block" }} />
-                  <p style={{ fontSize: "0.6rem", color: "#aaa", margin: "2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</p>
+                  <p style={{ fontSize: "0.6rem", color: "var(--text-secondary)", margin: "2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</p>
                 </div>
               ))}
           </div>
@@ -240,14 +240,14 @@ export default function CardRegister({ onRegister, existingTags }) {
       <div style={{ marginBottom: "15px" }}>
         <button
           onClick={() => setShowFaces(!showFaces)}
-          style={{ fontSize: "0.8rem", background: "none", border: "1px solid #00bfff", color: "#00bfff", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}
+          style={{ fontSize: "0.8rem", background: "none", border: "1px solid var(--info-color)", color: "var(--info-color)", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}
         >
           {showFaces ? "▲ 超次元面を閉じる" : "＋ 超次元カード（複数面）"}
         </button>
 
         {showFaces && (
-          <div style={{ marginTop: "10px", padding: "10px", background: "#1a2a3a", borderRadius: "6px", border: "1px solid #00bfff" }}>
-            <p style={{ fontSize: "0.8rem", color: "#00bfff", margin: "0 0 8px 0" }}>追加面のURL（覚醒・リンク先など）:</p>
+          <div style={{ marginTop: "10px", padding: "10px", background: "#1a2a3a", borderRadius: "6px", border: "1px solid var(--info-color)" }}>
+            <p style={{ fontSize: "0.8rem", color: "var(--info-color)", margin: "0 0 8px 0" }}>追加面のURL（覚醒・リンク先など）:</p>
             {extraFaces.map((face, i) => (
               <div key={i} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
                 <input
@@ -265,19 +265,19 @@ export default function CardRegister({ onRegister, existingTags }) {
                 <button
                   onClick={() => openFilePicker(i)}
                   disabled={uploading}
-                  style={{ fontSize: "0.75rem", background: "none", border: "1px solid #555", color: "#aaa", padding: "2px 8px", borderRadius: "4px", cursor: "pointer", whiteSpace: "nowrap" }}
+                  style={{ fontSize: "0.75rem", background: "none", border: "1px solid var(--border-color-dark)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "4px", cursor: "pointer", whiteSpace: "nowrap" }}
                 >
                   📁
                 </button>
                 {extraFaces.length > 1 && (
                   <button onClick={() => setExtraFaces(extraFaces.filter((_, j) => j !== i))}
-                    style={{ background: "none", border: "none", color: "#ff6b6b", fontSize: "1rem" }}>×</button>
+                    style={{ background: "none", border: "none", color: "var(--danger-light)", fontSize: "1rem" }}>×</button>
                 )}
               </div>
             ))}
             {extraFaces.length < 3 && (
               <button onClick={() => setExtraFaces([...extraFaces, ""])}
-                style={{ fontSize: "0.75rem", background: "none", border: "1px dashed #555", color: "#aaa", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}>
+                style={{ fontSize: "0.75rem", background: "none", border: "1px dashed var(--border-color-dark)", color: "var(--text-secondary)", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}>
                 ＋ 面を追加（最大4面）
               </button>
             )}
@@ -287,14 +287,14 @@ export default function CardRegister({ onRegister, existingTags }) {
 
       {/* 文明選択 */}
       <div style={{ marginBottom: "15px" }}>
-        <p style={{ fontSize: "0.85rem", margin: "0 0 8px 0", color: "#aaa" }}>文明:</p>
+        <p style={{ fontSize: "0.85rem", margin: "0 0 8px 0", color: "var(--text-secondary)" }}>文明:</p>
         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-start", flexWrap: "wrap" }}>
           {civilizations.map((civ) => (
             <button
               key={civ.name}
               onClick={() => toggleCiv(civ.name)}
               style={{
-                width: "40px", height: "40px", borderRadius: "50%", border: "2px solid #555",
+                width: "40px", height: "40px", borderRadius: "50%", border: "2px solid var(--border-color-dark)",
                 background: civ.color,
                 fontWeight: "bold", 
                 color: civ.textColor,
@@ -312,19 +312,19 @@ export default function CardRegister({ onRegister, existingTags }) {
       {/* タグ設定エリア */}
       <div style={{ marginBottom: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <p style={{ fontSize: "0.85rem", margin: 0, color: "#aaa" }}>タグ設定:</p>
+          <p style={{ fontSize: "0.85rem", margin: 0, color: "var(--text-secondary)" }}>タグ設定:</p>
           <button 
             onClick={() => setIsTagsListOpen(!isTagsListOpen)}
-            style={{ fontSize: "0.8rem", background: "none", border: "none", color: "#007bff", padding: "5px" }}
+            style={{ fontSize: "0.8rem", background: "none", border: "none", color: "var(--accent-color)", padding: "5px" }}
           >
             {isTagsListOpen ? "▲ リストを閉じる" : "▼ リストから選ぶ"}
           </button>
         </div>
         
         {selectedTags.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px", padding: "8px", background: "#222", borderRadius: "6px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px", padding: "8px", background: "var(--surface-color-dark)", borderRadius: "6px" }}>
             {selectedTags.map(tag => (
-              <span key={tag} style={{ fontSize: "0.85rem", background: "#007bff", color: "white", padding: "4px 10px", borderRadius: "15px", display: "flex", alignItems: "center" }}>
+              <span key={tag} style={{ fontSize: "0.85rem", background: "var(--accent-color)", color: "white", padding: "4px 10px", borderRadius: "15px", display: "flex", alignItems: "center" }}>
                 {tag} <button onClick={() => setSelectedTags(selectedTags.filter(t => t !== tag))} style={{ background: "none", border: "none", color: "white", marginLeft: "6px", fontSize: "1rem", lineHeight: "1" }}>×</button>
               </span>
             ))}
@@ -340,14 +340,14 @@ export default function CardRegister({ onRegister, existingTags }) {
         </div>
 
         {isTagsListOpen && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", animation: "fadeIn 0.2s", background: "#1a1a1a", padding: "10px", borderRadius: "8px", border: "1px solid #333" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", animation: "fadeIn 0.2s", background: "#1a1a1a", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
             {tagCandidates.map(tag => (
               <button
                 key={tag} onClick={() => toggleTag(tag)} disabled={selectedTags.includes(tag)}
                 style={{ 
-                  fontSize: "0.8rem", padding: "6px 10px", borderRadius: "15px", border: "1px solid #444", 
-                  background: "#2c2c2c", 
-                  color: "#e0e0e0",
+                  fontSize: "0.8rem", padding: "6px 10px", borderRadius: "15px", border: "1px solid var(--border-color-light)", 
+                  background: "var(--surface-color-light)", 
+                  color: "var(--text-primary)",
                   opacity: selectedTags.includes(tag) ? 0.3 : 1 
                 }}
               >

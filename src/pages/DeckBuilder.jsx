@@ -189,7 +189,7 @@ export default function DeckBuilder() {
         setStatusMsg("📸 撮影中...");
         const { default: html2canvas } = await import("html2canvas");
         const canvas = await html2canvas(deckGridRef.current, {
-          useCORS: true, allowTaint: false, backgroundColor: "#1e1e1e", scale: 2, logging: false
+          useCORS: true, allowTaint: false, backgroundColor: "var(--surface-color)", scale: 2, logging: false
         });
         const link = document.createElement("a");
         link.download = `${deckName || "deck"}.png`;
@@ -227,7 +227,7 @@ export default function DeckBuilder() {
           style={{ flex: 1, padding: "6px 8px", fontSize: "0.9rem", fontWeight: "bold" }}
         />
         <button className="btn btn-primary" onClick={saveDeck} style={{ padding: "6px 12px", fontSize: "0.8rem" }}>保存</button>
-        <button className="btn btn-outline" onClick={() => setShowMenu(!showMenu)} style={{ padding: "6px 8px", fontSize: "0.8rem", borderColor: "#555", color: "#ddd" }}>⋯</button>
+        <button className="btn btn-outline" onClick={() => setShowMenu(!showMenu)} style={{ padding: "6px 8px", fontSize: "0.8rem", borderColor: "var(--border-color-dark)", color: "#ddd" }}>⋯</button>
         {statusMsg && <span style={{ color: "#42a5f5", fontSize: "0.75rem", alignSelf: "center" }}>{statusMsg}</span>}
       </div>
 
@@ -240,13 +240,13 @@ export default function DeckBuilder() {
           </button>
           <div className="separator-v" style={{ height: "20px" }}></div>
           {deckTags.map(tag => (
-            <span key={tag} className="pill" style={{ background: "#333", color: "#ddd", fontSize: "0.7rem" }}>
+            <span key={tag} className="pill" style={{ background: "var(--border-color)", color: "#ddd", fontSize: "0.7rem" }}>
               {tag} <span onClick={() => setDeckTags(deckTags.filter(t => t !== tag))} style={{ marginLeft: "3px", color: "var(--danger-light)", cursor: "pointer" }}>×</span>
             </span>
           ))}
           <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
             <input placeholder="+タグ" value={newDeckTag} onChange={e => setNewDeckTag(e.target.value)}
-              style={{ background: "transparent", border: "none", borderBottom: "1px solid #555", color: "#fff", width: "50px", fontSize: "0.7rem" }} />
+              style={{ background: "transparent", border: "none", borderBottom: "1px solid var(--border-color-dark)", color: "#fff", width: "50px", fontSize: "0.7rem" }} />
             <button onClick={addDeckTag} style={{ background: "none", border: "none", color: "var(--accent-color)", fontSize: "0.9rem" }}>+</button>
           </div>
         </div>
@@ -263,7 +263,7 @@ export default function DeckBuilder() {
               </div>
             ))}
           </div>
-          <button className="btn" onClick={() => setShowThumbSelector(false)} style={{ display: "block", margin: "20px auto", background: "#333", color: "white" }}>閉じる</button>
+          <button className="btn" onClick={() => setShowThumbSelector(false)} style={{ display: "block", margin: "20px auto", background: "var(--border-color)", color: "white" }}>閉じる</button>
         </div>
       )}
 
@@ -278,7 +278,7 @@ export default function DeckBuilder() {
               {curve.map((n, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
                   <div style={{ width: "10px", height: `${Math.round((n / curveMax) * 14)}px`, background: n ? "var(--accent-color)" : "#2a2a2a", borderRadius: "1px" }}></div>
-                  <span style={{ fontSize: "0.5rem", color: "#777", lineHeight: 1 }}>{i === 7 ? "7+" : i}</span>
+                  <span style={{ fontSize: "0.5rem", color: "var(--text-dim)", lineHeight: 1 }}>{i === 7 ? "7+" : i}</span>
                 </div>
               ))}
             </div>
@@ -310,11 +310,11 @@ export default function DeckBuilder() {
       <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 8px", background: "#181818", flexShrink: 0 }}>
         <button
           onClick={() => setAddToHyperspace(!addToHyperspace)}
-          style={{ minHeight: "36px", padding: "4px 12px", borderRadius: "18px", border: addToHyperspace ? "2px solid #fff" : "1px solid #555", background: addToHyperspace ? "var(--info-color)" : "#2c2c2c", color: addToHyperspace ? "#000" : "#ccc", fontWeight: addToHyperspace ? "bold" : "normal", fontSize: "0.85rem" }}
+          style={{ minHeight: "36px", padding: "4px 12px", borderRadius: "18px", border: addToHyperspace ? "2px solid #fff" : "1px solid var(--border-color-dark)", background: addToHyperspace ? "var(--info-color)" : "var(--surface-color-light)", color: addToHyperspace ? "#000" : "#ccc", fontWeight: addToHyperspace ? "bold" : "normal", fontSize: "0.85rem" }}
         >
           {addToHyperspace ? "超次元に追加中" : "超次元に追加"} ({hyperspaceCards.length}/8)
         </button>
-        <span style={{ fontSize: "0.7rem", color: "#777" }}>デッキの枚数をタップで1枚減らす</span>
+        <span style={{ fontSize: "0.7rem", color: "var(--text-dim)" }}>デッキの枚数をタップで1枚減らす</span>
       </div>
 
       {/* 超次元ゾーン */}

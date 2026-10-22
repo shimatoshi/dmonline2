@@ -11,10 +11,10 @@ const CIVILS = [
 ];
 const COSTS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"];
 
-const chipStyle = (active, bg = "#007bff", fg = "#fff") => ({
+const chipStyle = (active, bg = "var(--accent-color)", fg = "#fff") => ({
   flexShrink: 0, minWidth: "40px", minHeight: "36px", padding: "4px 10px", borderRadius: "18px",
-  border: active ? "2px solid #fff" : "1px solid #555",
-  background: active ? bg : "#2c2c2c", color: active ? fg : "#ccc",
+  border: active ? "2px solid #fff" : "1px solid var(--border-color-dark)",
+  background: active ? bg : "var(--surface-color-light)", color: active ? fg : "#ccc",
   fontSize: "0.85rem", fontWeight: active ? "bold" : "normal", cursor: "pointer",
 });
 
@@ -92,14 +92,14 @@ export default function DeckCardPicker({ library, onAddToDeck, deckCounts = {}, 
             <button key={c} style={chipStyle(cost === c)} onClick={() => setCost(cost === c ? "ALL" : c)}>{c}</button>
           ))}
         </div>
-        <div style={{ fontSize: "0.75rem", color: "#888" }}>{filtered.length}件 ・ タップで追加 / 長押しで拡大</div>
+        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{filtered.length}件 ・ タップで追加 / 長押しで拡大</div>
       </div>
 
       <div className="zone-scroll" style={{
         display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))", gap: "6px",
         overflowY: "auto", padding: "8px", flex: 1, minHeight: 0, alignContent: "start",
       }}>
-        {filtered.length === 0 && <p style={{ color: "#777", gridColumn: "1 / -1", textAlign: "center", padding: "20px" }}>該当なし</p>}
+        {filtered.length === 0 && <p style={{ color: "var(--text-dim)", gridColumn: "1 / -1", textAlign: "center", padding: "20px" }}>該当なし</p>}
         {filtered.map((card) => (
           <Tile key={card.id} card={card} count={deckCounts[card.url] || 0} onAdd={onAddToDeck} onPreview={onPreview} />
         ))}

@@ -13,17 +13,17 @@ export const OpponentActionMenu = ({ target, onClose, onAction }) => {
        <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px"}}>
          {/* 共通アクション */}
          <button className="btn" onClick={() => onAction("grave")} style={{background: "#dc3545", color:"white"}}>💀 墓地へ</button>
-         <button className="btn" onClick={() => onAction("hand")} style={{background: "#007bff", color:"white"}}>✋ 手札へ</button>
-         <button className="btn" onClick={() => onAction("mana")} style={{background: "#28a745", color:"white"}}>🌲 マナへ</button>
-         <button className="btn" onClick={() => onAction("shield")} style={{background: "#ffc107", color:"black"}}>🛡️ 盾へ</button>
+         <button className="btn" onClick={() => onAction("hand")} style={{background: "var(--accent-color)", color:"white"}}>✋ 手札へ</button>
+         <button className="btn" onClick={() => onAction("mana")} style={{background: "var(--success-color)", color:"white"}}>🌲 マナへ</button>
+         <button className="btn" onClick={() => onAction("shield")} style={{background: "var(--warning-color)", color:"black"}}>🛡️ 盾へ</button>
          
          {/* ゾーン特有のアクション */}
          {zone === "deck" && (
-            <button className="btn" onClick={() => onAction("deckBottom")} style={{background: "#333", color:"white"}}>山札下へ</button>
+            <button className="btn" onClick={() => onAction("deckBottom")} style={{background: "var(--border-color)", color:"white"}}>山札下へ</button>
          )}
        </div>
 
-       <button className="btn" onClick={onClose} style={{marginTop: "15px", width: "100%", background: "#444", color:"#ccc"}}>キャンセル</button>
+       <button className="btn" onClick={onClose} style={{marginTop: "15px", width: "100%", background: "var(--border-color-light)", color:"#ccc"}}>キャンセル</button>
      </div>
   );
 };

@@ -199,18 +199,18 @@ export default function DeckList() {
       
       {/* 旧データ復元エリア */}
       {oldDeck && (
-        <div style={{ background: "#252525", border: "1px solid #d32f2f", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
-          <h3 style={{ margin: "0 0 10px 0", color: "#ff6b6b", fontSize: "1rem" }}>⚠️ 以前の作りかけデータがあります</h3>
+        <div style={{ background: "#252525", border: "1px solid var(--danger-color)", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
+          <h3 style={{ margin: "0 0 10px 0", color: "var(--danger-light)", fontSize: "1rem" }}>⚠️ 以前の作りかけデータがあります</h3>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={migrateOldDeck} className="btn btn-primary" style={{ flex: 1 }}>リストに追加して復元</button>
-            <button onClick={discardOldDeck} className="btn btn-outline" style={{ flex: 1, color: "#aaa", borderColor: "#555" }}>破棄</button>
+            <button onClick={discardOldDeck} className="btn btn-outline" style={{ flex: 1, color: "var(--text-secondary)", borderColor: "var(--border-color-dark)" }}>破棄</button>
           </div>
         </div>
       )}
 
       {/* ヘッダー */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2 style={{ margin: 0, fontSize: "1.1rem", color: "#e0e0e0" }}>デッキ編成 / カード図鑑</h2>
+        <h2 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text-primary)" }}>デッキ編成 / カード図鑑</h2>
         <button 
           className="btn btn-primary" 
           onClick={() => navigate("/deck/new")}
@@ -224,14 +224,14 @@ export default function DeckList() {
       <div style={{ marginBottom: "20px" }}>
         <button 
           onClick={() => setShowDataMenu(!showDataMenu)} 
-          style={{ background: "none", border: "none", color: "#007bff", textDecoration: "underline", cursor: "pointer", fontSize: "0.9rem" }}
+          style={{ background: "none", border: "none", color: "var(--accent-color)", textDecoration: "underline", cursor: "pointer", fontSize: "0.9rem" }}
         >
           {showDataMenu ? "▼ メニューを閉じる" : "▶ データの読み込み・書き出し"}
         </button>
 
         {showDataMenu && (
-          <div style={{ background: "#1e1e1e", padding: "15px", borderRadius: "8px", marginTop: "10px", border: "1px solid #333" }}>
-            <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "#aaa" }}>
+          <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "8px", marginTop: "10px", border: "1px solid var(--border-color)" }}>
+            <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
               デッキのコードや、図鑑のバックアップデータをここに貼り付けると自動で認識して取り込みます。
             </p>
             
@@ -248,7 +248,7 @@ export default function DeckList() {
               <button onClick={handleImport} className="btn btn-success" style={{ flex: 2 }}>
                 📥 データを取込 (自動判定)
               </button>
-              <button onClick={exportLibrary} className="btn btn-outline" style={{ flex: 1, borderColor: "#007bff", color: "#007bff" }}>
+              <button onClick={exportLibrary} className="btn btn-outline" style={{ flex: 1, borderColor: "var(--accent-color)", color: "var(--accent-color)" }}>
                 📤 図鑑をコピー
               </button>
             </div>
@@ -258,7 +258,7 @@ export default function DeckList() {
 
       {/* デッキリスト */}
       <div style={{ display: "grid", gap: "10px" }}>
-        {decks.length === 0 && !oldDeck && <p style={{ color: "#777", textAlign: "center", padding: "20px" }}>デッキがまだありません</p>}
+        {decks.length === 0 && !oldDeck && <p style={{ color: "var(--text-dim)", textAlign: "center", padding: "20px" }}>デッキがまだありません</p>}
         
         {decks.map((deck) => (
           <div 
@@ -271,7 +271,7 @@ export default function DeckList() {
               {deck.thumbnail || (deck.cards && deck.cards[0]) ? (
                 <img src={getProxyImageUrl(deck.thumbnail || deck.cards[0])} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
-                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#333", fontSize: "0.7rem" }}>No Img</div>
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--border-color)", fontSize: "0.7rem" }}>No Img</div>
               )}
             </div>
 
@@ -280,7 +280,7 @@ export default function DeckList() {
                 {deck.name || "名称未設定デッキ"}
               </div>
               <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.75rem", color: "#aaa", background: "#333", padding: "2px 6px", borderRadius: "4px" }}>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", background: "var(--border-color)", padding: "2px 6px", borderRadius: "4px" }}>
                   {deck.cards?.length || 0}枚
                 </span>
                 {deck.tags && deck.tags.map((tag, i) => (
@@ -301,7 +301,7 @@ export default function DeckList() {
               <button onClick={(e) => handleShare(e, deck)} className="btn btn-outline" style={{ padding: "4px 8px", fontSize: "0.75rem" }}>
                 共有
               </button>
-              <button onClick={(e) => handleDelete(e, deck.id)} className="btn" style={{ padding: "4px 8px", fontSize: "0.75rem", color: "#ff6b6b", border: "1px solid #ff6b6b", background: "transparent" }}>
+              <button onClick={(e) => handleDelete(e, deck.id)} className="btn" style={{ padding: "4px 8px", fontSize: "0.75rem", color: "var(--danger-light)", border: "1px solid var(--danger-light)", background: "transparent" }}>
                 削除
               </button>
             </div>

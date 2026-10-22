@@ -4,7 +4,7 @@ export const StackMenu = ({ stackTarget, selectedCard, performStack, setStackTar
   return (
     <div style={{ 
       position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", 
-      zIndex: 3000, background: "rgba(0,0,0,0.95)", padding: "15px 20px", borderRadius: "10px", border: "1px solid #007bff", textAlign: "center", whiteSpace: "nowrap",
+      zIndex: 3000, background: "rgba(0,0,0,0.95)", padding: "15px 20px", borderRadius: "10px", border: "1px solid var(--accent-color)", textAlign: "center", whiteSpace: "nowrap",
       boxShadow: "0 4px 15px rgba(0,0,0,0.8)"
     }}>
       <p style={{margin: "0 0 15px 0", fontSize:"1rem", fontWeight: "bold", color: "#fff"}}>カードを重ねる</p>
@@ -19,14 +19,14 @@ export const StackMenu = ({ stackTarget, selectedCard, performStack, setStackTar
         <button 
           className="btn btn-outline" 
           onClick={() => { performStack(selectedCard, stackTarget, "under"); setSelectedCard(null); setStackTarget(null); }} 
-          style={{fontSize:"0.9rem", padding:"8px 15px", borderColor:"#555", color: "#ddd"}}
+          style={{fontSize:"0.9rem", padding:"8px 15px", borderColor:"var(--border-color-dark)", color: "#ddd"}}
         >
           下に入れる
         </button>
         <button 
           className="btn btn-outline" 
           onClick={() => { performStack(selectedCard, stackTarget, "seal"); setSelectedCard(null); setStackTarget(null); }} 
-          style={{fontSize:"0.9rem", padding:"8px 15px", borderColor:"#ff6b6b", color:"#ff6b6b"}}
+          style={{fontSize:"0.9rem", padding:"8px 15px", borderColor:"var(--danger-light)", color:"var(--danger-light)"}}
         >
           封印
         </button>
@@ -34,7 +34,7 @@ export const StackMenu = ({ stackTarget, selectedCard, performStack, setStackTar
       <button 
         className="btn" 
         onClick={() => setStackTarget(null)} 
-        style={{width:"100%", background:"#333", padding:"8px", fontSize:"0.9rem", color: "#aaa", borderRadius: "5px"}}
+        style={{width:"100%", background:"var(--border-color)", padding:"8px", fontSize:"0.9rem", color: "var(--text-secondary)", borderRadius: "5px"}}
       >
         キャンセル
       </button>

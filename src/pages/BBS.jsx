@@ -52,34 +52,34 @@ export default function BBS() {
   };
 
   return (
-    <div style={{ padding: "10px", background: "#121212", minHeight: "100vh", color: "#e0e0e0", fontFamily: "sans-serif" }}>
-      <h2 style={{ borderBottom: "1px solid #333", paddingBottom: "10px", fontSize: "1.2rem", marginBottom: "15px", color: "#fff" }}>
+    <div style={{ padding: "10px", background: "var(--bg-color)", minHeight: "100vh", color: "var(--text-primary)", fontFamily: "sans-serif" }}>
+      <h2 style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "10px", fontSize: "1.2rem", marginBottom: "15px", color: "#fff" }}>
         掲示板 - スレッド一覧
       </h2>
 
       {/* スレッド作成フォーム */}
-      <div style={{ background: "#1e1e1e", padding: "15px", marginBottom: "20px", borderRadius: "8px", border: "1px solid #333" }}>
+      <div style={{ background: "var(--surface-color)", padding: "15px", marginBottom: "20px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
         <form onSubmit={handleCreateThread} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <input 
             type="text" 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
             placeholder="新しいスレッドのタイトル"
-            style={{ padding: "10px", background: "#2c2c2c", border: "1px solid #444", color: "#fff", borderRadius: "4px" }}
+            style={{ padding: "10px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "4px" }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <input 
               type="file" 
               accept="image/*"
               onChange={(e) => setSelectedFile(e.target.files[0])}
-              style={{ fontSize: "0.8rem", color: "#aaa" }}
+              style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}
             />
-            {selectedFile && <span style={{ fontSize: "0.7rem", color: "#28a745" }}>選択中</span>}
+            {selectedFile && <span style={{ fontSize: "0.7rem", color: "var(--success-color)" }}>選択中</span>}
           </div>
           <button 
             type="submit" 
             disabled={isSubmitting}
-            style={{ padding: "12px", background: isSubmitting ? "#555" : "#007bff", color: "white", border: "none", borderRadius: "4px", fontSize: "0.9rem", cursor: isSubmitting ? "default" : "pointer", fontWeight: "bold" }}
+            style={{ padding: "12px", background: isSubmitting ? "var(--border-color-dark)" : "var(--accent-color)", color: "white", border: "none", borderRadius: "4px", fontSize: "0.9rem", cursor: isSubmitting ? "default" : "pointer", fontWeight: "bold" }}
           >
             {isSubmitting ? "送信中..." : "新しくスレッドを立てる"}
           </button>
@@ -90,17 +90,17 @@ export default function BBS() {
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {threads.map((thread) => (
           <Link key={thread.id} to={`/bbs/thread/${thread.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "#1e1e1e", padding: "15px", borderRadius: "8px", border: "1px solid #333", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 {thread.imageUrl && (
                   <img src={thread.imageUrl} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px" }} />
                 )}
                 <div>
                   <div style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#4dabf7", marginBottom: "5px" }}>{thread.title}</div>
-                  <div style={{ fontSize: "0.8rem", color: "#888" }}>作成: {thread.authorName}</div>
+                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>作成: {thread.authorName}</div>
                 </div>
               </div>
-              <div style={{ background: "#333", padding: "5px 10px", borderRadius: "20px", fontSize: "0.8rem", color: "#aaa" }}>
+              <div style={{ background: "var(--border-color)", padding: "5px 10px", borderRadius: "20px", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
                 {thread.responseCount || 0}レス
               </div>
             </div>
