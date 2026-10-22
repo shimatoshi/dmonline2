@@ -169,11 +169,12 @@ export default function DeckList() {
         if(!window.confirm(`図鑑データ(${data.length}枚)として取り込みますか？`)) return;
         
         // 既存URLリスト（重複チェック用）
-        const existingUrls = library.map(l => l.url);
+        const existingUrls = new Set(library.map(l => l.url));
         let count = 0;
 
         for (const card of data) {
-          if (card.url && !existingUrls.includes(card.url)) {
+          if (card.url && !existingUrls.has(card.url)) {
+            existingUrls.add(card.url);
             await addDoc(collection(db, "users", user.uid, "library"), {
               name: card.name || "未設定",
               url: card.url,
