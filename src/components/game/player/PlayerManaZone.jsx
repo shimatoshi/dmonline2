@@ -8,7 +8,7 @@ export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps
       data-zone-id="mana"
       onClick={() => onZoneTap("mana")}
       style={{ 
-        flexShrink: 0, maxHeight: "104px", overflowY: "auto", 
+        flexShrink: 0, minHeight: "52px", maxHeight: "104px", overflowY: "auto", 
         background: "#151515", 
         display: "flex", 
         flexWrap: "wrap", // 折り返し
