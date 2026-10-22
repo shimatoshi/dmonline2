@@ -80,6 +80,30 @@ export default function GameTable() {
   const [showHint, setShowHint] = useState(shouldShowHintFirst);
   const closeHint = () => { markHintSeen(); setShowHint(false); };
   const [showLog, setShowLog] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  // 直近で手札に加わったカードの印(ターンが変わるか、手札から出ると消える)
+  const handMemo = useRef({ side: null, prev: null, fresh: {}, turn: null });
+  const hm = handMemo.current;
+  if (hm.side !== mySide || hm.turn !== turn) {
+    hm.side = mySide; hm.turn = turn; hm.prev = myHand; hm.fresh = {};
+  } else if (hm.prev !== myHand) {
+    const count = (arr) => arr.reduce((m, u) => { const k = typeof u === "object" ? u.url : u; m[k] = (m[k] || 0) + 1; return m; }, {});
+    const before = count(hm.prev), now = count(myHand), fresh = {};
+    Object.keys(now).forEach((k) => {
+      const added = Math.max(0, now[k] - (before[k] || 0));
+      fresh[k] = Math.min(now[k], (hm.fresh[k] || 0) + added);
+    });
+    hm.fresh = fresh; hm.prev = myHand;
+  }
+  const freshIdx = (() => {
+    const left = { ...hm.fresh }, out = [];
+    for (let i = myHand.length - 1; i >= 0; i--) {
+      const k = typeof myHand[i] === "object" ? myHand[i].url : myHand[i];
+      if (left[k] > 0) { left[k]--; out.push(i); }
+    }
+    return out;
+  })();
 
   useEffect(() => { ensureCardNames(); }, []);
 
@@ -185,7 +209,7 @@ export default function GameTable() {
       // 1人回しでは色をプレイヤーに固定する(先攻側=青、後攻側=赤)。視点を切り替えても同じ側が同じ色のまま
       ...(isSolo && mySide === "guest" ? { "--side-me-bg": "#261012", "--side-me-edge": "#e53935", "--side-opp-bg": "#0d1626", "--side-opp-edge": "#1e88e5" } : {})
     }}>
-      <ChatSidebar roomId={roomId} user={user} />
+      <ChatSidebar roomId={roomId} user={user} isOpen={showChat} setIsOpen={setShowChat} />
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
 
       {/* ターン情報バー */}
@@ -194,34 +218,12 @@ export default function GameTable() {
         fontSize: "0.85rem", borderBottom: "1px solid var(--border-color-light)", fontWeight: "bold",
         display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", position: "relative"
       }}>
-        <button
-          onClick={() => setShowHint(true)}
-          aria-label="操作のヒント"
-          style={{ position: "absolute", left: "5px", background: "var(--border-color)", color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "50%", width: "28px", height: "28px", fontSize: "0.85rem", cursor: "pointer" }}
-        >?</button>
-        <button
-          onClick={() => setShowLog(true)}
-          aria-label="対戦ログ"
-          style={{ position: "absolute", left: "38px", background: "var(--border-color)", color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "var(--radius-pill)", height: "28px", padding: "0 10px", fontSize: "0.8rem", cursor: "pointer" }}
-        >📜ログ</button>
         {firstPlayerId ? (
           <span>
             ターン{turn}<span style={{ marginLeft: "10px" }}></span><span style={{ color: isMyTurn ? "#69f0ae" : "#ef9a9a" }}>{isMyTurn ? "あなたの番" : "相手の番"}</span>
             <span style={{ color: "var(--text-muted)", fontWeight: "normal", marginLeft: "8px" }}>手{myHand.length} 山{myDeck.length}</span>
           </span>
         ) : turnInfo}
-        {isSolo && (
-          <button
-            onClick={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
-            style={{
-              background: "var(--accent-color)", color: "white", border: "none", borderRadius: "var(--radius-sm)",
-              padding: "2px 8px", fontSize: "0.75rem", cursor: "pointer",
-              position: "absolute", right: "5px"
-            }}
-          >
-            視点切替
-          </button>
-        )}
       </div>
 
       {showHint && <GameHint onClose={closeHint} />}
@@ -269,7 +271,7 @@ export default function GameTable() {
       <PlayerArea
         hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields}
         graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone} hyperspace={myHyperspace}
-        selectedCard={selectedCard} multiMode={multiMode} onPick={pickCard}
+        selectedCard={selectedCard} multiMode={multiMode} onPick={pickCard} freshIdx={freshIdx}
         onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap}
         onDeckTap={handleDeckTap}
         onViewMode={toggleViewMode}
@@ -315,6 +317,8 @@ export default function GameTable() {
       )}
 
       <ActionBar
+        onHelp={() => setShowHint(true)} onLog={() => setShowLog(true)} onChat={() => setShowChat(true)}
+        isSolo={isSolo} onSwitchSide={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
         onStartTurn={startTurn} onEndTurn={handleEndTurn} onDraw={drawCard} onShuffle={shuffleDeck}
         onUndo={undo} canUndo={canUndo} onSetup={setupGame}
         multiMode={multiMode} onToggleMulti={toggleMulti}

@@ -5,7 +5,7 @@ import { PlayerUtilityRow } from "./player/PlayerUtilityRow";
 
 export const PlayerArea = ({ 
   hand, battleZone, manaZone, shields, graveyard, deck, tempZone, hyperspace,
-  selectedCard, multiMode, onPick,
+  selectedCard, multiMode, onPick, freshIdx,
   onZoneTap, onCardTap, onQuickTap, onDeckTap, onViewMode,
   onDragStart, onDragMove, onDragEnd 
 }) => {
@@ -64,6 +64,7 @@ export const PlayerArea = ({
       />
 
       <PlayerHand 
+        freshIdx={freshIdx}
         onViewMode={onViewMode}
         hand={hand} 
         selectedCard={selectedCard} 

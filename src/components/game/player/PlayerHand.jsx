@@ -1,7 +1,7 @@
 import { DraggableCard } from "../DraggableCard";
 import { getProxyImageUrl } from "../../../utils/apiConfig";
 
-export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps, onViewMode }) => {
+export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps, onViewMode, freshIdx = [] }) => {
   return (
     <div 
       className="zone-scroll"
@@ -24,8 +24,8 @@ export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps, onView
          <DraggableCard key={i} {...getDragProps("hand", i, { url })} style={{ flex: "0 0 46px", height: "64px", overflow: "hidden", marginLeft: i === 0 ? "auto" : 0, marginRight: i === hand.length - 1 ? "auto" : 0 }}>
            <div style={{ height: "100%", position: "relative" }}>
               <img src={getProxyImageUrl(url)} style={{ 
-                  width: "100%", height: "100%", objectFit: "cover", objectPosition: "left top", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color-dark)", cursor: "pointer",
-                  boxShadow: selectedCard?.zone === "hand" && selectedCard?.index === i ? "0 0 0 3px yellow" : "none",
+                  width: "100%", height: "100%", objectFit: "cover", objectPosition: "left top", borderRadius: "var(--radius-sm)", border: freshIdx.includes(i) ? "2px solid #2196f3" : "1px solid var(--border-color-dark)", cursor: "pointer",
+                  boxShadow: selectedCard?.zone === "hand" && selectedCard?.index === i ? "0 0 0 3px yellow" : (freshIdx.includes(i) ? "0 0 6px #2196f3" : "none"),
                   transform: selectedCard?.zone === "hand" && selectedCard?.index === i ? "translateY(10px)" : "none",
                   transition: "transform 0.1s"
                 }} 

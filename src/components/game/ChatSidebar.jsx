@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebase";
 
-export const ChatSidebar = ({ roomId, user }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const ChatSidebar = ({ roomId, user, isOpen, setIsOpen }) => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const messagesEndRef = useRef(null);
@@ -44,20 +43,6 @@ export const ChatSidebar = ({ roomId, user }) => {
 
   return (
     <>
-      {!isOpen && (
-        <button 
-          onClick={() => setIsOpen(true)}
-          style={{
-            position: "fixed", top: "50%", left: 0, transform: "translateY(-50%)",
-            background: "var(--accent-color)", color: "white", border: "none",
-            borderRadius: "0 8px 8px 0", padding: "15px 5px", zIndex: 4500,
-            cursor: "pointer", boxShadow: "2px 0 5px rgba(0,0,0,0.5)"
-          }}
-        >
-          💬
-        </button>
-      )}
-
       <div style={{
         position: "fixed", top: 0, left: 0, height: "100%", width: "280px",
         background: "var(--surface-color-dark)", borderRight: "1px solid var(--border-color-light)", zIndex: 5000,
