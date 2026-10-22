@@ -1,7 +1,7 @@
 import { DraggableCard } from "../DraggableCard";
 import { getProxyImageUrl } from "../../../utils/apiConfig";
 
-export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps }) => {
+export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps, onViewMode }) => {
   return (
     <div 
       className="zone-scroll"
@@ -19,6 +19,7 @@ export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps }) => {
         borderTop: "1px solid var(--border-color)",
       }}
     >
+       <button className="btn-mini" onClick={(e) => { e.stopPropagation(); onViewMode("hand"); }} style={{ flex: "0 0 auto", alignSelf: "center" }}>一覧</button>
        {[...hand].map((url, i) => ({url, i})).map(({url, i}) => (
          <DraggableCard key={i} {...getDragProps("hand", i, { url })} style={{ flex: "0 0 46px", height: "64px", overflow: "hidden", marginLeft: i === 0 ? "auto" : 0, marginRight: i === hand.length - 1 ? "auto" : 0 }}>
            <div style={{ height: "100%", position: "relative" }}>

@@ -38,7 +38,7 @@ export default function GameTable() {
 
   const { logs, addLog } = useGameLog(roomId, user, gameState.mySide);
   const {
-    performMoveWithData, performStack, toggleStatus, handleQuickTap,
+    performMoveWithData, performMoveMany, performStack, toggleStatus, handleQuickTap,
     startTurn, autoStartTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
     changeFace
   } = useGameActions(syncToDB, { ...gameState, addLog }, generateId, roomId);
@@ -145,10 +145,11 @@ export default function GameTable() {
 
       <GameModals
         viewMode={viewMode} setViewMode={setViewMode}
-        myDeck={myDeck} myGraveyard={myGraveyard} myHyperspace={myHyperspace} myTempZone={myTempZone}
+        myHand={myHand} myDeck={myDeck} myGraveyard={myGraveyard} myHyperspace={myHyperspace} myTempZone={myTempZone}
         opponent={opponent} stackViewCards={stackViewCards}
         zoomedUrl={zoomedUrl} setZoomedUrl={setZoomedUrl}
         selectedCard={selectedCard} handleCardTap={handleCardTap} toggleTempAll={toggleTempAll}
+        moveMany={performMoveMany}
       />
 
       <FaceSelector

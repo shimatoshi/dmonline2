@@ -41,6 +41,26 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
     log(`${name}: ${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`);
   };
 
+  // 複数カードを選択順にまとめて移動する (indices は選んだ順)
+  // 山札の上/下へ送る場合は、選んだ順に上から並ぶ
+  const performMoveMany = (fromZone, indices, targetZoneName) => {
+    if (!VALID_TARGETS.includes(targetZoneName) || !indices.length) return;
+    const zones = getZones();
+    // インデックスがずれないよう大きい順に取り出し、元の選択順で並べ直す
+    const taken = new Map();
+    [...new Set(indices)].sort((a, b) => b - a).forEach((idx) => {
+      const { cardUrl, cardFaces } = removeCardFromZone(zones, fromZone, idx);
+      if (cardUrl) taken.set(idx, { cardUrl, cardFaces });
+    });
+    const ordered = indices.map((idx) => taken.get(idx)).filter(Boolean);
+    if (!ordered.length) return;
+    // 上へ積むときは unshift されるので逆順で追加する
+    const addList = targetZoneName === "deckTop" ? [...ordered].reverse() : ordered;
+    addList.forEach(({ cardUrl, cardFaces }) => addCardToZone(zones, targetZoneName, cardUrl, cardFaces, generateId));
+    syncToDB(zones);
+    log(`${ordered.length}枚: ${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`);
+  };
+
   // --- スタック (進化/封印) ---
   const performStack = (selectedCard, stackTarget, mode) => {
     if (!selectedCard || !stackTarget) return;
@@ -283,7 +303,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
   };
 
   return {
-    performMoveWithData, performStack, toggleStatus, handleQuickTap,
+    performMoveWithData, performMoveMany, performStack, toggleStatus, handleQuickTap,
     startTurn, autoStartTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
     changeFace
   };

@@ -60,6 +60,7 @@ export const PlayerArea = ({
       />
 
       <PlayerUtilityRow 
+        onDrawCard={onDrawCard}
         deck={deck} 
         hyperspace={hyperspace}
         graveyard={graveyard} 
@@ -80,6 +81,7 @@ export const PlayerArea = ({
       />
 
       <PlayerHand 
+        onViewMode={onViewMode}
         hand={hand} 
         selectedCard={selectedCard} 
         onZoneTap={onZoneTap} 
