@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, onLongPress, onHold, onHoldEnd }) => {
   const ref = useRef(null);
@@ -17,6 +17,13 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
     onHoldEnd && onHoldEnd();
     return true;
   };
+
+  // 押している最中にカードが消えた(再描画・移動)場合も拡大を残さない
+  useEffect(() => () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (heldRef.current) { heldRef.current = false; onHoldEnd && onHoldEnd(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePointerDown = (e) => {
     // 複数の指・マウスの右/中ボタンは無視

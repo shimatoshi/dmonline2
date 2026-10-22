@@ -15,7 +15,16 @@ export const CardZoomOverlay = () => {
   useEffect(() => {
     const handler = (e) => setCard(e.detail || null);
     window.addEventListener(EVENT, handler);
-    return () => window.removeEventListener(EVENT, handler);
+    // 指を離した・中断した・画面が隠れたときは、取りこぼしても必ず解除する
+    const clear = () => setCard(null);
+    const opts = true;
+    ["pointerup", "pointercancel", "touchend", "touchcancel", "blur"].forEach((n) => window.addEventListener(n, clear, opts));
+    document.addEventListener("visibilitychange", clear);
+    return () => {
+      window.removeEventListener(EVENT, handler);
+      ["pointerup", "pointercancel", "touchend", "touchcancel", "blur"].forEach((n) => window.removeEventListener(n, clear, opts));
+      document.removeEventListener("visibilitychange", clear);
+    };
   }, []);
 
   if (!card?.url) return null;
