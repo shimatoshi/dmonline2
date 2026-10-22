@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { ListButton } from "../ListButton";
 import { DraggableCard } from "../DraggableCard";
 import { getProxyImageUrl } from "../../../utils/apiConfig";
 
@@ -9,7 +8,6 @@ export const PlayerHand = ({ hand, selectedCard, onZoneTap, getDragProps, onView
   const slideBtn = { flex: "0 0 auto", width: "20px", alignSelf: "stretch", background: "rgba(0,0,0,0.4)", color: "#fff", border: "none", padding: 0, fontSize: "0.8rem", cursor: "pointer" };
   return (
     <div style={{ display: "flex", alignItems: "center", flexShrink: 0, background: "var(--bg-dark)", borderTop: "1px solid var(--border-color)", padding: "0 2px", gap: "2px" }}>
-    <ListButton onClick={() => onViewMode("hand")} />
     <button style={slideBtn} onClick={() => slide(-120)}>◀</button>
     <div 
       ref={ref}

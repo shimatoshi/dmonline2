@@ -173,6 +173,10 @@ export default function GameTable() {
     updateDoc(doc(db, "rooms", roomId), { shieldFlow: null }).catch(() => {});
   };
 
+  // 攻撃・シールド処理の解決中は、自動で相手に干渉できる
+  const autoInteract = (!!attack && attack.phase !== "target") || (shieldFlow?.phase === "resolving" && shieldFlow.defenderSide === mySide);
+  const effInteraction = interactionMode || autoInteract;
+
   const {
     selectedCard, setSelectedCard,
     stackTarget, setStackTarget,
@@ -181,7 +185,7 @@ export default function GameTable() {
     handleDragStart, handleDragMove, handleDragEnd,
     handleDeckTap, handleCardTap, handleZoneTap
   } = useGameInteractions({
-    performMoveWithData, performOpponentActionDirect, interactionMode,
+    performMoveWithData, performOpponentActionDirect, interactionMode: effInteraction,
     setViewMode, myDeck, setStackViewCards, setZoomedUrl,
     onAttackStart: startAttack
   });
@@ -259,7 +263,7 @@ export default function GameTable() {
       <OpponentArea
         opponent={opponent} normalizeZone={normalizeZone}
         onTapCard={handleOpponentCardTap}
-        interactionMode={interactionMode} onOpponentInteract={handleOpponentInteract}
+        interactionMode={effInteraction} onOpponentInteract={handleOpponentInteract}
         onOpenGrave={() => setViewMode("opponentGrave")}
         onOpenHyperspace={() => setViewMode("opponentHyperspace")}
         onOpenTemp={() => setViewMode("opponentTemp")}
@@ -324,7 +328,7 @@ export default function GameTable() {
         onUndo={undo} canUndo={canUndo} onSetup={setupGame}
         multiMode={multiMode} onToggleMulti={toggleMulti}
         counts={{ hand: myHand.length, deck: myDeck.length, grave: myGraveyard.length, hyperspace: myHyperspace.length, temp: myTempZone.length }}
-        interactionMode={interactionMode} onToggleInteract={() => setInteractionMode(!interactionMode)}
+        interactionMode={effInteraction} onToggleInteract={() => setInteractionMode(!interactionMode)}
         revealHand={viewMode === "opponentHand"} onToggleRevealHand={() => toggleViewMode("opponentHand")}
       />
     </div>

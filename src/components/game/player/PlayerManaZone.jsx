@@ -1,4 +1,3 @@
-import { ListButton } from "../ListButton";
 import { DraggableCard } from "../DraggableCard";
 import { CardView } from "../CardView";
 
@@ -30,7 +29,6 @@ export const PlayerManaZone = ({ onViewMode, manaZone, selectedCard, onZoneTap, 
          </DraggableCard>
        ))}
     </div>
-    <ListButton onClick={() => onViewMode("mana")} style={{ position: "absolute", top: 2, right: 2, zIndex: 2 }} />
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import { DraggableCard } from "../DraggableCard";
 import { useRef } from "react";
-import { ListButton } from "../ListButton";
 import { getProxyImageUrl } from "../../../utils/apiConfig";
 
 const CARD_BACK_URL = "/card_back.jpg";
@@ -65,7 +64,6 @@ export const PlayerUtilityRow = ({
           ))}
         </div>
         <button style={slideBtn} onClick={() => slide(80)}>▶</button>
-        <ListButton onClick={() => onViewMode("shield")} />
       </div>
 
       {/* 山札・超次元・墓地 (横並び) */}
