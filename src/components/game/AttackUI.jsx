@@ -47,7 +47,15 @@ export const AttackUI = ({
   // ドラッグ中(上スワイプ中)の点線
   let line = null;
   if (draggingCard && !draggingCard.data.isOpponent && draggingCard.data.zone === "battle") {
-    line = <Line from={centerOf(attackerSelector(draggingCard.data.index))} to={dragPos} />;
+    // 指の下が相手クリーチャーなら、その中心へ矢印を吸着させる
+    const under = document.elementFromPoint(dragPos.x, dragPos.y);
+    const oppEl = under?.closest('[data-zone-id^="opponent-"]');
+    let to = dragPos;
+    if (oppEl) {
+      const cardEl = oppEl.getAttribute("data-zone-id") === "opponent-battle" ? under.closest("[data-index]") : null;
+      to = (cardEl ? centerOf(targetSelector({ type: "creature", index: cardEl.getAttribute("data-index") })) : centerOf(targetSelector({ type: "player" }))) || dragPos;
+    }
+    line = <Line from={centerOf(attackerSelector(draggingCard.data.index))} to={to} />;
   } else if (attack) {
     const from = centerOf(attackerSelector(attack.idx));
     const to = attack.target

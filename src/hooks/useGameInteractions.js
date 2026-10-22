@@ -31,6 +31,7 @@ export const useGameInteractions = ({
 
   // ドラッグ中のドロップ先ハイライト(DOMに直接クラスを付け外しして再描画を避ける)
   const dragIsOpponent = useRef(false);
+  const dragIsAttacker = useRef(false);
   const hoverEl = useRef(null);
   const clearHover = () => {
     if (hoverEl.current) {
@@ -45,7 +46,7 @@ export const useGameInteractions = ({
     if (!el) return;
     const id = el.getAttribute("data-zone-id");
     const isOppZone = id.startsWith("opponent-");
-    const valid = dragIsOpponent.current ? (isOppZone && interactionMode) : !isOppZone;
+    const valid = dragIsOpponent.current ? (isOppZone && interactionMode) : (!isOppZone || dragIsAttacker.current);
     el.classList.add(valid ? "drop-hover" : "drop-invalid");
     hoverEl.current = el;
   };
@@ -58,6 +59,7 @@ export const useGameInteractions = ({
   const handleDragStart = (data, pos) => {
     dragOrigin.current = pos;
     dragIsOpponent.current = !!data.isOpponent;
+    dragIsAttacker.current = !data.isOpponent && data.zone === "battle";
     document.body.classList.add(data.isOpponent ? "is-dragging-opponent" : "is-dragging");
     setSelectedCard(null);
     const isFaceDown = data.zone === "deck" || data.zone === "shield" || (data.isFaceDown);
@@ -78,6 +80,16 @@ export const useGameInteractions = ({
       if (!element) return;
 
       const zoneElement = element.closest("[data-zone-id]");
+
+      // 自分のバトルゾーンのカードを相手エリアへドラッグ → 離した先が攻撃対象
+      if (onAttackStart && !data.isOpponent && data.zone === "battle") {
+        const oppEl = element.closest('[data-zone-id^="opponent-"]');
+        if (oppEl) {
+          const cardEl = oppEl.getAttribute("data-zone-id") === "opponent-battle" ? element.closest("[data-index]") : null;
+          onAttackStart(data.index, cardEl ? { type: "creature", index: parseInt(cardEl.getAttribute("data-index"), 10) } : { type: "player" });
+          return;
+        }
+      }
 
       // 自分のバトルゾーンのカードを上へスワイプ → 攻撃対象の選択へ
       if (onAttackStart && !data.isOpponent && data.zone === "battle" && dragOrigin.current) {

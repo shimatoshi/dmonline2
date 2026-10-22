@@ -93,12 +93,15 @@ export default function GameTable() {
 
   // 攻撃: target(対象選択) → confirm(能力解決の確認) → resolving(解決中) → break(シールド選択)
   const [attack, setAttack] = useState(null);
-  const startAttack = (idx) => { setSelectedCard(null); setAttack({ phase: "target", idx, target: null, count: 1, picks: [] }); };
-  const attackerCard = () => (attack ? myBattleZone[attack.idx] : null);
-  const chooseTarget = (target) => {
-    const c = attackerCard();
-    if (c && !c.isTapped) handleQuickTap("battle", attack.idx);
-    setAttack((a) => ({ ...a, phase: "confirm", target }));
+  const startAttack = (idx, target) => {
+    setSelectedCard(null);
+    if (target) chooseTarget(target, idx);
+    else setAttack({ phase: "target", idx, target: null, count: 1, picks: [] });
+  };
+  const chooseTarget = (target, idx = attack?.idx) => {
+    const c = myBattleZone[idx];
+    if (c && !c.isTapped) handleQuickTap("battle", idx);
+    setAttack({ phase: "confirm", idx, target, count: 1, picks: [] });
     addLog && addLog(target.type === "player" ? "プレイヤーを攻撃" : "クリーチャーを攻撃");
   };
   const afterResolve = () => {
