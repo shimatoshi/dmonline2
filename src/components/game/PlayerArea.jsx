@@ -29,11 +29,6 @@ export const PlayerArea = ({
         // 手札はタップで拡大（または選択）
         onCardTap(null, zone, index, data);
       }
-    },
-    onLongPress: () => {
-      if (multiMode) return; // 複数選択中はメニューを出さない(拡大のみ)
-      // 全てのゾーンで長押しは詳細メニュー（選択状態にする）
-      onCardTap(null, zone, index, data);
     }
   });
 
@@ -61,6 +56,7 @@ export const PlayerArea = ({
       />
 
       <PlayerManaZone 
+        onViewMode={onViewMode}
         manaZone={manaZone} 
         selectedCard={selectedCard} 
         onZoneTap={onZoneTap} 

@@ -42,7 +42,7 @@ const bar = {
 
 export const AttackUI = ({
   attack, draggingCard, dragPos, shieldCount,
-  onAttackPlayer, onCancel, onAnswer, onFinishResolve, onSetCount, onBreak, onSkipBreak,
+  onAttackPlayer, onCancel, onAnswer, onFinishResolve, onSetCount, onBreak, onSkipBreak, onPreBreak, onEndPreBreak,
 }) => {
   // ドラッグ中(上スワイプ中)の点線
   let line = null;
@@ -100,6 +100,13 @@ export const AttackUI = ({
         </div>
       )}
 
+      {attack.phase === "prebreak" && (
+        <div style={bar}>
+          <span>⚔ ブレイク前の効果を解決中(自由に操作できます)</span>
+          <button style={btn("var(--danger-color)")} onClick={onEndPreBreak}>処理終了</button>
+        </div>
+      )}
+
       {attack.phase === "break" && (
         <div style={bar}>
           <div style={{ width: "100%" }}>
@@ -114,6 +121,7 @@ export const AttackUI = ({
             </div>
           </div>
           <span style={{ display: "flex", gap: "6px", width: "100%", justifyContent: "flex-end" }}>
+            <button style={btn("var(--warning-color)")} onClick={onPreBreak}>ブレイク前効果</button>
             <button style={btn("var(--danger-color)")} disabled={!attack.picks.length} onClick={onBreak}>ブレイク</button>
             <button style={btn("var(--border-color-dark)")} onClick={onSkipBreak}>ブレイクしない</button>
           </span>

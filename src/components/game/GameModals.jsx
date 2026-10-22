@@ -5,6 +5,8 @@ export const GameModals = ({
   viewMode,
   setViewMode,
   myHand,
+  myManaZone,
+  myShields,
   myDeck,
   myGraveyard,
   myHyperspace,
@@ -28,6 +30,8 @@ export const GameModals = ({
       )}
 
       {viewMode === "hand" && <ZoneModal title="手札一覧" cards={myHand} zoneName="hand" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
+      {viewMode === "mana" && <ZoneModal title="マナ一覧" cards={myManaZone} zoneName="mana" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
+      {viewMode === "shield" && <ZoneModal title="シールド一覧" cards={myShields} zoneName="shield" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
       {viewMode === "hyperspace" && <ZoneModal title="超次元ゾーン" cards={myHyperspace} zoneName="hyperspace" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}

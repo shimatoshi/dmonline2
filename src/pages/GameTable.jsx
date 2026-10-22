@@ -24,6 +24,9 @@ import { MultiSelectContext } from "../components/game/MultiSelectContext";
 import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { ShieldFlowUI } from "../components/game/ShieldFlowUI";
 import { AttackUI } from "../components/game/AttackUI";
 import { ensureCardNames } from "../utils/cardNames";
 
@@ -112,6 +115,8 @@ export default function GameTable() {
   const answerResolve = (yes) => {
     if (yes) setAttack((a) => ({ ...a, phase: "resolving" })); else afterResolve();
   };
+  const preBreak = () => setAttack((a) => ({ ...a, phase: "prebreak" }));
+  const endPreBreak = () => setAttack((a) => ({ ...a, phase: "break" }));
   const setBreakCount = (n) => setAttack((a) => ({ ...a, count: n, picks: a.picks.slice(0, n) }));
   const toggleBreakPick = (i) => setAttack((a) => {
     if (a.picks.includes(i)) return { ...a, picks: a.picks.filter((x) => x !== i) };
@@ -120,8 +125,27 @@ export default function GameTable() {
   });
   const doBreak = () => {
     moveOpponentMany("shield", attack.picks, "hand");
+    updateDoc(doc(db, "rooms", roomId), {
+      shieldFlow: { id: generateId(), attackerSide: mySide, defenderSide: mySide === "host" ? "guest" : "host", count: attack.picks.length, phase: "ask" },
+    }).catch((e) => console.error("shieldFlow failed:", e));
     addLog && addLog(`シールドを${attack.picks.length}枚ブレイク`);
     setAttack(null);
+  };
+
+  // シールド処理(双方で共有)。1人回しでは受ける側の視点へ自動で切り替える
+  const shieldFlow = roomData?.shieldFlow || null;
+  const flowId = shieldFlow?.id;
+  useEffect(() => {
+    if (isSolo && shieldFlow) setSoloSide(shieldFlow.defenderSide);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowId]);
+  const answerShieldFlow = (yes) => {
+    if (yes) updateDoc(doc(db, "rooms", roomId), { "shieldFlow.phase": "resolving" }).catch(() => {});
+    else finishShieldFlow();
+  };
+  const finishShieldFlow = () => {
+    if (isSolo && shieldFlow) setSoloSide(shieldFlow.attackerSide);
+    updateDoc(doc(db, "rooms", roomId), { shieldFlow: null }).catch(() => {});
   };
 
   const {
@@ -200,7 +224,7 @@ export default function GameTable() {
 
       <GameModals
         viewMode={viewMode} setViewMode={setViewMode}
-        myHand={myHand} myDeck={myDeck} myGraveyard={myGraveyard} myHyperspace={myHyperspace} myTempZone={myTempZone}
+        myHand={myHand} myManaZone={myManaZone} myShields={myShields} myDeck={myDeck} myGraveyard={myGraveyard} myHyperspace={myHyperspace} myTempZone={myTempZone}
         opponent={opponent} stackViewCards={stackViewCards}
         zoomedUrl={zoomedUrl} setZoomedUrl={setZoomedUrl}
         selectedCard={selectedCard} handleCardTap={handleCardTap} toggleTempAll={toggleTempAll}
@@ -220,7 +244,9 @@ export default function GameTable() {
         onCancel={() => setAttack(null)} onAnswer={answerResolve}
         onFinishResolve={afterResolve} onSetCount={setBreakCount}
         onBreak={doBreak} onSkipBreak={() => setAttack(null)}
+        onPreBreak={preBreak} onEndPreBreak={endPreBreak}
       />
+      <ShieldFlowUI flow={shieldFlow} mySide={mySide} onAnswer={answerShieldFlow} onFinish={finishShieldFlow} />
       <CardZoomOverlay />
 
       <OpponentArea

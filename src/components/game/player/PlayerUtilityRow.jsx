@@ -44,26 +44,25 @@ export const PlayerUtilityRow = ({
         </button>
       </div>
 
-      {/* シールド */}
-      <div 
-        className="zone-scroll"
-        data-zone-id="shield" 
-        style={{ 
-          display: "flex", gap: "4px", flexWrap: "wrap",
-          justifyContent: "center",
-          maxWidth: "180px", paddingBottom: "4px",
-          minHeight: "40px", minWidth: "80px",
-          transform: "rotate(180deg)",
-          direction: "rtl"
-        }}
-      >
-         {[...shields].map((s, i) => ({s, i})).map(({s, i}) => (
-           <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })} style={{ flexShrink: 0, transform: "rotate(180deg)" }}>
-             <div style={{ width: "28px", height: "39px", cursor: "pointer" }}>
+      {/* シールド (横一列・はみ出す分は横スクロール) */}
+      <div style={{ display: "flex", alignItems: "center", gap: "4px", flex: "1 1 0", minWidth: "60px" }}>
+        <div
+          className="zone-scroll"
+          data-zone-id="shield"
+          style={{
+            display: "flex", gap: "3px", flexWrap: "nowrap", overflowX: "auto", flex: 1, minWidth: 0,
+            alignItems: "center", minHeight: "44px", padding: "2px"
+          }}
+        >
+          {shields.map((s, i) => (
+            <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })} style={{ flexShrink: 0 }}>
+              <div style={{ width: "28px", height: "39px", cursor: "pointer" }}>
                 <img src={CARD_BACK_URL} style={{ width: "100%", height: "100%", borderRadius: "var(--radius-sm)", border: "1px solid #b8860b", boxShadow: selectedCard?.zone === "shield" && selectedCard?.index === i ? "0 0 0 2px yellow" : "none" }} />
-             </div>
-           </DraggableCard>
-         ))}
+              </div>
+            </DraggableCard>
+          ))}
+        </div>
+        <button onClick={() => onViewMode("shield")} className="btn-mini" style={{ flexShrink: 0 }}>👁{shields.length}</button>
       </div>
 
       {/* 山札・超次元・墓地 (横並び) */}

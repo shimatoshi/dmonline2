@@ -1,8 +1,9 @@
 import { DraggableCard } from "../DraggableCard";
 import { CardView } from "../CardView";
 
-export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps }) => {
+export const PlayerManaZone = ({ onViewMode, manaZone, selectedCard, onZoneTap, getDragProps }) => {
   return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
     <div 
       className="zone-scroll"
       data-zone-id="mana"
@@ -27,6 +28,8 @@ export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps
              onClick={() => {}} style={{ height: "45px", width: "32px", flexShrink: 0, marginRight: card.isTapped ? "12px" : "2px", marginBottom: "2px" }} />
          </DraggableCard>
        ))}
+    </div>
+    <button className="btn-mini" onClick={(e) => { e.stopPropagation(); onViewMode("mana"); }} style={{ position: "absolute", top: 2, right: 2, zIndex: 2 }}>一覧</button>
     </div>
   );
 };
