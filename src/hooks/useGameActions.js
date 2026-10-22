@@ -14,7 +14,11 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   });
 
   // --- カード移動ロジック ---
+  const VALID_TARGETS = ["hand", "battle", "mana", "shield", "grave", "temp", "hyperspace", "deckTop", "deckBottom"];
+
   const performMoveWithData = (sourceData, targetZoneName) => {
+    // 想定外のドロップ先(相手エリアなど)だと、取り出すだけでカードが消えてしまうため先に弾く
+    if (!VALID_TARGETS.includes(targetZoneName)) return;
     const { zone: fromZone, index: fromIndex } = sourceData;
     const zones = getZones();
     const { cardUrl, cardFaces } = removeCardFromZone(zones, fromZone, fromIndex);
