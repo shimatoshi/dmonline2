@@ -1,13 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { auth, db } from "../firebase";
 import { doc, getDoc, getDocs, setDoc, collection, updateDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 
-import CardLibrary from "../components/CardLibrary";
+import DeckCardPicker from "../components/DeckCardPicker";
 import { dedupeByName } from "../utils/dedupeCards";
 import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
-
-const CIVIL_TAGS = ["火", "水", "自然", "光", "闇", "ゼロ"];
 
 export default function DeckBuilder() {
   const { deckId } = useParams();
@@ -29,6 +27,7 @@ export default function DeckBuilder() {
   const [showThumbSelector, setShowThumbSelector] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [preview, setPreview] = useState(null);
 
   const deckGridRef = useRef(null);
 
@@ -59,7 +58,7 @@ export default function DeckBuilder() {
       .then((cards) => {
         if (!alive) return;
         setLibrary((prev) => [...prev, ...dedupeByName(cards.filter((c) => c.img)).map((c) => ({
-          id: c.id, url: c.img, name: c.name, cost: c.cost,
+          id: c.id, url: c.img, name: c.name, cost: c.cost, text: c.text, type: c.type, civil: c.civil,
           tags: c.civil ? String(c.civil).split(/[/・]/).filter(Boolean) : [],
         }))]);
       })
@@ -106,13 +105,50 @@ export default function DeckBuilder() {
       setHyperspaceCards([...hyperspaceCards, { url, faces }]);
       return;
     }
-    if (deckCards.length >= 40) { alert("デッキは40枚までです"); return; }
+    if (deckCards.length >= 40) { setStatusMsg("デッキは40枚までです"); setTimeout(() => setStatusMsg(""), 1500); return; }
+    const name = costOf(url)?.name;
+    const sameName = name ? deckCards.filter((u) => costOf(u)?.name === name).length : 0;
+    // 「何枚でも入れられる」カードがあるため、ブロックせず警告だけ出す
+    if (sameName >= 4) { setStatusMsg(`⚠ 「${name}」が5枚目です`); setTimeout(() => setStatusMsg(""), 1800); }
     setDeckCards([...deckCards, url]);
   };
 
-  const removeFromDeck = (indexToRemove) => {
-    setDeckCards(deckCards.filter((_, i) => i !== indexToRemove));
+  // 同じカードを1枚減らす(最後に追加した1枚)
+  const removeOneFromDeck = (url) => {
+    const idx = deckCards.lastIndexOf(url);
+    if (idx < 0) return;
+    setDeckCards(deckCards.filter((_, i) => i !== idx));
   };
+
+  const costOf = useMemo(() => {
+    const m = {};
+    library.forEach((c) => { if (!(c.url in m)) m[c.url] = c; });
+    return (url) => m[url];
+  }, [library]);
+
+  const deckCounts = useMemo(() => {
+    const m = {};
+    deckCards.forEach((u) => { m[u] = (m[u] || 0) + 1; });
+    return m;
+  }, [deckCards]);
+
+  // コスト順(不明は末尾)にまとめた表示用グループ
+  const groups = useMemo(() => {
+    const list = Object.keys(deckCounts).map((url) => {
+      const c = costOf(url);
+      const n = c && c.cost !== "" && c.cost != null ? Number(c.cost) : NaN;
+      return { url, count: deckCounts[url], cost: Number.isNaN(n) ? 99 : n, name: c?.name || "" };
+    });
+    return list.sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name, "ja"));
+  }, [deckCounts, costOf]);
+
+  // コスト分布(0〜7+)
+  const curve = useMemo(() => {
+    const arr = Array(8).fill(0);
+    groups.forEach((g) => { if (g.cost !== 99) arr[Math.min(g.cost, 7)] += g.count; });
+    return arr;
+  }, [groups]);
+  const curveMax = Math.max(1, ...curve);
 
   const saveDeck = async () => {
     if (!user) return;
@@ -202,13 +238,6 @@ export default function DeckBuilder() {
           <button className="btn-mini" onClick={() => { exportImage(); setShowMenu(false); }} disabled={isCapturing}>
             {isCapturing ? "生成中..." : "📷 画像保存"}
           </button>
-          <button
-            onClick={() => setAddToHyperspace(!addToHyperspace)}
-            className="btn-mini"
-            style={{ background: addToHyperspace ? "var(--info-color)" : undefined, color: addToHyperspace ? "#000" : undefined, fontWeight: addToHyperspace ? "bold" : "normal" }}
-          >
-            {addToHyperspace ? "超次元追加中" : "超次元モード"}
-          </button>
           <div className="separator-v" style={{ height: "20px" }}></div>
           {deckTags.map(tag => (
             <span key={tag} className="pill" style={{ background: "#333", color: "#ddd", fontSize: "0.7rem" }}>
@@ -238,29 +267,54 @@ export default function DeckBuilder() {
         </div>
       )}
 
-      {/* 中部: デッキカード一覧（固定高さ） */}
-      <div ref={deckGridRef} style={{ padding: "3px", background: "#111", flexShrink: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px 2px" }}>
-          <span style={{ color: "var(--text-muted)", fontSize: "0.7rem" }}>{deckName || "名称未設定"} ({deckCards.length}/40)</span>
-          {hyperspaceCards.length > 0 && (
-            <span style={{ color: "var(--info-color)", fontSize: "0.7rem" }}>超次元 {hyperspaceCards.length}</span>
+      {/* 中部: デッキ(コスト順にまとめて表示) */}
+      <div ref={deckGridRef} style={{ padding: "3px", background: "#111", flexShrink: 0, maxHeight: isCapturing ? "none" : "36vh", overflowY: isCapturing ? "visible" : "auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px", gap: "8px" }}>
+          <span style={{ color: deckCards.length === 40 ? "var(--success-color)" : "var(--text-muted)", fontSize: "0.8rem", fontWeight: "bold" }}>
+            {deckName || "名称未設定"} ({deckCards.length}/40)
+          </span>
+          {!isCapturing && (
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "22px" }} title="コスト分布">
+              {curve.map((n, i) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                  <div style={{ width: "10px", height: `${Math.round((n / curveMax) * 14)}px`, background: n ? "var(--accent-color)" : "#2a2a2a", borderRadius: "1px" }}></div>
+                  <span style={{ fontSize: "0.5rem", color: "#777", lineHeight: 1 }}>{i === 7 ? "7+" : i}</span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "1px" }}>
-          {deckCards.map((url, index) => (
-            <div key={index} style={{ cursor: "pointer" }} onClick={() => removeFromDeck(index)}>
-              <img
-                src={getProxyImageUrl(url)}
-                crossOrigin={isCapturing ? "anonymous" : undefined}
-                loading={isCapturing ? "eager" : "lazy"}
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "1px" }}
-              />
-            </div>
-          ))}
-          {[...Array(Math.max(0, 40 - deckCards.length))].map((_, i) => (
-            <div key={`empty-${i}`} style={{ aspectRatio: "2/3", background: "rgba(255,255,255,0.02)", border: "1px dashed #222", borderRadius: "1px" }}></div>
-          ))}
-        </div>
+        {isCapturing ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "1px" }}>
+            {deckCards.map((url, index) => (
+              <img key={index} src={getProxyImageUrl(url)} crossOrigin="anonymous" loading="eager"
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: "1px" }} />
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "3px" }}>
+            {groups.length === 0 && <p style={{ gridColumn: "1 / -1", color: "#666", fontSize: "0.8rem", textAlign: "center", margin: "10px 0" }}>下の一覧からカードをタップして追加</p>}
+            {groups.map((g) => (
+              <div key={g.url} style={{ position: "relative", cursor: "pointer" }} onClick={() => removeOneFromDeck(g.url)}>
+                <img src={getProxyImageUrl(g.url)} loading="lazy" style={{ width: "100%", height: "auto", display: "block", borderRadius: "2px" }} />
+                {g.count > 1 && (
+                  <div style={{ position: "absolute", bottom: "1px", right: "1px", background: "#ffd54f", color: "#000", borderRadius: "8px", padding: "0 5px", fontSize: "0.75rem", fontWeight: "bold" }}>×{g.count}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 超次元の追加モード切替(常時表示) */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 8px", background: "#181818", flexShrink: 0 }}>
+        <button
+          onClick={() => setAddToHyperspace(!addToHyperspace)}
+          style={{ minHeight: "36px", padding: "4px 12px", borderRadius: "18px", border: addToHyperspace ? "2px solid #fff" : "1px solid #555", background: addToHyperspace ? "var(--info-color)" : "#2c2c2c", color: addToHyperspace ? "#000" : "#ccc", fontWeight: addToHyperspace ? "bold" : "normal", fontSize: "0.85rem" }}
+        >
+          {addToHyperspace ? "超次元に追加中" : "超次元に追加"} ({hyperspaceCards.length}/8)
+        </button>
+        <span style={{ fontSize: "0.7rem", color: "#777" }}>デッキの枚数をタップで1枚減らす</span>
       </div>
 
       {/* 超次元ゾーン */}
@@ -280,13 +334,22 @@ export default function DeckBuilder() {
 
       {/* 下部: カード図鑑（残りの高さを全部使う） */}
       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", borderTop: "2px solid var(--border-color)" }}>
-        <CardLibrary
+        <DeckCardPicker
           library={library}
           onAddToDeck={addToDeck}
-          existingTags={CIVIL_TAGS}
-          layout="scroll"
+          deckCounts={deckCounts}
+          onPreview={setPreview}
         />
       </div>
+
+      {preview && (
+        <div className="overlay overlay-dark" onClick={() => setPreview(null)} style={{ zIndex: 4000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px", gap: "10px", overflowY: "auto" }}>
+          <img src={getProxyImageUrl(preview.url)} style={{ maxWidth: "70%", maxHeight: "50vh", borderRadius: "8px" }} />
+          <div style={{ color: "#fff", fontWeight: "bold" }}>{preview.name} {preview.cost ? `(コスト${preview.cost})` : ""}</div>
+          {preview.text && <div style={{ color: "#ccc", fontSize: "0.85rem", whiteSpace: "pre-wrap", maxWidth: "92%", lineHeight: 1.5 }}>{preview.text}</div>}
+          <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); addToDeck(preview.url); }} style={{ minHeight: "44px", padding: "8px 24px" }}>デッキに追加</button>
+        </div>
+      )}
     </div>
   );
 }
