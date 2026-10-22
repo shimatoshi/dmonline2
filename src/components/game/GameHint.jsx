@@ -1,25 +1,75 @@
-// 操作ヒント(初回のみ自動表示。ヘッダーの「?」で再表示)
-const ITEMS = [
-  ["タップ", "マナ・バトルゾーンのカードは寝かせる/起こす。手札は選択"],
-  ["長押し", "押している間カードを拡大。離すとメニューを開く(伏せ・重なり確認など)"],
-  ["ドラッグ", "別のゾーンへ移動。置ける場所は黄色、置けない場所は赤で表示"],
-  ["カードに重ねる", "バトルゾーンのカードの上に離すと、進化・下に入れる・封印を選べる"],
-  ["↩ 戻す", "直前の自分の操作を取り消す"],
+// 操作ヘルプ(初回のみ自動表示。右のバーの「ヘルプ」で再表示)
+const SECTIONS = [
+  ["基本操作", [
+    ["タップ", "バトルゾーン・マナのカードは寝かせる/起こす。手札は選択して移動先を選べる。山札・墓地・超次元・一時ゾーンのサムネは、タップで一覧が開く"],
+    ["長押し", "押している間、カードを拡大。重なったカードは離すと中身と順番(上から)を確認できる。一覧ウィンドウの中のカードも長押しで拡大"],
+    ["ドラッグ", "別のゾーンへ移動。置ける場所は黄色、置けない場所は赤で表示"],
+    ["カードに重ねる", "バトルゾーンのカードの上に離すと、進化・下に入れる・封印を選べる"],
+    ["手札の青枠", "直近で手札に加わったカード(ドロー・シールドなど)は青枠。ターンが変わるか、手札から出すと消える"],
+    ["◀ ▶", "手札・シールドは左右ボタンで横にスライドできる"],
+  ]],
+  ["一覧ウィンドウ", [
+    ["開き方", "山札・墓地・超次元・一時ゾーンのサムネをタップ。外側をタップすると閉じる(一時ゾーンのみ、盤面からカードを足すため閉じない)"],
+    ["カードのタップ", "拡大表示。移動は「複数選択」を使う"],
+    ["複数選択", "ウィンドウ下の「複数選択」→ カードを触った順に番号が付く → 移動先ボタンで選んだ順にまとめて移動。山上・山下は選んだ順に上から積まれる"],
+    ["一時ゾーン", "「全て公開/非公開」で全体を切替。複数選択でカードを選ぶと、選んだカードだけ切り替わる"],
+  ]],
+  ["盤面の複数選択", [
+    ["始め方", "右のバー「複数選択」。盤面のカードをタップすると青い枠と番号が付く(もう一度タップで外れる)"],
+    ["移動", "画面上部のパネルで移動先を選ぶ。選んだ順にまとめて移動する。「▼下へ」でパネルを下に移せる"],
+    ["寝/起・伏せ/公開", "選んだカードがすべてバトルかマナのとき、まとめて切替できる"],
+    ["終了", "パネルの「終了」か、バーのボタンをもう一度押す"],
+  ]],
+  ["攻撃", [
+    ["攻撃の始め方", "自分のバトルゾーンのカードを相手エリアへドラッグ。点線の矢印が指に追従し、相手クリーチャーの上なら そのクリーチャー、それ以外ならプレイヤーに吸着する。離した先が攻撃対象になる"],
+    ["上スワイプ", "バトルゾーンで上に60px以上スワイプして離すと、画面上のバナーで対象を選べる(相手クリーチャーをタップ/「プレイヤー」)"],
+    ["攻撃時能力", "対象が決まると、攻撃側が自動で寝る。「攻撃時能力を解決しますか?」で「はい」なら「解決中」バナーが出て自由に操作でき、「処理終了」で次へ。「いいえ」はそのまま次へ"],
+    ["自動干渉", "解決中は「干渉」を押さなくても相手のカードを動かせ、相手の手札も見られる"],
+    ["ブレイク", "プレイヤーへの攻撃では、ブレイク数(1〜5)を選び、相手のシールドをタップして選択 →「ブレイク」で相手の手札へ。クリーチャーへの攻撃はここで終了"],
+    ["ブレイク前効果", "ブレイク選択の画面の「ブレイク前効果」で解決中の状態になり、「処理終了」でブレイク選択へ戻る(ブレイクの前に効果を挟むカード用)"],
+  ]],
+  ["シールド処理", [
+    ["受ける側", "ブレイクされたシールドが画面に出て「効果を解決しますか?」と確認される。「する」なら解決中バナー(自由操作・干渉可)、「処理終了」で完了。「しない」はそのまま完了"],
+    ["攻撃側", "「シールド処理中」バナーが出る。応答がないときは「中止」で解除できる"],
+    ["1人回し", "ブレイク時は自動で相手視点に切り替わり、処理終了後に元の視点へ戻る"],
+  ]],
+  ["相手への干渉", [
+    ["干渉", "右のバー「干渉」で相手のカードを動かせる(ドラッグ、または相手のカードをタップしてメニュー)"],
+    ["手札見", "干渉中に出る「手札見」で、相手の手札がウィンドウで開く。複数選択して移動もできる。もう一度押すと閉じる"],
+    ["相手の一覧", "相手の墓地・超次元・一時ゾーンはタップで一覧。伏せカードは裏面で表示される"],
+  ]],
+  ["右のバー(上から)", [
+    ["ヘルプ・ログ・チャット", "この説明/対戦ログ/チャットを開く。1人回しでは「視点切替」も並ぶ"],
+    ["開始前", "盤面をリセットして対戦準備(確認あり)"],
+    ["複数選択・干渉", "上記のとおり"],
+    ["戻す・混ぜる・ドロー", "直前の操作を取消/山札をシャッフル/1枚ドロー"],
+    ["開始・終了", "ターン開始(アンタップ+ドロー)/ターン終了(相手のターンが自動で始まる)"],
+  ]],
+  ["画面の色(1人回し)", [
+    ["色の固定", "先攻側は青、後攻側は赤。視点を切り替えても同じプレイヤーは同じ色のまま"],
+  ]],
 ];
 
 export const GameHint = ({ onClose }) => (
-  <div className="overlay overlay-dark" onClick={onClose} style={{ zIndex: 5000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-    <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", border: "1px solid var(--border-color-dark)", borderRadius: "var(--radius-lg)", padding: "16px", maxWidth: "420px", width: "100%" }}>
-      <h3 style={{ margin: "0 0 12px", color: "#fff", fontSize: "1.05rem" }}>操作のヒント</h3>
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        {ITEMS.map(([k, v]) => (
-          <div key={k} style={{ display: "flex", gap: "10px", fontSize: "0.9rem", lineHeight: 1.4 }}>
-            <span style={{ flexShrink: 0, minWidth: "92px", color: "#ffd54f", fontWeight: "bold" }}>{k}</span>
-            <span style={{ color: "#ddd" }}>{v}</span>
+  <div className="overlay overlay-dark" onClick={onClose} style={{ zIndex: 5000, display: "flex", alignItems: "center", justifyContent: "center", padding: "12px" }}>
+    <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", border: "1px solid var(--border-color-dark)", borderRadius: "var(--radius-lg)", padding: "14px", maxWidth: "460px", width: "100%", maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+      <h3 style={{ margin: "0 0 10px", color: "#fff", fontSize: "1.05rem" }}>操作ヘルプ</h3>
+      <div style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: "14px", paddingRight: "4px" }}>
+        {SECTIONS.map(([title, items]) => (
+          <div key={title}>
+            <div style={{ color: "var(--accent-color)", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "6px", borderBottom: "1px solid var(--border-color)", paddingBottom: "2px" }}>{title}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {items.map(([k, v]) => (
+                <div key={k} style={{ display: "flex", gap: "8px", fontSize: "0.82rem", lineHeight: 1.45 }}>
+                  <span style={{ flexShrink: 0, minWidth: "84px", maxWidth: "84px", color: "#ffd54f", fontWeight: "bold" }}>{k}</span>
+                  <span style={{ color: "#ddd" }}>{v}</span>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
-      <button className="btn btn-primary" onClick={onClose} style={{ width: "100%", minHeight: "44px", marginTop: "16px" }}>わかった</button>
+      <button className="btn btn-primary" onClick={onClose} style={{ width: "100%", minHeight: "44px", marginTop: "12px", flexShrink: 0 }}>わかった</button>
     </div>
   </div>
 );

@@ -38,7 +38,7 @@ export default function Announcements() {
       </button>
       {open && (
         <div style={{ padding: "0 12px 10px", display: "flex", flexDirection: "column", gap: "10px" }}>
-          {items.slice(0, 5).map((a) => (
+          {items.slice(0, 12).map((a) => (
             <div key={a.id} style={{ borderTop: "1px solid var(--border-color)", paddingTop: "8px" }}>
               <div style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{a.date}</div>
               <div style={{ fontWeight: "bold", fontSize: "0.9rem", color: "var(--text-primary)" }}>{a.title}</div>
