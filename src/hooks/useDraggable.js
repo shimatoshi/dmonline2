@@ -6,11 +6,18 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
   const startPos = useRef({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
 
-  const handleTouchStart = (e) => {
-    // 複数の指は無視
-    if (e.touches.length > 1) return;
-    
-    const touch = e.touches[0];
+  const activeId = useRef(null);
+  const suppressClickRef = useRef(false);
+
+  const handlePointerDown = (e) => {
+    // 複数の指・マウスの右/中ボタンは無視
+    if (activeId.current !== null) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    activeId.current = e.pointerId;
+    // カード外に出てもmove/upを受け取る
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+
+    const touch = e;
     startPos.current = { x: touch.clientX, y: touch.clientY };
     
     // 長押しタイマー開始 (500ms)
@@ -20,8 +27,9 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
     }, 500);
   };
 
-  const handleTouchMove = (e) => {
-    const touch = e.touches[0];
+  const handlePointerMove = (e) => {
+    if (e.pointerId !== activeId.current) return;
+    const touch = e;
     const dx = touch.clientX - startPos.current.x;
     const dy = touch.clientY - startPos.current.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -47,7 +55,9 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
     }
   };
 
-  const handleTouchEnd = (e) => {
+  const handlePointerUp = (e) => {
+    if (e.pointerId !== activeId.current) return;
+    activeId.current = null;
     // 長押しタイマーキャンセル
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -60,17 +70,34 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
 
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
+      // ドロップ直後に発火するclickを無効化する
+      suppressClickRef.current = true;
+      setTimeout(() => { suppressClickRef.current = false; }, 0);
       // ドロップ処理
-      // e.changedTouches[0] で離した場所を取得
-      const touch = e.changedTouches[0];
+      const touch = e;
       onDragEnd && onDragEnd(data, { x: touch.clientX, y: touch.clientY });
     }
   };
 
+  // 中断(スクロール奪取など)時はタップ・ドラッグを発火せず状態だけ戻す
+  const handlePointerCancel = (e) => {
+    if (e.pointerId !== activeId.current) return;
+    activeId.current = null;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    isDraggingRef.current = false;
+  };
+
   return {
     ref,
-    onTouchStart: handleTouchStart,
-    onTouchMove: handleTouchMove,
-    onTouchEnd: handleTouchEnd
+    onPointerDown: handlePointerDown,
+    onPointerMove: handlePointerMove,
+    onPointerUp: handlePointerUp,
+    onPointerCancel: handlePointerCancel,
+    onClickCapture: (e) => {
+      if (suppressClickRef.current) { e.stopPropagation(); e.preventDefault(); }
+    }
   };
 };
