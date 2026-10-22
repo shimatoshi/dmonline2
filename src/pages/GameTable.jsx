@@ -19,6 +19,7 @@ import { useGameActions } from "../hooks/useGameActions";
 import { useOpponentActions } from "../hooks/useOpponentActions";
 import { useGameInteractions } from "../hooks/useGameInteractions";
 import { useGameLog } from "../hooks/useGameLog";
+import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
 import { ensureCardNames } from "../utils/cardNames";
 
@@ -156,6 +157,7 @@ export default function GameTable() {
       />
 
       <DragOverlay draggingCard={draggingCard} currentPos={dragPos} />
+      <CardZoomOverlay />
 
       <OpponentArea
         opponent={opponent} normalizeZone={normalizeZone}

@@ -4,6 +4,12 @@
   --radius-lg: 12px;
   --radius-pill: 20px;
 
+  /* 盤面の陣営色 (自分=青 / 相手=赤) */
+  --side-me-bg: #0d1626;
+  --side-me-edge: #1e88e5;
+  --side-opp-bg: #261012;
+  --side-opp-edge: #e53935;
+
   /* 文明色 */
   --civ-fire: #e53935;
   --civ-water: #1e88e5;

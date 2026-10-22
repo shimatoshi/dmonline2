@@ -9,7 +9,7 @@ export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps
       onClick={() => onZoneTap("mana")}
       style={{ 
         flexShrink: 0, minHeight: "52px", maxHeight: "104px", overflowY: "auto", 
-        background: "#151515", 
+        background: "rgba(0,0,0,0.25)", 
         display: "flex", 
         flexWrap: "wrap", // 折り返し
         alignItems: "center", 

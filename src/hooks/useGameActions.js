@@ -33,7 +33,6 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
     if (!cardUrl) return;
     addCardToZone(zones, targetZoneName, cardUrl, cardFaces, generateId);
     syncToDB(zones);
-    showToast(`${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`, 1200);
 
     // ログ: 公開ゾーンが絡む移動だけカード名を出す(手札・山札・シールド同士は枚数のみ)
     const PUBLIC = ["battle", "grave", "mana", "hyperspace"];

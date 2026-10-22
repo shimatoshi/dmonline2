@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, onLongPress }) => {
+export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, onLongPress, onHold, onHoldEnd }) => {
   const ref = useRef(null);
   const timeoutRef = useRef(null);
   const startPos = useRef({ x: 0, y: 0 });
@@ -8,6 +8,15 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
 
   const activeId = useRef(null);
   const suppressClickRef = useRef(false);
+  const heldRef = useRef(false);
+
+  // 長押し中の拡大を解除し、押下中だったか返す
+  const releaseHold = () => {
+    if (!heldRef.current) return false;
+    heldRef.current = false;
+    onHoldEnd && onHoldEnd();
+    return true;
+  };
 
   const handlePointerDown = (e) => {
     // 複数の指・マウスの右/中ボタンは無視
@@ -21,9 +30,11 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
     startPos.current = { x: touch.clientX, y: touch.clientY };
     
     // 長押しタイマー開始 (500ms)
+    heldRef.current = false;
     timeoutRef.current = setTimeout(() => {
-      onLongPress && onLongPress();
       timeoutRef.current = null; // タイマー消化済み
+      heldRef.current = true;
+      onHold && onHold(); // 押している間だけ拡大
     }, 500);
   };
 
@@ -42,6 +53,7 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
       }
       
       if (!isDraggingRef.current) {
+        releaseHold();
         isDraggingRef.current = true;
         // ドラッグ開始を親に通知
         onDragStart && onDragStart(data, { x: touch.clientX, y: touch.clientY });
@@ -58,6 +70,10 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
   const handlePointerUp = (e) => {
     if (e.pointerId !== activeId.current) return;
     activeId.current = null;
+    // 長押し後に離した: 拡大を解除してから従来どおり詳細メニューを開く
+    if (releaseHold() && !isDraggingRef.current) {
+      onLongPress && onLongPress();
+    }
     // 長押しタイマーキャンセル
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -88,6 +104,7 @@ export const useDraggable = ({ data, onDragStart, onDragMove, onDragEnd, onTap, 
       timeoutRef.current = null;
     }
     isDraggingRef.current = false;
+    releaseHold();
   };
 
   return {

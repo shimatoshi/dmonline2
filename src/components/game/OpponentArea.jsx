@@ -47,7 +47,7 @@ export const OpponentArea = ({
   const deckCards = opponent?.deck || [];
 
   return (
-    <div style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden", borderBottom: "1px solid var(--border-color)", background: "#151515", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden", borderBottom: "1px solid var(--border-color)", background: "var(--side-opp-bg)", boxShadow: "inset 0 -3px 0 var(--side-opp-edge)", display: "flex", flexDirection: "column", position: "relative" }}>
       
       {/* モード表示 & コントロール (邪魔にならない左上に固定) */}
       {interactionMode && (

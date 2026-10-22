@@ -1,8 +1,15 @@
 import { useDraggable } from "../../hooks/useDraggable";
+import { emitCardZoom } from "./CardZoomOverlay";
 
 export const DraggableCard = ({ children, data, onDragStart, onDragEnd, onTap, onLongPress, style = {}, ...props }) => {
   const { ref, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClickCapture } = useDraggable({
-    data, onDragStart, onDragEnd, onTap, onLongPress
+    data, onDragStart, onDragEnd, onTap, onLongPress,
+    // 相手の伏せカードは中身を見せない
+    onHold: () => {
+      const d = data || {};
+      if (d.url && !(d.isOpponent && d.isFaceDown)) emitCardZoom(d);
+    },
+    onHoldEnd: () => emitCardZoom(null)
   });
 
   return (
