@@ -278,7 +278,7 @@ export default function DeckBuilder() {
               {curve.map((n, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
                   <div style={{ width: "10px", height: `${Math.round((n / curveMax) * 14)}px`, background: n ? "var(--accent-color)" : "#2a2a2a", borderRadius: "1px" }}></div>
-                  <span style={{ fontSize: "0.5rem", color: "var(--text-dim)", lineHeight: 1 }}>{i === 7 ? "7+" : i}</span>
+                  <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", lineHeight: 1 }}>{i === 7 ? "7+" : i}</span>
                 </div>
               ))}
             </div>

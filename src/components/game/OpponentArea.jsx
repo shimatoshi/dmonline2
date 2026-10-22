@@ -56,7 +56,7 @@ export const OpponentArea = ({
           display: "flex", flexDirection: "column", gap: "5px"
         }}>
           <div style={{
-            background: "rgba(220, 53, 69, 0.9)", color: "white", fontSize: "0.6rem", 
+            background: "rgba(220, 53, 69, 0.9)", color: "white", fontSize: "0.7rem", 
             padding: "2px 8px", borderRadius: "4px", fontWeight: "bold", textAlign: "center"
           }}>
             干渉中
@@ -65,7 +65,7 @@ export const OpponentArea = ({
             onClick={onToggleRevealHand}
             style={{
               background: revealHand ? "var(--warning-color)" : "#6c757d", border: "none", 
-              color: "black", fontSize: "0.65rem", padding: "4px 6px", 
+              color: "black", fontSize: "0.7rem", padding: "4px 6px", 
               borderRadius: "4px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 4px rgba(0,0,0,0.5)"
             }}
           >

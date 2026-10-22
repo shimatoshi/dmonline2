@@ -118,7 +118,7 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
             <div key={card.id} style={{ flexShrink: 0, width: "80px", cursor: "pointer", position: "relative" }} onClick={() => onAddToDeck?.(card.url)}>
               <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", borderRadius: "4px", display: "block", aspectRatio: "2/3", objectFit: "cover" }} />
               {card.cost && <div className="badge badge-cost" style={{ width: "20px", height: "20px", fontSize: "0.7rem", top: "2px", left: "2px" }}>{card.cost}</div>}
-              <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
                 {card.name}
               </div>
             </div>

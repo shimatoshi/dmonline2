@@ -32,8 +32,8 @@ export const PlayerUtilityRow = ({
                  const top = tempZone[tempZone.length-1];
                  return <img src={top.isFaceDown ? CARD_BACK_URL : getProxyImageUrl(top.url)} style={{width:"100%", height:"100%", opacity:0.8, pointerEvents: "none"}} />;
                })()
-             ) : <span style={{fontSize:"0.6rem", color:"var(--purple-color)", pointerEvents: "none"}}>一時</span>}
-             <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.6rem", color: "var(--text-secondary)", pointerEvents: "none" }}>{tempZone.length}</span>
+             ) : <span style={{fontSize:"0.7rem", color:"var(--purple-color)", pointerEvents: "none"}}>一時</span>}
+             <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)", pointerEvents: "none" }}>{tempZone.length}</span>
            </div>
         </DraggableCard>
         <button 
@@ -81,8 +81,8 @@ export const PlayerUtilityRow = ({
              >
                 {deck.length > 0 ? (
                   <img src={CARD_BACK_URL} style={{width:"100%", height:"100%", borderRadius:"3px"}} />
-                ) : <span style={{fontSize:"0.6rem", color:"var(--border-color-dark)"}}>0</span>}
-                <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.6rem", color: "var(--text-secondary)" }}>山 {deck.length}</span>
+                ) : <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>0</span>}
+                <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)" }}>山 {deck.length}</span>
              </div>
            </DraggableCard>
            <button 
@@ -106,7 +106,7 @@ export const PlayerUtilityRow = ({
                   const topUrl = typeof top === 'object' ? top.url : top;
                   return <img src={getProxyImageUrl(topUrl)} style={{width:"100%", height:"100%", opacity:0.8}} />;
                 })() :
-                <span style={{fontSize:"0.5rem", color:"var(--info-color)"}}>超 {hyperspace.length}</span>
+                <span style={{fontSize:"0.65rem", color:"var(--info-color)"}}>超 {hyperspace.length}</span>
               }
             </div>
           </DraggableCard>
@@ -127,7 +127,7 @@ export const PlayerUtilityRow = ({
             >
               {graveyard.length > 0 ? 
                 <img src={getProxyImageUrl(graveyard[graveyard.length-1])} style={{width:"100%", height:"100%", opacity:0.8}} /> : 
-                <span style={{fontSize:"0.6rem", color:"var(--border-color-dark)"}}>墓 {graveyard.length}</span>
+                <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>墓 {graveyard.length}</span>
               }
             </div>
           </DraggableCard>

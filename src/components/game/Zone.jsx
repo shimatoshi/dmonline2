@@ -138,7 +138,7 @@ export const Zone = ({
     const cardData = topCard ? (typeof topCard === 'string' ? { url: topCard } : topCard) : null;
     
     // 表示内容
-    let content = <span style={{fontSize:"0.6rem", color:"var(--border-color-dark)"}}>{zoneId}</span>;
+    let content = <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>{zoneId}</span>;
     if (cardData) {
        // 自分または相手の山札は常に裏向き
        const isDeck = zoneId === "deck" || zoneId === "opponent-deck";

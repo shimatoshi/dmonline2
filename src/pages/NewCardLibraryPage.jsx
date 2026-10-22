@@ -59,7 +59,7 @@ export default function NewCardLibraryPage() {
           <div key={c.id} onClick={() => setSel(c)} style={{ cursor: "pointer", textAlign: "center" }}>
             <img src={imgOf(c)} alt={c.name} loading="lazy" referrerPolicy="no-referrer"
               style={{ width: "100%", aspectRatio: "63 / 88", objectFit: "cover", borderRadius: "4px", background: "var(--surface-color-dark)" }} />
-            <div style={{ fontSize: "0.65rem", marginTop: "2px", wordBreak: "break-all" }}>{c.name}</div>
+            <div style={{ fontSize: "0.75rem", marginTop: "2px", wordBreak: "break-all" }}>{c.name}</div>
           </div>
         ))}
       </div>
