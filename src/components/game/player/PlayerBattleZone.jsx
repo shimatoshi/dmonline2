@@ -14,7 +14,7 @@ export const PlayerBattleZone = ({ battleZone, selectedCard, onZoneTap, getDragP
          <DraggableCard key={card.id || i} {...getDragProps("battle", i, card)} style={{position:"relative"}} data-index={i}>
            <div>
              <CardView url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} isSelected={selectedCard?.data === card}
-               onClick={() => {}} style={{ width: "48px" }} />
+               onClick={() => {}} style={{ width: "56px" }} />
              {card.stack && card.stack.length > 0 && (
                <div style={{position:"absolute", top:-5, right:-5, background:"#d32f2f", color:"white", borderRadius:"50%", width:"18px", height:"18px", fontSize:"0.7rem", display:"flex", alignItems:"center", justifyContent:"center", border:"1px solid white", pointerEvents:"none"}}>
                  {card.stack.length + 1}

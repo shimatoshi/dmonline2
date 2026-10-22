@@ -8,7 +8,7 @@ export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps
       data-zone-id="mana"
       onClick={() => onZoneTap("mana")}
       style={{ 
-        flexShrink: 0, maxHeight: "90px", overflowY: "auto", 
+        flexShrink: 0, maxHeight: "104px", overflowY: "auto", 
         background: "#151515", 
         display: "flex", 
         flexWrap: "wrap", // 折り返し
@@ -24,7 +24,7 @@ export const PlayerManaZone = ({ manaZone, selectedCard, onZoneTap, getDragProps
        {[...manaZone].map((card, i) => ({card, i})).map(({card, i}) => (
          <DraggableCard key={card.id || i} {...getDragProps("mana", i, card)} style={{ transform: "rotate(180deg)" }}>
            <CardView url={card.url} isFaceDown={card.isFaceDown} isTapped={card.isTapped} isSelected={selectedCard?.data === card}
-             onClick={() => {}} style={{ height: "38px", width: "27px", flexShrink: 0, marginRight: card.isTapped ? "12px" : "2px", marginBottom: "2px" }} />
+             onClick={() => {}} style={{ height: "45px", width: "32px", flexShrink: 0, marginRight: card.isTapped ? "12px" : "2px", marginBottom: "2px" }} />
          </DraggableCard>
        ))}
     </div>

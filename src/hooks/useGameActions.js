@@ -1,5 +1,6 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
+import { showToast } from "../utils/toast";
 import { removeCardFromZone, addCardToZone, shuffle } from "../utils/zoneUtils";
 
 export const useGameActions = (syncToDB, gameState, generateId, roomId, user) => {
@@ -162,7 +163,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   const shuffleDeck = () => {
     if (myDeck.length <= 1) return;
     syncToDB({ deck: shuffle(myDeck) });
-    alert("山札をシャッフルしました");
+    showToast("山札をシャッフルしました");
   };
 
   const drawCard = () => {
@@ -174,7 +175,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
   };
 
   const setupGame = () => {
-    if (myDeck.length === 0 && myHand.length === 0) { alert("デッキがありません"); return; }
+    if (myDeck.length === 0 && myHand.length === 0) { showToast("デッキがありません"); return; }
     if (!window.confirm("ゲームを開始しますか？")) return;
 
     const allCards = [
@@ -182,7 +183,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
       ...myBattleZone.flatMap(c => [c.url, ...(c.stack || [])]),
       ...myManaZone.map(c => c.url)
     ];
-    if (allCards.length < 10) { alert("カード不足"); return; }
+    if (allCards.length < 10) { showToast("カードが10枚未満です"); return; }
 
     const shuffled = shuffle(allCards);
     const newShields = shuffled.slice(0, 5);

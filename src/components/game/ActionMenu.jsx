@@ -4,11 +4,11 @@ export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShu
   const hasStack = data.stack && data.stack.length > 0;
   const hasFaces = data.faces && Array.isArray(data.faces) && data.faces.length > 1;
 
-  const menuBtn = { padding: "4px 8px", fontSize: "0.75rem" };
+  const menuBtn = { padding: "10px 12px", fontSize: "0.85rem", minHeight: "44px" };
 
   return (
     <div className="modal-center" style={{ top: "52%", transform: "translateX(-50%)", zIndex: 3500, display: "flex", gap: "8px", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--accent-color)", whiteSpace: "nowrap" }}>
-       <button onClick={() => onZoom(data.url || data)} style={{ background: "none", border: "none", fontSize: "1.2rem" }}>🔍</button>
+       <button onClick={() => onZoom(data.url || data)} style={{ background: "none", border: "none", fontSize: "1.4rem", minWidth: "44px", minHeight: "44px" }}>🔍</button>
        <div className="separator-v"></div>
 
        {hasStack && (
@@ -55,7 +55,7 @@ export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShu
        )}
 
        <div className="separator-v"></div>
-       <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--danger-light)", fontWeight: "bold" }}>✕</button>
+       <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--danger-light)", fontWeight: "bold", minWidth: "44px", minHeight: "44px", fontSize: "1.1rem" }}>✕</button>
      </div>
   );
 };
