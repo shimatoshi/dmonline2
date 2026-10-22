@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../firebase";
-import { doc, getDoc, setDoc, collection, updateDoc } from "firebase/firestore";
+import { doc, getDoc, getDocs, setDoc, collection, updateDoc } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 
 import CardLibrary from "../components/CardLibrary";
@@ -58,14 +58,33 @@ export default function DeckBuilder() {
       .then((r) => r.json())
       .then((cards) => {
         if (!alive) return;
-        setLibrary(dedupeByName(cards.filter((c) => c.img)).map((c) => ({
+        setLibrary((prev) => [...prev, ...dedupeByName(cards.filter((c) => c.img)).map((c) => ({
           id: c.id, url: c.img, name: c.name, cost: c.cost,
           tags: c.civil ? String(c.civil).split(/[/・]/).filter(Boolean) : [],
-        })));
+        }))]);
       })
       .catch((e) => console.error("official cards load failed:", e));
     return () => { alive = false; };
   }, []);
+
+  // マイ図鑑に登録済みの「裏面つきカード(超次元・サイキック等)」は公式データに裏面が無いため、一覧に加える
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    getDocs(collection(db, "users", user.uid, "library"))
+      .then((snap) => {
+        if (!alive) return;
+        const multiFace = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          .filter((c) => c.url && Array.isArray(c.faces) && c.faces.length > 1);
+        if (multiFace.length === 0) return;
+        setLibrary((prev) => {
+          const urls = new Set(prev.map((c) => c.url));
+          return [...multiFace.filter((c) => !urls.has(c.url)), ...prev];
+        });
+      })
+      .catch((e) => console.error("my library load failed:", e));
+    return () => { alive = false; };
+  }, [user]);
 
   // ピンチズームを許可
   useEffect(() => {
