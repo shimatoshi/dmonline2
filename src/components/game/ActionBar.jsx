@@ -7,11 +7,11 @@ const barBtn = (bg, extra = {}) => ({
   ...extra,
 });
 
-const Item = ({ icon, label, count, bg = "var(--border-color)", onClick, disabled, active }) => (
+const Item = ({ icon, label, count, bg = "var(--border-color)", onClick, disabled, active, style }) => (
   <button
     onClick={onClick}
     disabled={disabled}
-    style={barBtn(active ? "var(--accent-color)" : bg, { opacity: disabled ? 0.4 : 1 })}
+    style={barBtn(active ? "var(--accent-color)" : bg, { opacity: disabled ? 0.4 : 1, ...style })}
   >
     <span style={{ fontSize: "1.05rem" }}>{icon}</span>
     <span>{label}{count !== undefined ? ` ${count}` : ""}</span>
@@ -33,13 +33,8 @@ export const ActionBar = ({
       background: "var(--surface-color-dark)", borderLeft: "1px solid var(--border-color-light)",
     }}
   >
-    <Item icon="⚡" label="開始" bg="var(--accent-color)" onClick={onStartTurn} />
-    <Item icon="🛑" label="終了" bg="var(--danger-color)" onClick={onEndTurn} />
-    <Divider />
-    <Item icon="🃏" label="ドロー" bg="var(--success-color)" onClick={onDraw} disabled={counts.deck === 0} />
-    <Item icon="🔀" label="混ぜる" onClick={onShuffle} />
-    <Item icon="↩" label="戻す" onClick={onUndo} disabled={!canUndo} />
-    <Divider />
+    {/* 上: たまに使うもの / 下: 基本操作(親指が届く位置) */}
+    <Item icon="🔄" label="開始前" bg="var(--success-color)" onClick={onSetup} style={{ marginTop: "auto" }} />
     <Divider />
     <Item icon="☑" label={multiMode ? "選択中" : "複数選択"} active={multiMode} onClick={onToggleMulti} />
     <Item icon="⚡" label={interactionMode ? "干渉中" : "干渉"} bg={interactionMode ? "var(--danger-color)" : "var(--border-color)"} onClick={onToggleInteract} />
@@ -47,7 +42,12 @@ export const ActionBar = ({
       <Item icon={revealHand ? "🙈" : "👁"} label={revealHand ? "隠す" : "手札見"} bg={revealHand ? "var(--warning-color)" : "var(--border-color)"} onClick={onToggleRevealHand} />
     )}
     <Divider />
-    <Item icon="🔄" label="開始前" bg="var(--success-color)" onClick={onSetup} />
+    <Item icon="↩" label="戻す" onClick={onUndo} disabled={!canUndo} />
+    <Item icon="🔀" label="混ぜる" onClick={onShuffle} />
+    <Item icon="🃏" label="ドロー" bg="var(--success-color)" onClick={onDraw} disabled={counts.deck === 0} />
+    <Divider />
+    <Item icon="⚡" label="開始" bg="var(--accent-color)" onClick={onStartTurn} />
+    <Item icon="🛑" label="終了" bg="var(--danger-color)" onClick={onEndTurn} />
   </div>
   );
 };

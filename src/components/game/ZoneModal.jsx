@@ -45,7 +45,6 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
                 公開/非公開
               </button>
             )}
-            <button className="btn" onClick={onClose} style={{background: "var(--border-color-dark)", fontSize: "0.75rem", padding: "4px 8px"}}>閉じる</button>
           </div>
         </div>
 
@@ -116,6 +115,8 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
             {zoneName === "temp" ? "山札タップで追加 / 公開ボタンで切替" : "カードを選択 → 移動先をタップ"}
           </div>
         )}
+
+        <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
       </div>
     </div>
   );

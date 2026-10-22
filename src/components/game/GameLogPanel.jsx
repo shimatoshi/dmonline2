@@ -8,7 +8,6 @@ export const GameLogPanel = ({ logs, mySide, onClose }) => (
     <div onClick={(e) => e.stopPropagation()} style={{ background: "#1a1a1a", width: "100%", maxHeight: "65vh", borderRadius: "12px 12px 0 0", border: "1px solid var(--border-color-light)", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: "1px solid var(--border-color)" }}>
         <b style={{ color: "#fff" }}>対戦ログ</b>
-        <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "1.2rem", minWidth: "44px", minHeight: "44px" }}>✕</button>
       </div>
       <div style={{ overflowY: "auto", padding: "6px 14px 16px" }}>
         {logs.length === 0 && <p style={{ color: "var(--text-dim)", textAlign: "center" }}>まだ操作がありません</p>}
@@ -23,6 +22,7 @@ export const GameLogPanel = ({ logs, mySide, onClose }) => (
           );
         })}
       </div>
+      <button className="btn" onClick={onClose} style={{ margin: "8px 14px 12px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
     </div>
   </div>
 );
