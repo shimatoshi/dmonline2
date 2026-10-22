@@ -88,6 +88,12 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
                    </div>
                  )}
 
+                 {zoneName === "stackView" && (
+                   <div style={{ position: "absolute", bottom: 2, left: 2, padding: "0 5px", borderRadius: "var(--radius-pill)", background: "rgba(0,0,0,0.75)", color: "#fff", fontSize: "0.7rem", pointerEvents: "none" }}>
+                     {i === 0 ? "1 (一番上)" : i + 1}
+                   </div>
+                 )}
+
                  {/* 複数面バッジ */}
                  {hasFaces && (
                    <div className="badge badge-faces" style={{ top: 2, right: 2, width: "18px", height: "18px", fontSize: "0.65rem" }}>

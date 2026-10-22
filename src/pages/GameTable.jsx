@@ -275,6 +275,7 @@ export default function GameTable() {
         onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap}
         onDeckTap={handleDeckTap}
         onViewMode={toggleViewMode}
+        onShowStack={(card) => { setStackViewCards([card.url, ...(card.stack || [])].map(u => ({ url: u, isFaceDown: false }))); setViewMode("stackView"); }}
         onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}
       />
 

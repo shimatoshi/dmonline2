@@ -6,7 +6,7 @@ import { PlayerUtilityRow } from "./player/PlayerUtilityRow";
 export const PlayerArea = ({ 
   hand, battleZone, manaZone, shields, graveyard, deck, tempZone, hyperspace,
   selectedCard, multiMode, onPick, freshIdx,
-  onZoneTap, onCardTap, onQuickTap, onDeckTap, onViewMode,
+  onZoneTap, onCardTap, onQuickTap, onDeckTap, onViewMode, onShowStack,
   onDragStart, onDragMove, onDragEnd 
 }) => {
   
@@ -29,6 +29,10 @@ export const PlayerArea = ({
         // 手札はタップで拡大（または選択）
         onCardTap(null, zone, index, data);
       }
+    },
+    // 重なったカードは長押しで中身と順番を確認する(拡大は押している間に出る)
+    onLongPress: () => {
+      if (!multiMode && data?.stack?.length > 0) onShowStack(data);
     }
   });
 

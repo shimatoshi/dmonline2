@@ -5,6 +5,12 @@ import { getProxyImageUrl } from "../../utils/apiConfig";
 
 const CARD_BACK_URL = "/card_back.jpg";
 
+const ZONE_LABELS = {
+  "opponent-grave": "墓地", "opponent-hyperspace": "超次元", "opponent-temp": "一時", "opponent-deck": "山札",
+  "opponent-battle": "バトルゾーン", "opponent-hand": "手札", "opponent-mana": "マナ", "opponent-shield": "シールド",
+};
+const zoneLabel = (id) => ZONE_LABELS[id] || id;
+
 // スクロールボタンのスタイル
 const scrollBtnStyle = (isLeft, height, isOpponent) => ({
   position: "absolute",
@@ -108,7 +114,7 @@ export const Zone = ({
           overflowY: "auto", minHeight: "80px", ...style 
         }}
       >
-         {cards.length === 0 && <span style={{fontSize:"0.8rem", color:"var(--border-color)"}}>{zoneId}</span>}
+         {cards.length === 0 && <span style={{fontSize:"0.8rem", color:"var(--border-color)"}}>{zoneLabel(zoneId)}</span>}
          {cards.map((card, i) => {
            const cardData = typeof card === 'string' ? { url: card } : card;
            return (
@@ -138,7 +144,7 @@ export const Zone = ({
     const cardData = topCard ? (typeof topCard === 'string' ? { url: topCard } : topCard) : null;
     
     // 表示内容
-    let content = <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>{zoneId}</span>;
+    let content = <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>{zoneLabel(zoneId)}</span>;
     if (cardData) {
        // 自分または相手の山札は常に裏向き
        const isDeck = zoneId === "deck" || zoneId === "opponent-deck";

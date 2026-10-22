@@ -42,7 +42,6 @@ export const PlayerUtilityRow = ({
              <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)", pointerEvents: "none" }}>{tempZone.length}</span>
            </div>
         </DraggableCard>
-        <ListButton onClick={() => onViewMode("temp")} style={{ marginTop: "12px" }} />
       </div>
 
       {/* シールド (横一列・はみ出す分は横スクロール) */}
@@ -88,7 +87,6 @@ export const PlayerUtilityRow = ({
                 <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>山上 {deck.length}</span>
              </div>
            </DraggableCard>
-           <ListButton onClick={() => onViewMode("deck")} style={{ marginTop: "12px" }} />
         </div>
 
         {/* 山上/山下へ置くためのドロップ先 */}
@@ -119,7 +117,6 @@ export const PlayerUtilityRow = ({
               }
             </div>
           </DraggableCard>
-          <ListButton onClick={() => onViewMode("hyperspace")} style={{ marginTop: "12px" }} />
         </div>
 
         {/* 墓地 */}
@@ -135,7 +132,6 @@ export const PlayerUtilityRow = ({
               }
             </div>
           </DraggableCard>
-          <ListButton onClick={() => onViewMode("grave")} style={{ marginTop: "12px" }} />
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ export const OpponentArea = ({
       if (zoneName === "hyperspace") { onOpenHyperspace(); return; }
       onTapCard(data, zoneName, index);
     },
-    onLongPress: () => onTapCard(data, zoneName, index)
+    onLongPress: () => { if (data?.stack?.length > 0) onTapCard(data, zoneName, index); }
   });
 
   const battleZone = normalizeZone(opponent?.battleZone);
