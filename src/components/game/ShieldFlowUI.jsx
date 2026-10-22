@@ -1,3 +1,5 @@
+import { getProxyImageUrl } from "../../utils/apiConfig";
+
 // シールドブレイク後の処理。攻撃側には「処理中」バナー、受ける側には解決確認ダイアログと解決中バナーを出す。
 const btn = (bg = "var(--border-color)") => ({
   background: bg, color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "var(--radius-sm)",
@@ -27,6 +29,11 @@ export const ShieldFlowUI = ({ flow, mySide, onAnswer, onFinish }) => {
       <div style={{ position: "fixed", inset: 0, zIndex: 8400, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ background: "var(--surface-color-dark)", border: "1px solid var(--warning-color)", borderRadius: "var(--radius-lg)", padding: "16px", color: "#fff", textAlign: "center", maxWidth: "80%" }}>
           <div style={{ marginBottom: "4px", fontSize: "0.8rem", color: "var(--text-secondary)" }}>シールドが{flow.count}枚ブレイクされました</div>
+          <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap", margin: "8px 0" }}>
+            {(flow.cards || []).map((u, i) => (
+              <img key={i} src={getProxyImageUrl(u)} style={{ width: "84px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color-dark)" }} />
+            ))}
+          </div>
           <div style={{ marginBottom: "12px" }}>効果を解決しますか?</div>
           <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
             <button style={btn("var(--danger-color)")} onClick={() => onAnswer(true)}>する</button>

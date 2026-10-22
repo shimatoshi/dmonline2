@@ -124,9 +124,10 @@ export default function GameTable() {
     return { ...a, picks: [...a.picks, i] };
   });
   const doBreak = () => {
+    const brokenCards = attack.picks.map((i) => opponent?.shields?.[i]).filter(Boolean).map((c) => (typeof c === "object" ? c.url : c));
     moveOpponentMany("shield", attack.picks, "hand");
     updateDoc(doc(db, "rooms", roomId), {
-      shieldFlow: { id: generateId(), attackerSide: mySide, defenderSide: mySide === "host" ? "guest" : "host", count: attack.picks.length, phase: "ask" },
+      shieldFlow: { id: generateId(), attackerSide: mySide, defenderSide: mySide === "host" ? "guest" : "host", count: attack.picks.length, cards: brokenCards, phase: "ask" },
     }).catch((e) => console.error("shieldFlow failed:", e));
     addLog && addLog(`シールドを${attack.picks.length}枚ブレイク`);
     setAttack(null);
@@ -179,7 +180,11 @@ export default function GameTable() {
 
   return (
     <MultiSelectContext.Provider value={{ picked: multiMode ? picked : [] }}>
-    <div style={{ display: "flex", flexDirection: "row", height: "calc(100dvh - 42px)", overflow: "hidden", background: "var(--bg-dark)", color: "var(--text-primary)", userSelect: "none" }}>
+    <div style={{
+      display: "flex", flexDirection: "row", height: "calc(100dvh - 42px)", overflow: "hidden", background: "var(--bg-dark)", color: "var(--text-primary)", userSelect: "none",
+      // 1人回しでは色をプレイヤーに固定する(先攻側=青、後攻側=赤)。視点を切り替えても同じ側が同じ色のまま
+      ...(isSolo && mySide === "guest" ? { "--side-me-bg": "#261012", "--side-me-edge": "#e53935", "--side-opp-bg": "#0d1626", "--side-opp-edge": "#1e88e5" } : {})
+    }}>
       <ChatSidebar roomId={roomId} user={user} />
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
 
