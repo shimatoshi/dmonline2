@@ -36,12 +36,14 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     let cardUrl = "";
     let sourceStack = [];
+    let sourceFaces = null;
 
     if (fromZone === "hand") { cardUrl = zones.hand[fromIndex]; zones.hand.splice(fromIndex, 1); }
     else if (fromZone === "battle") {
         const cardObj = zones.battleZone[fromIndex];
         cardUrl = cardObj.url;
         sourceStack = cardObj.stack || [];
+        sourceFaces = cardObj.faces || null;
         zones.battleZone.splice(fromIndex, 1);
     } else if (fromZone === "mana") { cardUrl = zones.manaZone[fromIndex].url; zones.manaZone.splice(fromIndex, 1); }
     else if (fromZone === "grave") { cardUrl = zones.graveyard[fromIndex]; zones.graveyard.splice(fromIndex, 1); }
@@ -49,6 +51,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
     else if (fromZone === "hyperspace") {
         const hsCard = zones.hyperspace[fromIndex];
         cardUrl = typeof hsCard === 'object' ? hsCard.url : hsCard;
+        sourceFaces = typeof hsCard === 'object' ? (hsCard.faces || null) : null;
         zones.hyperspace.splice(fromIndex, 1);
     }
     else if (fromZone === "deck") { cardUrl = zones.deck[fromIndex]; zones.deck.splice(fromIndex, 1); }
@@ -65,6 +68,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
 
     if (mode === "evolve") {
       targetCard.url = cardUrl;
+      targetCard.faces = sourceFaces;
       targetCard.stack = [oldTop, ...oldStack, ...sourceStack];
       targetCard.isTapped = false;
       targetCard.isFaceDown = false;
@@ -72,6 +76,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId, user) =>
       targetCard.stack = [...oldStack, cardUrl, ...sourceStack];
     } else if (mode === "seal") {
       targetCard.url = cardUrl;
+      targetCard.faces = sourceFaces;
       targetCard.stack = [oldTop, ...oldStack, ...sourceStack];
       targetCard.isFaceDown = true;
     }
