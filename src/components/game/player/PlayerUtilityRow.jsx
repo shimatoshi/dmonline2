@@ -1,12 +1,18 @@
 import { DraggableCard } from "../DraggableCard";
+import { useRef } from "react";
+import { ListButton } from "../ListButton";
 import { getProxyImageUrl } from "../../../utils/apiConfig";
 
 const CARD_BACK_URL = "/card_back.jpg";
+
+const slideBtn = { flex: "0 0 auto", width: "18px", alignSelf: "stretch", background: "rgba(0,0,0,0.4)", color: "#fff", border: "none", padding: 0, fontSize: "0.7rem", cursor: "pointer" };
 
 export const PlayerUtilityRow = ({ 
   deck, hyperspace, graveyard, tempZone, shields,
   selectedCard, onViewMode, onDeckTap, onZoneTap, getDragProps
 }) => {
+  const shieldRef = useRef(null);
+  const slide = (d) => shieldRef.current?.scrollBy({ left: d, behavior: "smooth" });
   return (
     <div style={{ display: "flex", justifyContent: "center", gap: "10px", alignItems: "center", padding: "2px 10px", background: "#111", flexShrink: 0 }}>
       
@@ -36,17 +42,14 @@ export const PlayerUtilityRow = ({
              <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)", pointerEvents: "none" }}>{tempZone.length}</span>
            </div>
         </DraggableCard>
-        <button 
-          onClick={() => onViewMode("temp")}
-          className="btn-mini" style={{ marginTop: "10px" }}
-        >
-          👀
-        </button>
+        <ListButton onClick={() => onViewMode("temp")} style={{ marginTop: "12px" }} />
       </div>
 
       {/* シールド (横一列・はみ出す分は横スクロール) */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px", flex: "1 1 0", minWidth: "60px" }}>
+        <button style={slideBtn} onClick={() => slide(-80)}>◀</button>
         <div
+          ref={shieldRef}
           className="zone-scroll"
           data-zone-id="shield"
           style={{
@@ -62,7 +65,8 @@ export const PlayerUtilityRow = ({
             </DraggableCard>
           ))}
         </div>
-        <button onClick={() => onViewMode("shield")} className="btn-mini" style={{ flexShrink: 0 }}>👁{shields.length}</button>
+        <button style={slideBtn} onClick={() => slide(80)}>▶</button>
+        <ListButton onClick={() => onViewMode("shield")} />
       </div>
 
       {/* 山札・超次元・墓地 (横並び) */}
@@ -84,19 +88,18 @@ export const PlayerUtilityRow = ({
                 <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>山上 {deck.length}</span>
              </div>
            </DraggableCard>
-           <div style={{ display: "flex", gap: "3px", alignItems: "center", marginTop: "10px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-              <button onClick={() => onViewMode("deck")} className="btn-mini">👁</button>
-            </div>
-            <div
-              data-zone-id="deckBottom"
-              style={{
-                width: "36px", height: "50px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.7rem", whiteSpace: "nowrap"
-              }}
-            >山下</div>
-           </div>
+           <ListButton onClick={() => onViewMode("deck")} style={{ marginTop: "12px" }} />
+        </div>
+
+        {/* 山上/山下へ置くためのドロップ先 */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          {[["deckTop", "山上"], ["deckBottom", "山下"]].map(([id, label]) => (
+            <div key={id} data-zone-id={id} style={{
+              width: "36px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center",
+              border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
+              background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.65rem", whiteSpace: "nowrap"
+            }}>{label}</div>
+          ))}
         </div>
 
         {/* 超次元 */}
@@ -116,17 +119,7 @@ export const PlayerUtilityRow = ({
               }
             </div>
           </DraggableCard>
-          <div style={{ display: "flex", gap: "3px", alignItems: "center", marginTop: "10px" }}>
-            <button onClick={() => onViewMode("hyperspace")} className="btn-mini">👁</button>
-            <div
-              data-zone-id="deckTop"
-              style={{
-                width: "36px", height: "50px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.7rem", whiteSpace: "nowrap"
-              }}
-            >山上</div>
-          </div>
+          <ListButton onClick={() => onViewMode("hyperspace")} style={{ marginTop: "12px" }} />
         </div>
 
         {/* 墓地 */}
@@ -142,12 +135,7 @@ export const PlayerUtilityRow = ({
               }
             </div>
           </DraggableCard>
-          <button 
-            onClick={() => onViewMode("grave")}
-            className="btn-mini" style={{ marginTop: "4px" }}
-          >
-            👁
-          </button>
+          <ListButton onClick={() => onViewMode("grave")} style={{ marginTop: "12px" }} />
         </div>
       </div>
     </div>

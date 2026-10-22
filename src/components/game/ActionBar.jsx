@@ -1,6 +1,7 @@
+import { useEffect, useRef } from "react";
 // 盤面右の操作ボタンバー。ゲーム中の全ボタンをここに集約する。
 const barBtn = (bg, extra = {}) => ({
-  width: "100%", minHeight: "44px", padding: "4px 2px", display: "flex", flexDirection: "column",
+  width: "100%", minHeight: "38px", padding: "2px 2px", display: "flex", flexDirection: "column",
   alignItems: "center", justifyContent: "center", gap: "1px", lineHeight: 1.1,
   background: bg, color: "#fff", border: "1px solid var(--border-color-dark)",
   borderRadius: "var(--radius-sm)", cursor: "pointer", fontSize: "0.65rem", flexShrink: 0,
@@ -25,8 +26,12 @@ export const ActionBar = ({
   counts, multiMode, onToggleMulti, interactionMode, onToggleInteract, revealHand, onToggleRevealHand,
   onHelp, onLog, onChat, onSwitchSide, isSolo,
 }) => {
+  // 入りきらないときも、基本操作のある下側が見える状態から始める
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, []);
   return (
   <div
+    ref={ref}
     className="zone-scroll"
     style={{
       width: "54px", flexShrink: 0, boxSizing: "border-box", padding: "4px",
