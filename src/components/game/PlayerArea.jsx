@@ -5,7 +5,7 @@ import { PlayerUtilityRow } from "./player/PlayerUtilityRow";
 
 export const PlayerArea = ({ 
   hand, battleZone, manaZone, shields, graveyard, deck, tempZone, hyperspace,
-  selectedCard,
+  selectedCard, multiMode, onPick,
   onZoneTap, onCardTap, onQuickTap, onDeckTap, onViewMode,
   onDragStart, onDragMove, onDragEnd 
 }) => {
@@ -17,6 +17,11 @@ export const PlayerArea = ({
     onDragMove,
     onDragEnd,
     onTap: () => {
+      // 複数選択中は、タップで選択に追加/解除する
+      if (multiMode) {
+        if (["hand", "battle", "mana", "shield", "temp"].includes(zone)) onPick(zone, index);
+        return;
+      }
       // バトル・マナはクイックタップで向きを変える
       if (zone === "battle" || zone === "mana") {
         onQuickTap(zone, index);
@@ -26,6 +31,7 @@ export const PlayerArea = ({
       }
     },
     onLongPress: () => {
+      if (multiMode) return; // 複数選択中はメニューを出さない(拡大のみ)
       // 全てのゾーンで長押しは詳細メニュー（選択状態にする）
       onCardTap(null, zone, index, data);
     }

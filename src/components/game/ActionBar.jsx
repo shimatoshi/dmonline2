@@ -22,7 +22,7 @@ const Divider = () => <div style={{ height: "1px", background: "var(--border-col
 
 export const ActionBar = ({
   onStartTurn, onEndTurn, onDraw, onShuffle, onUndo, canUndo, onSetup,
-  counts, interactionMode, onToggleInteract, revealHand, onToggleRevealHand,
+  counts, multiMode, onToggleMulti, interactionMode, onToggleInteract, revealHand, onToggleRevealHand,
 }) => {
   return (
   <div
@@ -41,6 +41,7 @@ export const ActionBar = ({
     <Item icon="↩" label="戻す" onClick={onUndo} disabled={!canUndo} />
     <Divider />
     <Divider />
+    <Item icon="☑" label={multiMode ? "選択中" : "複数選択"} active={multiMode} onClick={onToggleMulti} />
     <Item icon="⚡" label={interactionMode ? "干渉中" : "干渉"} bg={interactionMode ? "var(--danger-color)" : "var(--border-color)"} onClick={onToggleInteract} />
     {interactionMode && (
       <Item icon={revealHand ? "🙈" : "👁"} label={revealHand ? "隠す" : "手札見"} bg={revealHand ? "var(--warning-color)" : "var(--border-color)"} onClick={onToggleRevealHand} />

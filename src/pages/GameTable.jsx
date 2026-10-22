@@ -19,6 +19,8 @@ import { useGameActions } from "../hooks/useGameActions";
 import { useOpponentActions } from "../hooks/useOpponentActions";
 import { useGameInteractions } from "../hooks/useGameInteractions";
 import { useGameLog } from "../hooks/useGameLog";
+import { MultiActionPanel } from "../components/game/MultiActionPanel";
+import { MultiSelectContext } from "../components/game/MultiSelectContext";
 import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
@@ -39,7 +41,7 @@ export default function GameTable() {
 
   const { logs, addLog } = useGameLog(roomId, user, gameState.mySide);
   const {
-    performMoveWithData, performMoveMany, performStack, toggleStatus, handleQuickTap,
+    performMoveWithData, performMoveItems, performMoveMany, toggleStatusMany, performStack, toggleStatus, handleQuickTap,
     startTurn, autoStartTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
     changeFace
   } = useGameActions(syncToDB, { ...gameState, addLog }, generateId, roomId);
@@ -57,6 +59,17 @@ export default function GameTable() {
   const [zoomedUrl, setZoomedUrl] = useState(null);
   const [stackViewCards, setStackViewCards] = useState([]);
   const [viewMode, setViewMode] = useState(null);
+  // 盤面の複数選択 (選んだ順の {zone, index})
+  const [multiMode, setMultiMode] = useState(false);
+  const [picked, setPicked] = useState([]);
+  const toggleMulti = () => { setMultiMode((m) => !m); setPicked([]); setSelectedCard(null); };
+  const pickCard = (zone, index) => setPicked((cur) =>
+    cur.some((p) => p.zone === zone && p.index === index)
+      ? cur.filter((p) => !(p.zone === zone && p.index === index))
+      : [...cur, { zone, index }]);
+  const moveSelected = (target) => { performMoveItems(picked, target); setPicked([]); };
+  const statusSelected = (type) => { toggleStatusMany(picked, type); setPicked([]); };
+
   // 一覧は同じボタンをもう一度押すと閉じる
   const toggleViewMode = (id) => setViewMode((cur) => (cur === id ? null : id));
   const [faceSelectCard, setFaceSelectCard] = useState(null);
@@ -104,6 +117,7 @@ export default function GameTable() {
   };
 
   return (
+    <MultiSelectContext.Provider value={{ picked: multiMode ? picked : [] }}>
     <div style={{ display: "flex", flexDirection: "row", height: "calc(100dvh - 42px)", overflow: "hidden", background: "var(--bg-dark)", color: "var(--text-primary)", userSelect: "none" }}>
       <ChatSidebar roomId={roomId} user={user} />
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
@@ -178,7 +192,7 @@ export default function GameTable() {
       <PlayerArea
         hand={myHand} battleZone={myBattleZone} manaZone={myManaZone} shields={myShields}
         graveyard={myGraveyard} deck={myDeck} tempZone={myTempZone} hyperspace={myHyperspace}
-        selectedCard={selectedCard}
+        selectedCard={selectedCard} multiMode={multiMode} onPick={pickCard}
         onZoneTap={handleZoneTap} onCardTap={handleCardTap} onQuickTap={handleQuickTap}
         onDeckTap={handleDeckTap}
         onViewMode={toggleViewMode}
@@ -216,13 +230,22 @@ export default function GameTable() {
       />
       </div>
 
+      {multiMode && (
+        <MultiActionPanel
+          picked={picked} onMove={moveSelected} onToggleStatus={statusSelected}
+          onClear={() => setPicked([])} onExit={toggleMulti}
+        />
+      )}
+
       <ActionBar
         onStartTurn={startTurn} onEndTurn={handleEndTurn} onDraw={drawCard} onShuffle={shuffleDeck}
         onUndo={undo} canUndo={canUndo} onSetup={setupGame}
+        multiMode={multiMode} onToggleMulti={toggleMulti}
         counts={{ hand: myHand.length, deck: myDeck.length, grave: myGraveyard.length, hyperspace: myHyperspace.length, temp: myTempZone.length }}
         interactionMode={interactionMode} onToggleInteract={() => setInteractionMode(!interactionMode)}
         revealHand={revealOpponentHand} onToggleRevealHand={() => setRevealOpponentHand(!revealOpponentHand)}
       />
     </div>
+    </MultiSelectContext.Provider>
   );
 }

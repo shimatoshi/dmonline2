@@ -41,24 +41,46 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
     log(`${name}: ${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`);
   };
 
-  // 複数カードを選択順にまとめて移動する (indices は選んだ順)
+  // 複数カードを選択順にまとめて移動する (items は選んだ順の {zone, index})
   // 山札の上/下へ送る場合は、選んだ順に上から並ぶ
-  const performMoveMany = (fromZone, indices, targetZoneName) => {
-    if (!VALID_TARGETS.includes(targetZoneName) || !indices.length) return;
+  const performMoveItems = (items, targetZoneName) => {
+    if (!VALID_TARGETS.includes(targetZoneName) || !items.length) return;
     const zones = getZones();
-    // インデックスがずれないよう大きい順に取り出し、元の選択順で並べ直す
+    const key = (it) => `${it.zone}:${it.index}`;
+    const uniq = [...new Map(items.map((it) => [key(it), it])).values()];
+    // インデックスがずれないよう、ゾーンごとに大きい順に取り出す
     const taken = new Map();
-    [...new Set(indices)].sort((a, b) => b - a).forEach((idx) => {
-      const { cardUrl, cardFaces } = removeCardFromZone(zones, fromZone, idx);
-      if (cardUrl) taken.set(idx, { cardUrl, cardFaces });
+    [...uniq].sort((x, y) => y.index - x.index).forEach((it) => {
+      const { cardUrl, cardFaces } = removeCardFromZone(zones, it.zone, it.index);
+      if (cardUrl) taken.set(key(it), { cardUrl, cardFaces });
     });
-    const ordered = indices.map((idx) => taken.get(idx)).filter(Boolean);
+    const ordered = uniq.map((it) => taken.get(key(it))).filter(Boolean);
     if (!ordered.length) return;
     // 上へ積むときは unshift されるので逆順で追加する
     const addList = targetZoneName === "deckTop" ? [...ordered].reverse() : ordered;
     addList.forEach(({ cardUrl, cardFaces }) => addCardToZone(zones, targetZoneName, cardUrl, cardFaces, generateId));
     syncToDB(zones);
-    log(`${ordered.length}枚: ${ZONE_LABELS[fromZone] || fromZone} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`);
+    const froms = [...new Set(uniq.map((it) => it.zone))];
+    const fromLabel = froms.length === 1 ? (ZONE_LABELS[froms[0]] || froms[0]) : "複数ゾーン";
+    log(`${ordered.length}枚: ${fromLabel} → ${ZONE_LABELS[targetZoneName] || targetZoneName}`);
+  };
+
+  // 一覧ウィンドウ用: 同じゾーンのインデックス配列から移動する
+  const performMoveMany = (fromZone, indices, targetZoneName) =>
+    performMoveItems(indices.map((index) => ({ zone: fromZone, index })), targetZoneName);
+
+  // 複数カードの寝起き・伏せ公開をまとめて切り替える (バトル/マナのみ)
+  // 1枚でも対象状態になっていなければ全部その状態に、全部そうなら全部戻す
+  const toggleStatusMany = (items, type) => {
+    const prop = type === "tap" ? "isTapped" : "isFaceDown";
+    const lists = { battle: [...myBattleZone], mana: [...myManaZone] };
+    const targets = items.filter((it) => lists[it.zone] && lists[it.zone][it.index]);
+    if (!targets.length) return;
+    const allOn = targets.every((it) => lists[it.zone][it.index][prop]);
+    targets.forEach((it) => {
+      lists[it.zone][it.index] = { ...lists[it.zone][it.index], [prop]: !allOn };
+    });
+    syncToDB({ battleZone: lists.battle, manaZone: lists.mana });
   };
 
   // --- スタック (進化/封印) ---
@@ -247,7 +269,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
 
   const setupGame = () => {
     if (myDeck.length === 0 && myHand.length === 0) { showToast("デッキがありません"); return; }
-    if (!window.confirm("ゲームを開始しますか？")) return;
+    if (!window.confirm("盤面をリセットしてゲームを開始しますか？\n(現在の盤面はすべて山札に戻り、シールドと手札が配られます)")) return;
 
     const allCards = [
       ...myDeck, ...myHand, ...myShields, ...myGraveyard, ...myTempZone.map(c => c.url),
@@ -303,7 +325,7 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
   };
 
   return {
-    performMoveWithData, performMoveMany, performStack, toggleStatus, handleQuickTap,
+    performMoveWithData, performMoveItems, performMoveMany, toggleStatusMany, performStack, toggleStatus, handleQuickTap,
     startTurn, autoStartTurn, handleEndTurn, shuffleDeck, drawCard, setupGame, toggleTempAll,
     changeFace
   };
