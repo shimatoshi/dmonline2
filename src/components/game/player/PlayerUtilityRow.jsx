@@ -82,15 +82,20 @@ export const PlayerUtilityRow = ({
                 {deck.length > 0 ? (
                   <img src={CARD_BACK_URL} style={{width:"100%", height:"100%", borderRadius: "var(--radius-sm)"}} />
                 ) : <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>0</span>}
-                <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)" }}>山 {deck.length}</span>
+                <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>山上 {deck.length}</span>
              </div>
            </DraggableCard>
-           <button 
-              onClick={() => onViewMode("deck")}
-              className="btn-mini" style={{ marginTop: "10px" }}
-           >
-             👁
-           </button>
+           <div style={{ display: "flex", gap: "3px", alignItems: "center", marginTop: "10px" }}>
+            <button onClick={() => onViewMode("deck")} className="btn-mini">👁</button>
+            <div
+              data-zone-id="deckBottom"
+              style={{
+                minWidth: "30px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center",
+                border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
+                background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.7rem", whiteSpace: "nowrap"
+              }}
+            >山下</div>
+           </div>
         </div>
 
         {/* 超次元 */}
@@ -110,12 +115,17 @@ export const PlayerUtilityRow = ({
               }
             </div>
           </DraggableCard>
-          <button 
-            onClick={() => onViewMode("hyperspace")}
-            className="btn-mini" style={{ marginTop: "4px" }}
-          >
-            👁
-          </button>
+          <div style={{ display: "flex", gap: "3px", alignItems: "center", marginTop: "10px" }}>
+            <button onClick={() => onViewMode("hyperspace")} className="btn-mini">👁</button>
+            <div
+              data-zone-id="deckTop"
+              style={{
+                minWidth: "30px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center",
+                border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)",
+                background: "rgba(255,255,255,0.03)", color: "var(--text-secondary)", fontSize: "0.7rem", whiteSpace: "nowrap"
+              }}
+            >山上</div>
+          </div>
         </div>
 
         {/* 墓地 */}
