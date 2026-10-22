@@ -30,7 +30,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
+    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "var(--radius-md)" }}>
       <h2>{isLoginMode ? "ログイン" : "新規ユーザー登録"}</h2>
       
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -54,7 +54,7 @@ export default function Login() {
           required
           style={{ padding: "10px" }}
         />
-        <button type="submit" style={{ padding: "10px", background: "var(--accent-color)", color: "white", border: "none", borderRadius: "5px" }}>
+        <button type="submit" style={{ padding: "10px", background: "var(--accent-color)", color: "white", border: "none", borderRadius: "var(--radius-sm)" }}>
           {isLoginMode ? "ログインする" : "登録する"}
         </button>
       </form>

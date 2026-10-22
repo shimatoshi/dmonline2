@@ -22,11 +22,11 @@ class ErrorBoundary extends React.Component {
           <p style={{marginBottom: "20px", color: "#ccc"}}>予期せぬ問題によりアプリが停止しました。</p>
           <button 
             onClick={() => window.location.reload()} 
-            style={{ padding: "12px 24px", fontSize: "1rem", cursor: "pointer", background: "var(--accent-color)", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold" }}
+            style={{ padding: "12px 24px", fontSize: "1rem", cursor: "pointer", background: "var(--accent-color)", color: "white", border: "none", borderRadius: "var(--radius-md)", fontWeight: "bold" }}
           >
             復帰する（リロード）
           </button>
-          <details style={{ marginTop: "30px", textAlign: "left", width: "90%", maxWidth: "600px", background: "var(--surface-color-dark)", padding: "10px", borderRadius: "4px", overflow: "auto", maxHeight: "200px" }}>
+          <details style={{ marginTop: "30px", textAlign: "left", width: "90%", maxWidth: "600px", background: "var(--surface-color-dark)", padding: "10px", borderRadius: "var(--radius-sm)", overflow: "auto", maxHeight: "200px" }}>
             <summary style={{ cursor: "pointer", color: "var(--text-secondary)" }}>エラー詳細（タップして表示）</summary>
             <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.75rem", color: "#ff8888", marginTop: "10px", fontFamily: "monospace" }}>
               {this.state.error && this.state.error.toString()}

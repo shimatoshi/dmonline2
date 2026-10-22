@@ -90,7 +90,7 @@ const DeckImageGenerator = forwardRef((props, ref) => {
           width: "90%", maxWidth: "600px",
           background: "#121212", 
           padding: "15px",
-          borderRadius: "8px",
+          borderRadius: "var(--radius-md)",
           boxShadow: "0 0 20px rgba(0,0,0,0.5)",
           fontFamily: "sans-serif",
           color: "white"
@@ -118,7 +118,7 @@ const DeckImageGenerator = forwardRef((props, ref) => {
                 alt="" 
                 crossOrigin="anonymous"
                 onLoad={handleImageLoad}
-                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "3px" }} 
+                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "var(--radius-sm)" }} 
               />
               <div style={{ 
                 position: "absolute", bottom: "0", right: "0", 
@@ -142,7 +142,7 @@ const DeckImageGenerator = forwardRef((props, ref) => {
       <div style={{ marginTop: "20px", display: "flex", gap: "20px" }}>
         <button 
           onClick={props.onClose}
-          style={{ padding: "10px 20px", background: "#555", color: "white", border: "none", borderRadius: "5px" }}
+          style={{ padding: "10px 20px", background: "#555", color: "white", border: "none", borderRadius: "var(--radius-sm)" }}
         >
           閉じる
         </button>
@@ -152,7 +152,7 @@ const DeckImageGenerator = forwardRef((props, ref) => {
           style={{ 
             padding: "10px 20px", 
             background: isGenerating || loadedCount < groupedCards.length ? "#888" : "#007bff", 
-            color: "white", border: "none", borderRadius: "5px", fontWeight: "bold" 
+            color: "white", border: "none", borderRadius: "var(--radius-sm)", fontWeight: "bold" 
           }}
         >
           {isGenerating ? "生成中..." : loadedCount < groupedCards.length ? "読込中..." : "画像を保存"}

@@ -199,7 +199,7 @@ export default function DeckList() {
       
       {/* 旧データ復元エリア */}
       {oldDeck && (
-        <div style={{ background: "#252525", border: "1px solid var(--danger-color)", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
+        <div style={{ background: "#252525", border: "1px solid var(--danger-color)", padding: "15px", borderRadius: "var(--radius-md)", marginBottom: "20px" }}>
           <h3 style={{ margin: "0 0 10px 0", color: "var(--danger-light)", fontSize: "1rem" }}>⚠️ 以前の作りかけデータがあります</h3>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={migrateOldDeck} className="btn btn-primary" style={{ flex: 1 }}>リストに追加して復元</button>
@@ -230,7 +230,7 @@ export default function DeckList() {
         </button>
 
         {showDataMenu && (
-          <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "8px", marginTop: "10px", border: "1px solid var(--border-color)" }}>
+          <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "var(--radius-md)", marginTop: "10px", border: "1px solid var(--border-color)" }}>
             <p style={{ margin: "0 0 10px 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
               デッキのコードや、図鑑のバックアップデータをここに貼り付けると自動で認識して取り込みます。
             </p>
@@ -267,7 +267,7 @@ export default function DeckList() {
             className="card-box"
             style={{ display: "flex", gap: "10px", alignItems: "center", cursor: "pointer", transition: "background 0.2s" }}
           >
-            <div style={{ width: "60px", aspectRatio: "2/3", background: "#000", borderRadius: "4px", overflow: "hidden", flexShrink: 0 }}>
+            <div style={{ width: "60px", aspectRatio: "2/3", background: "#000", borderRadius: "var(--radius-sm)", overflow: "hidden", flexShrink: 0 }}>
               {deck.thumbnail || (deck.cards && deck.cards[0]) ? (
                 <img src={getProxyImageUrl(deck.thumbnail || deck.cards[0])} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
@@ -280,11 +280,11 @@ export default function DeckList() {
                 {deck.name || "名称未設定デッキ"}
               </div>
               <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", background: "var(--border-color)", padding: "2px 6px", borderRadius: "4px" }}>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", background: "var(--border-color)", padding: "2px 6px", borderRadius: "var(--radius-sm)" }}>
                   {deck.cards?.length || 0}枚
                 </span>
                 {deck.tags && deck.tags.map((tag, i) => (
-                  <span key={i} style={{ fontSize: "0.75rem", color: "#81d4fa", background: "rgba(33, 150, 243, 0.1)", padding: "2px 6px", borderRadius: "4px" }}>
+                  <span key={i} style={{ fontSize: "0.75rem", color: "#81d4fa", background: "rgba(33, 150, 243, 0.1)", padding: "2px 6px", borderRadius: "var(--radius-sm)" }}>
                     {tag}
                   </span>
                 ))}

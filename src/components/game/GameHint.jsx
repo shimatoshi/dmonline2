@@ -9,7 +9,7 @@ const ITEMS = [
 
 export const GameHint = ({ onClose }) => (
   <div className="overlay overlay-dark" onClick={onClose} style={{ zIndex: 5000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
-    <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", border: "1px solid var(--border-color-dark)", borderRadius: "10px", padding: "16px", maxWidth: "420px", width: "100%" }}>
+    <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", border: "1px solid var(--border-color-dark)", borderRadius: "var(--radius-lg)", padding: "16px", maxWidth: "420px", width: "100%" }}>
       <h3 style={{ margin: "0 0 12px", color: "#fff", fontSize: "1.05rem" }}>操作のヒント</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {ITEMS.map(([k, v]) => (

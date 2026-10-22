@@ -22,7 +22,7 @@ export const DragOverlay = ({ draggingCard, currentPos }) => {
     }}>
       <img 
         src={isFaceDown ? CARD_BACK_URL : getProxyImageUrl(url)} 
-        style={{ width: "100%", borderRadius: "4px", transform: "rotate(5deg)" }} 
+        style={{ width: "100%", borderRadius: "var(--radius-sm)", transform: "rotate(5deg)" }} 
       />
     </div>
   );

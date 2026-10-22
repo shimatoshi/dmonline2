@@ -7,7 +7,7 @@ export const ActionMenu = ({ selectedCard, onZoom, onMove, onToggleStatus, onShu
   const menuBtn = { padding: "10px 12px", fontSize: "0.85rem", minHeight: "44px" };
 
   return (
-    <div className="modal-center" style={{ top: "52%", transform: "translateX(-50%)", zIndex: 3500, display: "flex", gap: "8px", padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--accent-color)", whiteSpace: "nowrap" }}>
+    <div className="modal-center" style={{ top: "52%", transform: "translateX(-50%)", zIndex: 3500, display: "flex", gap: "8px", padding: "8px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-color)", whiteSpace: "nowrap" }}>
        <button onClick={() => onZoom(data.url || data)} style={{ background: "none", border: "none", fontSize: "1.4rem", minWidth: "44px", minHeight: "44px" }}>🔍</button>
        <div className="separator-v"></div>
 

@@ -93,14 +93,14 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", animation: "fadeIn 0.2s" }}>
             <button 
               onClick={() => setFilterTag("ALL")}
-              style={{ padding: "8px 16px", borderRadius: "20px", border: "1px solid var(--border-color-dark)", background: filterTag === "ALL" ? "var(--text-primary)" : "var(--border-color)", color: filterTag === "ALL" ? "#000" : "#fff" }}
+              style={{ padding: "8px 16px", borderRadius: "var(--radius-pill)", border: "1px solid var(--border-color-dark)", background: filterTag === "ALL" ? "var(--text-primary)" : "var(--border-color)", color: filterTag === "ALL" ? "#000" : "#fff" }}
             >
               すべて
             </button>
             {existingTags.map(tag => (
               <button 
                 key={tag} onClick={() => setFilterTag(tag)}
-                style={{ padding: "8px 16px", borderRadius: "20px", border: "1px solid var(--border-color-dark)", background: filterTag === tag ? "var(--accent-color)" : "var(--border-color)", color: "#fff" }}
+                style={{ padding: "8px 16px", borderRadius: "var(--radius-pill)", border: "1px solid var(--border-color-dark)", background: filterTag === tag ? "var(--accent-color)" : "var(--border-color)", color: "#fff" }}
               >
                 {tag}
               </button>
@@ -116,7 +116,7 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
           {filteredCards.length === 0 && <p style={{ color: "var(--text-dim)", textAlign: "center", padding: "20px", whiteSpace: "nowrap" }}>該当なし</p>}
           {filteredCards.map((card) => (
             <div key={card.id} style={{ flexShrink: 0, width: "80px", cursor: "pointer", position: "relative" }} onClick={() => onAddToDeck?.(card.url)}>
-              <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", borderRadius: "4px", display: "block", aspectRatio: "2/3", objectFit: "cover" }} />
+              <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", borderRadius: "var(--radius-sm)", display: "block", aspectRatio: "2/3", objectFit: "cover" }} />
               {card.cost && <div className="badge badge-cost" style={{ width: "20px", height: "20px", fontSize: "0.7rem", top: "2px", left: "2px" }}>{card.cost}</div>}
               <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
                 {card.name}
@@ -140,10 +140,10 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
                   </div>
                   <input className="input-field" value={editData.url} onChange={(e) => setEditData({...editData, url: e.target.value})} placeholder="URL" style={{ marginBottom: "8px" }} />
 
-                  <div style={{ background: "var(--surface-color-dark)", padding: "10px", marginBottom: "10px", borderRadius: "6px" }}>
+                  <div style={{ background: "var(--surface-color-dark)", padding: "10px", marginBottom: "10px", borderRadius: "var(--radius-md)" }}>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "10px" }}>
                       {editData.tags.map(tag => (
-                        <span key={tag} style={{ background: "var(--border-color-light)", fontSize: "0.8rem", padding: "4px 8px", borderRadius: "4px", color: "#fff" }}>
+                        <span key={tag} style={{ background: "var(--border-color-light)", fontSize: "0.8rem", padding: "4px 8px", borderRadius: "var(--radius-sm)", color: "#fff" }}>
                           {tag} <span onClick={() => removeEditTag(tag)} style={{ color: "var(--danger-light)", marginLeft:"5px", fontWeight: "bold" }}>×</span>
                         </span>
                       ))}
@@ -163,7 +163,7 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
             }
 
             return (
-              <div key={card.id} style={{ background: "#252525", borderRadius: "8px", overflow: "hidden", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column" }}>
+              <div key={card.id} style={{ background: "#252525", borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--border-color)", display: "flex", flexDirection: "column" }}>
                 <div style={{ position: "relative", cursor: onAddToDeck ? "pointer" : "default", flex: 1 }} onClick={() => onAddToDeck?.(card.url)}>
                   <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", aspectRatio: "2/3" }} />
 
@@ -180,7 +180,7 @@ export default function CardLibrary({ library, onAddToDeck, onDelete, onUpdate, 
                 </div>
 
                 <div style={{ padding: "8px 4px", display: "flex", justifyContent: "space-around", background: "var(--surface-color)", borderTop: "1px solid var(--border-color)" }}>
-                  <button onClick={() => startEditing(card)} style={{ fontSize: "0.8rem", padding: "6px 10px", border: "1px solid var(--border-color-dark)", background: "transparent", color: "var(--text-secondary)", borderRadius: "4px" }}>編集</button>
+                  <button onClick={() => startEditing(card)} style={{ fontSize: "0.8rem", padding: "6px 10px", border: "1px solid var(--border-color-dark)", background: "transparent", color: "var(--text-secondary)", borderRadius: "var(--radius-sm)" }}>編集</button>
                   <button onClick={() => onDelete(card.id)} style={{ fontSize: "0.8rem", padding: "6px 10px", color: "var(--danger-light)", border: "none", background: "transparent" }}>削除</button>
                 </div>
               </div>

@@ -29,7 +29,7 @@ export const SideControlMenu = ({
       {isOpen && (
         <div style={{
           position: "fixed", top: "25%", left: "35px", 
-          background: "rgba(20, 20, 20, 0.95)", border: "1px solid var(--border-color-light)", borderRadius: "8px",
+          background: "rgba(20, 20, 20, 0.95)", border: "1px solid var(--border-color-light)", borderRadius: "var(--radius-md)",
           padding: "12px", display: "flex", flexDirection: "column", gap: "10px",
           zIndex: 2999, width: "160px", boxShadow: "0 0 10px black"
         }}>

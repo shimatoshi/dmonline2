@@ -77,7 +77,7 @@ export default function Profile() {
           <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
             メールアドレス (非公開)
           </label>
-          <div style={{ padding: "10px", background: "var(--border-color)", borderRadius: "4px", color: "var(--text-muted)" }}>
+          <div style={{ padding: "10px", background: "var(--border-color)", borderRadius: "var(--radius-sm)", color: "var(--text-muted)" }}>
             {user?.email}
           </div>
         </div>

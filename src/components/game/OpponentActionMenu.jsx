@@ -5,7 +5,7 @@ export const OpponentActionMenu = ({ target, onClose, onAction }) => {
   return (
     <div style={{ 
        position: "absolute", top: "40%", left: "50%", transform: "translate(-50%, -50%)", 
-       zIndex: 4000, background: "rgba(30, 0, 0, 0.95)", padding: "15px", borderRadius: "10px",
+       zIndex: 4000, background: "rgba(30, 0, 0, 0.95)", padding: "15px", borderRadius: "var(--radius-lg)",
        boxShadow: "0 0 15px rgba(255, 0, 0, 0.5)", border: "1px solid #ff4444", textAlign: "center", minWidth: "200px"
      }}>
        <h4 style={{margin: "0 0 10px 0", color: "#ffaaaa"}}>相手のカードを操作</h4>

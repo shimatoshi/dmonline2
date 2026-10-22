@@ -20,7 +20,7 @@ export const GameModals = ({
     <>
       {zoomedUrl && (
         <div onClick={() => setZoomedUrl(null)} className="overlay overlay-dark" style={{ zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <img src={getProxyImageUrl(zoomedUrl)} style={{ maxWidth: "90%", maxHeight: "90%", borderRadius: "10px" }} />
+          <img src={getProxyImageUrl(zoomedUrl)} style={{ maxWidth: "90%", maxHeight: "90%", borderRadius: "var(--radius-lg)" }} />
         </div>
       )}
 

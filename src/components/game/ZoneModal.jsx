@@ -8,7 +8,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
       
       <div style={{ 
         position: "absolute", top: "10%", left: "5%", right: "5%", bottom: "35%", 
-        background: "rgba(30, 30, 30, 0.95)", border: "2px solid var(--purple-color)", borderRadius: "10px",
+        background: "rgba(30, 30, 30, 0.95)", border: "2px solid var(--purple-color)", borderRadius: "var(--radius-lg)",
         display: "flex", flexDirection: "column", padding: "15px", boxSizing: "border-box",
         pointerEvents: "auto", boxShadow: "0 10px 25px rgba(0,0,0,0.8)"
       }}>
@@ -36,7 +36,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
             return (
               <div key={i} onClick={(e) => onCardTap(e, zoneName, i, item)} style={{ position: "relative" }}>
                  <img src={getProxyImageUrl(url)} style={{
-                   width: "100%", borderRadius: "4px", display: "block",
+                   width: "100%", borderRadius: "var(--radius-sm)", display: "block",
                    border: (selectedCard?.zone === zoneName && selectedCard?.index === i) ? "2px solid yellow" : "1px solid var(--border-color-dark)",
                    filter: isFaceDown ? "grayscale(50%) brightness(0.7)" : "none"
                  }} />

@@ -2,17 +2,17 @@ import { useState, useMemo, useRef } from "react";
 import { getProxyImageUrl } from "../utils/apiConfig";
 
 const CIVILS = [
-  { name: "火", bg: "#e53935", fg: "#fff" },
-  { name: "水", bg: "#1e88e5", fg: "#fff" },
-  { name: "自然", bg: "#43a047", fg: "#fff" },
-  { name: "光", bg: "#fdd835", fg: "#000" },
-  { name: "闇", bg: "#6a1b9a", fg: "#fff" },
-  { name: "ゼロ", bg: "#9e9e9e", fg: "#000" },
+  { name: "火", bg: "var(--civ-fire)", fg: "#fff" },
+  { name: "水", bg: "var(--civ-water)", fg: "#fff" },
+  { name: "自然", bg: "var(--civ-nature)", fg: "#fff" },
+  { name: "光", bg: "var(--civ-light)", fg: "#000" },
+  { name: "闇", bg: "var(--civ-darkness)", fg: "#fff" },
+  { name: "ゼロ", bg: "var(--civ-zero)", fg: "#000" },
 ];
 const COSTS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"];
 
 const chipStyle = (active, bg = "var(--accent-color)", fg = "#fff") => ({
-  flexShrink: 0, minWidth: "40px", minHeight: "36px", padding: "4px 10px", borderRadius: "18px",
+  flexShrink: 0, minWidth: "40px", minHeight: "36px", padding: "4px 10px", borderRadius: "var(--radius-pill)",
   border: active ? "2px solid #fff" : "1px solid var(--border-color-dark)",
   background: active ? bg : "var(--surface-color-light)", color: active ? fg : "#ccc",
   fontSize: "0.85rem", fontWeight: active ? "bold" : "normal", cursor: "pointer",
@@ -37,7 +37,7 @@ function Tile({ card, count, onAdd, onPreview }) {
       onClick={() => { if (longPressed.current) { longPressed.current = false; return; } onAdd(card.url); }}
     >
       <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" draggable={false}
-        style={{ width: "100%", borderRadius: "4px", display: "block", aspectRatio: "2/3", objectFit: "cover", opacity: count > 0 ? 0.6 : 1 }} />
+        style={{ width: "100%", borderRadius: "var(--radius-sm)", display: "block", aspectRatio: "2/3", objectFit: "cover", opacity: count > 0 ? 0.6 : 1 }} />
       {card.cost !== "" && card.cost != null && (
         <div className="badge badge-cost" style={{ width: "20px", height: "20px", fontSize: "0.7rem", top: "2px", left: "2px" }}>{card.cost}</div>
       )}
@@ -45,7 +45,7 @@ function Tile({ card, count, onAdd, onPreview }) {
         <div className="badge badge-faces" style={{ top: "2px", right: "2px", width: "18px", height: "18px", fontSize: "0.65rem" }}>{card.faces.length}</div>
       )}
       {count > 0 && (
-        <div style={{ position: "absolute", bottom: "2px", right: "2px", background: "#ffd54f", color: "#000", borderRadius: "10px", padding: "0 6px", fontSize: "0.8rem", fontWeight: "bold", minWidth: "22px", textAlign: "center" }}>
+        <div style={{ position: "absolute", bottom: "2px", right: "2px", background: "#ffd54f", color: "#000", borderRadius: "var(--radius-lg)", padding: "0 6px", fontSize: "0.8rem", fontWeight: "bold", minWidth: "22px", textAlign: "center" }}>
           ×{count}
         </div>
       )}

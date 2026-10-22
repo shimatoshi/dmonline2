@@ -9,7 +9,7 @@ export const FaceSelector = ({ faceSelectCard, selectedCard, changeFace, onClose
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center", padding: "0 20px" }}>
         {faceSelectCard.faces.map((faceUrl, i) => (
           <div key={i} onClick={() => { changeFace(selectedCard, faceUrl); onClose(); setSelectedCard(null); }}
-            style={{ cursor: "pointer", border: faceUrl === faceSelectCard.url ? "3px solid var(--info-color)" : "2px solid var(--border-color-dark)", borderRadius: "6px", overflow: "hidden", width: "100px" }}>
+            style={{ cursor: "pointer", border: faceUrl === faceSelectCard.url ? "3px solid var(--info-color)" : "2px solid var(--border-color-dark)", borderRadius: "var(--radius-md)", overflow: "hidden", width: "100px" }}>
             <img src={getProxyImageUrl(faceUrl)} style={{ width: "100%", display: "block" }} />
           </div>
         ))}

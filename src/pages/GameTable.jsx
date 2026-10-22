@@ -117,7 +117,7 @@ export default function GameTable() {
         <button
           onClick={() => setShowLog(true)}
           aria-label="対戦ログ"
-          style={{ position: "absolute", left: "38px", background: "var(--border-color)", color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "14px", height: "28px", padding: "0 10px", fontSize: "0.8rem", cursor: "pointer" }}
+          style={{ position: "absolute", left: "38px", background: "var(--border-color)", color: "#fff", border: "1px solid var(--border-color-dark)", borderRadius: "var(--radius-pill)", height: "28px", padding: "0 10px", fontSize: "0.8rem", cursor: "pointer" }}
         >📜ログ</button>
         {firstPlayerId ? (
           <span>
@@ -129,7 +129,7 @@ export default function GameTable() {
           <button
             onClick={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
             style={{
-              background: "var(--accent-color)", color: "white", border: "none", borderRadius: "4px",
+              background: "var(--accent-color)", color: "white", border: "none", borderRadius: "var(--radius-sm)",
               padding: "2px 8px", fontSize: "0.75rem", cursor: "pointer",
               position: "absolute", right: "5px"
             }}

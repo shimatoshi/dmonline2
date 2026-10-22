@@ -103,12 +103,12 @@ export default function BBSThread() {
       </h2>
 
       {/* スレッド親記事 */}
-      <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "8px", marginBottom: "20px", border: "1px solid var(--border-color)" }}>
+      <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "var(--radius-md)", marginBottom: "20px", border: "1px solid var(--border-color)" }}>
         <div style={{ marginBottom: "10px", fontWeight: "bold", color: "#4dabf7" }}>[1] {threadData.authorName}</div>
         
         {threadData.deckData && (
-          <div style={{ background: "var(--surface-color-light)", padding: "10px", borderRadius: "6px", display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-            <div style={{ width: "50px", aspectRatio: "2/3", background: "#000", borderRadius: "3px", overflow: "hidden" }}>
+          <div style={{ background: "var(--surface-color-light)", padding: "10px", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            <div style={{ width: "50px", aspectRatio: "2/3", background: "#000", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
               {threadData.deckData.cards && threadData.deckData.cards[0] && (
                 <img src={getProxyImageUrl(threadData.deckData.cards[0])} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               )}
@@ -123,7 +123,7 @@ export default function BBSThread() {
 
         {threadData.imageUrl && (
           <div style={{ marginBottom: "10px" }}>
-            <img src={threadData.imageUrl} style={{ maxWidth: "100%", borderRadius: "4px", border: "1px solid var(--border-color-light)" }} onClick={() => window.open(threadData.imageUrl)} />
+            <img src={threadData.imageUrl} style={{ maxWidth: "100%", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color-light)" }} onClick={() => window.open(threadData.imageUrl)} />
           </div>
         )}
 
@@ -133,7 +133,7 @@ export default function BBSThread() {
       {/* レス一覧 */}
       <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
         {responses.map((res, index) => (
-          <div key={res.id} style={{ background: "var(--surface-color)", padding: "10px", borderRadius: "6px", border: "1px solid var(--border-color)" }}>
+          <div key={res.id} style={{ background: "var(--surface-color)", padding: "10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
             <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "4px" }}>
               <span style={{ color: "var(--text-secondary)", marginRight: "8px" }}>{index + 2}</span>
               <span style={{ color: "#4dabf7", fontWeight: "bold" }}>{res.name}</span>
@@ -141,7 +141,7 @@ export default function BBSThread() {
             </div>
             {res.imageUrl && (
               <div style={{ marginBottom: "8px" }}>
-                <img src={res.imageUrl} style={{ maxWidth: "100%", maxHeight: "300px", borderRadius: "4px", border: "1px solid var(--border-color-light)", cursor: "pointer" }} onClick={() => window.open(res.imageUrl)} />
+                <img src={res.imageUrl} style={{ maxWidth: "100%", maxHeight: "300px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color-light)", cursor: "pointer" }} onClick={() => window.open(res.imageUrl)} />
               </div>
             )}
             <div style={{ whiteSpace: "pre-wrap", fontSize: "0.95rem", lineHeight: "1.4", color: "#eee" }}>{res.content}</div>
@@ -150,20 +150,20 @@ export default function BBSThread() {
       </div>
 
       {/* レス投稿フォーム */}
-      <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+      <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
         <form onSubmit={handlePost} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <input 
             type="text" 
             value={name} 
             onChange={(e) => setName(e.target.value)} 
             placeholder="名前"
-            style={{ padding: "8px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "4px" }}
+            style={{ padding: "8px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "var(--radius-sm)" }}
           />
           <textarea 
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="メッセージを入力"
-            style={{ width: "100%", height: "80px", padding: "8px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "4px", resize: "none" }}
+            style={{ width: "100%", height: "80px", padding: "8px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "var(--radius-sm)", resize: "none" }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <input
@@ -177,7 +177,7 @@ export default function BBSThread() {
           <button 
             type="submit" 
             disabled={isSubmitting}
-            style={{ padding: "12px", background: isSubmitting ? "var(--border-color-dark)" : "var(--accent-color)", color: "white", border: "none", borderRadius: "4px", fontWeight: "bold" }}
+            style={{ padding: "12px", background: isSubmitting ? "var(--border-color-dark)" : "var(--accent-color)", color: "white", border: "none", borderRadius: "var(--radius-sm)", fontWeight: "bold" }}
           >
             {isSubmitting ? "送信中..." : "書き込む"}
           </button>

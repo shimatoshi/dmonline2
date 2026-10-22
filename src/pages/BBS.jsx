@@ -58,14 +58,14 @@ export default function BBS() {
       </h2>
 
       {/* スレッド作成フォーム */}
-      <div style={{ background: "var(--surface-color)", padding: "15px", marginBottom: "20px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+      <div style={{ background: "var(--surface-color)", padding: "15px", marginBottom: "20px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
         <form onSubmit={handleCreateThread} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           <input 
             type="text" 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
             placeholder="新しいスレッドのタイトル"
-            style={{ padding: "10px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "4px" }}
+            style={{ padding: "10px", background: "var(--surface-color-light)", border: "1px solid var(--border-color-light)", color: "#fff", borderRadius: "var(--radius-sm)" }}
           />
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <input 
@@ -79,7 +79,7 @@ export default function BBS() {
           <button 
             type="submit" 
             disabled={isSubmitting}
-            style={{ padding: "12px", background: isSubmitting ? "var(--border-color-dark)" : "var(--accent-color)", color: "white", border: "none", borderRadius: "4px", fontSize: "0.9rem", cursor: isSubmitting ? "default" : "pointer", fontWeight: "bold" }}
+            style={{ padding: "12px", background: isSubmitting ? "var(--border-color-dark)" : "var(--accent-color)", color: "white", border: "none", borderRadius: "var(--radius-sm)", fontSize: "0.9rem", cursor: isSubmitting ? "default" : "pointer", fontWeight: "bold" }}
           >
             {isSubmitting ? "送信中..." : "新しくスレッドを立てる"}
           </button>
@@ -90,17 +90,17 @@ export default function BBS() {
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {threads.map((thread) => (
           <Link key={thread.id} to={`/bbs/thread/${thread.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "8px", border: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "var(--surface-color)", padding: "15px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 {thread.imageUrl && (
-                  <img src={thread.imageUrl} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px" }} />
+                  <img src={thread.imageUrl} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "var(--radius-sm)" }} />
                 )}
                 <div>
                   <div style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#4dabf7", marginBottom: "5px" }}>{thread.title}</div>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>作成: {thread.authorName}</div>
                 </div>
               </div>
-              <div style={{ background: "var(--border-color)", padding: "5px 10px", borderRadius: "20px", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+              <div style={{ background: "var(--border-color)", padding: "5px 10px", borderRadius: "var(--radius-pill)", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
                 {thread.responseCount || 0}レス
               </div>
             </div>

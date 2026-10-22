@@ -80,7 +80,7 @@ export default function CardLibraryPage() {
 
       <hr style={{ margin: "20px 0", borderTop: "1px solid var(--border-color)" }} />
 
-      <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid var(--border-color)", borderRadius: "6px", fontSize: "0.85rem" }}>
+      <div style={{ marginBottom: "15px", padding: "10px", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", fontSize: "0.85rem" }}>
         <button className="btn" onClick={exportFetchList} style={{ marginRight: "8px" }}>📋 取得リスト出力（重複除去）</button>
         <button className="btn" onClick={() => setReviewOpen(true)} style={{ marginRight: "8px" }}>🔍 類似カードを確認して整理</button>
         <button className="btn" onClick={previewDedupe} disabled={busy}>🧹 重複カードを整理（確認から）</button>

@@ -259,7 +259,7 @@ export default function DeckBuilder() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
             {deckCards.map((url, i) => (
               <div key={i} onClick={() => { setDeckThumbnail(url); setShowThumbSelector(false); }} style={{ cursor: "pointer" }}>
-                <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "4px", border: deckThumbnail === url ? "3px solid yellow" : "none" }} />
+                <img src={getProxyImageUrl(url)} style={{ width: "100%", borderRadius: "var(--radius-sm)", border: deckThumbnail === url ? "3px solid yellow" : "none" }} />
               </div>
             ))}
           </div>
@@ -277,7 +277,7 @@ export default function DeckBuilder() {
             <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "22px" }} title="コスト分布">
               {curve.map((n, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-                  <div style={{ width: "10px", height: `${Math.round((n / curveMax) * 14)}px`, background: n ? "var(--accent-color)" : "#2a2a2a", borderRadius: "1px" }}></div>
+                  <div style={{ width: "10px", height: `${Math.round((n / curveMax) * 14)}px`, background: n ? "var(--accent-color)" : "#2a2a2a", borderRadius: "var(--radius-sm)" }}></div>
                   <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", lineHeight: 1 }}>{i === 7 ? "7+" : i}</span>
                 </div>
               ))}
@@ -288,7 +288,7 @@ export default function DeckBuilder() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "1px" }}>
             {deckCards.map((url, index) => (
               <img key={index} src={getProxyImageUrl(url)} crossOrigin="anonymous" loading="eager"
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "1px" }} />
+                style={{ width: "100%", height: "auto", display: "block", borderRadius: "var(--radius-sm)" }} />
             ))}
           </div>
         ) : (
@@ -296,9 +296,9 @@ export default function DeckBuilder() {
             {groups.length === 0 && <p style={{ gridColumn: "1 / -1", color: "#666", fontSize: "0.8rem", textAlign: "center", margin: "10px 0" }}>下の一覧からカードをタップして追加</p>}
             {groups.map((g) => (
               <div key={g.url} style={{ position: "relative", cursor: "pointer" }} onClick={() => removeOneFromDeck(g.url)}>
-                <img src={getProxyImageUrl(g.url)} loading="lazy" style={{ width: "100%", height: "auto", display: "block", borderRadius: "2px" }} />
+                <img src={getProxyImageUrl(g.url)} loading="lazy" style={{ width: "100%", height: "auto", display: "block", borderRadius: "var(--radius-sm)" }} />
                 {g.count > 1 && (
-                  <div style={{ position: "absolute", bottom: "1px", right: "1px", background: "#ffd54f", color: "#000", borderRadius: "8px", padding: "0 5px", fontSize: "0.75rem", fontWeight: "bold" }}>×{g.count}</div>
+                  <div style={{ position: "absolute", bottom: "1px", right: "1px", background: "#ffd54f", color: "#000", borderRadius: "var(--radius-md)", padding: "0 5px", fontSize: "0.75rem", fontWeight: "bold" }}>×{g.count}</div>
                 )}
               </div>
             ))}
@@ -310,7 +310,7 @@ export default function DeckBuilder() {
       <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "4px 8px", background: "#181818", flexShrink: 0 }}>
         <button
           onClick={() => setAddToHyperspace(!addToHyperspace)}
-          style={{ minHeight: "36px", padding: "4px 12px", borderRadius: "18px", border: addToHyperspace ? "2px solid #fff" : "1px solid var(--border-color-dark)", background: addToHyperspace ? "var(--info-color)" : "var(--surface-color-light)", color: addToHyperspace ? "#000" : "#ccc", fontWeight: addToHyperspace ? "bold" : "normal", fontSize: "0.85rem" }}
+          style={{ minHeight: "36px", padding: "4px 12px", borderRadius: "var(--radius-pill)", border: addToHyperspace ? "2px solid #fff" : "1px solid var(--border-color-dark)", background: addToHyperspace ? "var(--info-color)" : "var(--surface-color-light)", color: addToHyperspace ? "#000" : "#ccc", fontWeight: addToHyperspace ? "bold" : "normal", fontSize: "0.85rem" }}
         >
           {addToHyperspace ? "超次元に追加中" : "超次元に追加"} ({hyperspaceCards.length}/8)
         </button>
@@ -323,7 +323,7 @@ export default function DeckBuilder() {
           {hyperspaceCards.map((hsCard, i) => (
             <div key={i} style={{ position: "relative", flexShrink: 0, cursor: "pointer" }}
               onClick={() => setHyperspaceCards(hyperspaceCards.filter((_, j) => j !== i))}>
-              <img src={getProxyImageUrl(hsCard.url)} style={{ height: "40px", borderRadius: "2px", border: "1px solid var(--info-color)" }} />
+              <img src={getProxyImageUrl(hsCard.url)} style={{ height: "40px", borderRadius: "var(--radius-sm)", border: "1px solid var(--info-color)" }} />
               {hsCard.faces && hsCard.faces.length > 1 && (
                 <div className="badge badge-faces" style={{ top: "1px", right: "1px", width: "12px", height: "12px", fontSize: "0.5rem" }}>{hsCard.faces.length}</div>
               )}
@@ -344,7 +344,7 @@ export default function DeckBuilder() {
 
       {preview && (
         <div className="overlay overlay-dark" onClick={() => setPreview(null)} style={{ zIndex: 4000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px", gap: "10px", overflowY: "auto" }}>
-          <img src={getProxyImageUrl(preview.url)} style={{ maxWidth: "70%", maxHeight: "50vh", borderRadius: "8px" }} />
+          <img src={getProxyImageUrl(preview.url)} style={{ maxWidth: "70%", maxHeight: "50vh", borderRadius: "var(--radius-md)" }} />
           <div style={{ color: "#fff", fontWeight: "bold" }}>{preview.name} {preview.cost ? `(コスト${preview.cost})` : ""}</div>
           {preview.text && <div style={{ color: "#ccc", fontSize: "0.85rem", whiteSpace: "pre-wrap", maxWidth: "92%", lineHeight: 1.5 }}>{preview.text}</div>}
           <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); addToDeck(preview.url); }} style={{ minHeight: "44px", padding: "8px 24px" }}>デッキに追加</button>

@@ -15,14 +15,14 @@ export const PlayerUtilityRow = ({
         data-zone-id="temp" 
         style={{ 
           display:"flex", flexDirection:"column", alignItems:"center",
-          padding: "2px", border: "1px solid var(--border-color)", borderRadius: "5px", background: "rgba(111, 66, 193, 0.05)" 
+          padding: "2px", border: "1px solid var(--border-color)", borderRadius: "var(--radius-sm)", background: "rgba(111, 66, 193, 0.05)" 
         }}
       >
         <DraggableCard {...getDragProps("temp", tempZone.length-1, tempZone.length > 0 ? tempZone[tempZone.length-1] : {})} style={{ height: "50px" }}>
            <div 
              onClick={() => onViewMode("temp")}
              style={{ 
-               width: "36px", height: "50px", border: "2px dashed var(--purple-color)", borderRadius: "3px", 
+               width: "36px", height: "50px", border: "2px dashed var(--purple-color)", borderRadius: "var(--radius-sm)", 
                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
                background: "#1a1a1a"
              }}
@@ -60,7 +60,7 @@ export const PlayerUtilityRow = ({
          {[...shields].map((s, i) => ({s, i})).map(({s, i}) => (
            <DraggableCard key={i} {...getDragProps("shield", i, { url: s, isFaceDown: true })} style={{ flexShrink: 0, transform: "rotate(180deg)" }}>
              <div style={{ width: "28px", height: "39px", cursor: "pointer" }}>
-                <img src={CARD_BACK_URL} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid #b8860b", boxShadow: selectedCard?.zone === "shield" && selectedCard?.index === i ? "0 0 0 2px yellow" : "none" }} />
+                <img src={CARD_BACK_URL} style={{ width: "100%", height: "100%", borderRadius: "var(--radius-sm)", border: "1px solid #b8860b", boxShadow: selectedCard?.zone === "shield" && selectedCard?.index === i ? "0 0 0 2px yellow" : "none" }} />
              </div>
            </DraggableCard>
          ))}
@@ -80,7 +80,7 @@ export const PlayerUtilityRow = ({
                }}
              >
                 {deck.length > 0 ? (
-                  <img src={CARD_BACK_URL} style={{width:"100%", height:"100%", borderRadius:"3px"}} />
+                  <img src={CARD_BACK_URL} style={{width:"100%", height:"100%", borderRadius: "var(--radius-sm)"}} />
                 ) : <span style={{fontSize:"0.7rem", color:"var(--text-dim)"}}>0</span>}
                 <span style={{ position: "absolute", bottom: "-12px", fontSize: "0.7rem", color: "var(--text-secondary)" }}>山 {deck.length}</span>
              </div>
@@ -98,7 +98,7 @@ export const PlayerUtilityRow = ({
           <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].url : hyperspace[hyperspace.length-1], faces: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].faces : null } : {})} style={{ height: "50px" }}>
             <div
               onClick={() => onZoneTap("hyperspace")}
-              style={{ width: "36px", height: "50px", border: "1px dashed var(--info-color)", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
+              style={{ width: "36px", height: "50px", border: "1px dashed var(--info-color)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {hyperspace.length > 0 ?
                 (() => {
@@ -123,7 +123,7 @@ export const PlayerUtilityRow = ({
           <DraggableCard {...getDragProps("grave", graveyard.length-1, graveyard.length > 0 ? { url: graveyard[graveyard.length-1] } : {})} style={{ height: "50px" }}>
             <div 
               onClick={() => onZoneTap("grave")} 
-              style={{ width: "36px", height: "50px", border: "1px dashed var(--border-color-light)", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
+              style={{ width: "36px", height: "50px", border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {graveyard.length > 0 ? 
                 <img src={getProxyImageUrl(graveyard[graveyard.length-1])} style={{width:"100%", height:"100%", opacity:0.8}} /> : 

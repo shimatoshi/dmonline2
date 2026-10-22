@@ -31,9 +31,9 @@ export default function Announcements() {
   };
 
   return (
-    <div style={{ marginBottom: "12px", border: "1px solid var(--border-color)", borderRadius: "8px", background: "var(--surface-color)" }}>
+    <div style={{ marginBottom: "12px", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", background: "var(--surface-color)" }}>
       <button onClick={toggle} style={{ width: "100%", minHeight: "44px", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 12px", background: "none", border: "none", color: "var(--text-primary)", fontSize: "0.9rem", cursor: "pointer" }}>
-        <span>📢 お知らせ{unread > 0 && <span style={{ marginLeft: "8px", background: "var(--danger-color)", color: "#fff", borderRadius: "10px", padding: "1px 8px", fontSize: "0.75rem" }}>新着 {unread}</span>}</span>
+        <span>📢 お知らせ{unread > 0 && <span style={{ marginLeft: "8px", background: "var(--danger-color)", color: "#fff", borderRadius: "var(--radius-lg)", padding: "1px 8px", fontSize: "0.75rem" }}>新着 {unread}</span>}</span>
         <span style={{ color: "var(--text-muted)" }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && (

@@ -118,7 +118,7 @@ export default function DedupeReview({ library, getUsedUrls, applyReview, onClos
         </div>
         {groups.length === 0 && <div>類似するカードは見つかりませんでした。</div>}
         {groups.map((g, gi) => (
-          <div key={gi} style={{ border: "1px solid var(--border-color-light)", borderRadius: "6px", padding: "8px", marginBottom: "10px", opacity: skipped[gi] ? 0.5 : 1 }}>
+          <div key={gi} style={{ border: "1px solid var(--border-color-light)", borderRadius: "var(--radius-md)", padding: "8px", marginBottom: "10px", opacity: skipped[gi] ? 0.5 : 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "var(--warning-color)", marginBottom: "6px" }}>
               <span>{g.reasons.join(" / ") || "類似"}</span>
               <button className="btn-mini" onClick={() => setSkipped({ ...skipped, [gi]: !skipped[gi] })}>
@@ -127,7 +127,7 @@ export default function DedupeReview({ library, getUsedUrls, applyReview, onClos
             </div>
             {g.cards.map(c => (
               <div key={c.id} style={{ display: "flex", gap: "8px", alignItems: "center", padding: "4px 0", borderTop: "1px solid var(--surface-color-dark)" }}>
-                <img src={getProxyImageUrl(c.url)} loading="lazy" style={{ width: "44px", aspectRatio: "2/3", objectFit: "cover", borderRadius: "3px", background: "var(--surface-color-dark)" }} />
+                <img src={getProxyImageUrl(c.url)} loading="lazy" style={{ width: "44px", aspectRatio: "2/3", objectFit: "cover", borderRadius: "var(--radius-sm)", background: "var(--surface-color-dark)" }} />
                 <div style={{ flex: 1, minWidth: 0, fontSize: "0.8rem" }}>
                   <div style={{ fontWeight: "bold", wordBreak: "break-all" }}>
                     {used.has(c.url) && <span title="デッキで使用中">🎴 </span>}{c.name}

@@ -96,9 +96,9 @@ export const ChatSidebar = ({ roomId, user }) => {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="メッセージ..."
-            style={{ flex: 1, padding: "8px", borderRadius: "4px", border: "1px solid var(--border-color-dark)", background: "#111", color: "white" }}
+            style={{ flex: 1, padding: "8px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color-dark)", background: "#111", color: "white" }}
           />
-          <button type="submit" style={{ padding: "8px 12px", background: "var(--success-color)", color: "white", border: "none", borderRadius: "4px" }}>➤</button>
+          <button type="submit" style={{ padding: "8px 12px", background: "var(--success-color)", color: "white", border: "none", borderRadius: "var(--radius-sm)" }}>➤</button>
         </form>
       </div>
       

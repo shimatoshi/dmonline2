@@ -83,7 +83,7 @@ export const Zone = ({
                    <CardView url={cardData.url} isFaceDown={!revealHand && cardData.isFaceDown} isTapped={cardData.isTapped} onClick={() => {}} style={{ width, height }} />
                  ) : (
                    <div style={{ width, height, position: "relative" }}>
-                      <img src={url} style={{ width: "100%", height: "100%", borderRadius: "3px", border: "1px solid var(--border-color-dark)" }} />
+                      <img src={url} style={{ width: "100%", height: "100%", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color-dark)" }} />
                    </div>
                  )}
                </DraggableCard>
@@ -153,7 +153,7 @@ export const Zone = ({
         style={{ 
           width, height, 
           border: zoneId === "temp" ? "2px dashed var(--purple-color)" : "1px dashed var(--border-color-light)", 
-          borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", 
+          borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", 
           cursor: "pointer", position: "relative", background: "#1a1a1a"
         }}
       >

@@ -27,12 +27,12 @@ export default function CardRegister({ onRegister, existingTags }) {
   const tagCandidates = Array.from(new Set([...defaultTags, ...existingTags]));
 
   const civilizations = [
-    { name: "光", color: "#ffee58", tag: "光文明", textColor: "var(--border-color)" },
-    { name: "水", color: "#42a5f5", tag: "水文明", textColor: "#fff" },
-    { name: "闇", color: "#757575", tag: "闇文明", textColor: "#fff" },
-    { name: "火", color: "#ef5350", tag: "火文明", textColor: "#fff" },
-    { name: "自然", color: "#66bb6a", tag: "自然文明", textColor: "#fff" },
-    { name: "ゼロ", color: "#b0b0b0", tag: "ゼロ文明", textColor: "var(--border-color)" }, // ★ゼロ文明追加
+    { name: "光", color: "var(--civ-light)", tag: "光文明", textColor: "var(--border-color)" },
+    { name: "水", color: "var(--civ-water)", tag: "水文明", textColor: "#fff" },
+    { name: "闇", color: "var(--civ-darkness)", tag: "闇文明", textColor: "#fff" },
+    { name: "火", color: "var(--civ-fire)", tag: "火文明", textColor: "#fff" },
+    { name: "自然", color: "var(--civ-nature)", tag: "自然文明", textColor: "#fff" },
+    { name: "ゼロ", color: "var(--civ-zero)", tag: "ゼロ文明", textColor: "var(--border-color)" }, // ★ゼロ文明追加
   ];
 
   const toggleTag = (tag) => {
@@ -162,7 +162,7 @@ export default function CardRegister({ onRegister, existingTags }) {
       />
 
       {url && (
-        <div style={{ textAlign: "center", marginBottom: "15px", background: "#000", padding: "10px", borderRadius: "8px" }}>
+        <div style={{ textAlign: "center", marginBottom: "15px", background: "#000", padding: "10px", borderRadius: "var(--radius-md)" }}>
           <img src={getProxyImageUrl(url)} alt="プレビュー" style={{ maxHeight: "150px", maxWidth: "100%" }} onError={(e) => e.target.style.display = 'none'} />
         </div>
       )}
@@ -206,7 +206,7 @@ export default function CardRegister({ onRegister, existingTags }) {
       </div>
 
       {showImagePicker && (
-        <div style={{ marginBottom: "15px", background: "#1a1a1a", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "10px" }}>
+        <div style={{ marginBottom: "15px", background: "#1a1a1a", border: "1px solid var(--border-color)", borderRadius: "var(--radius-md)", padding: "10px" }}>
           <input
             className="input-field"
             placeholder="カード名で検索..."
@@ -226,7 +226,7 @@ export default function CardRegister({ onRegister, existingTags }) {
                     setShowImagePicker(false);
                     setImageSearch("");
                   }}
-                  style={{ cursor: "pointer", border: url === card.url ? "2px solid var(--info-color)" : "2px solid transparent", borderRadius: "4px", overflow: "hidden" }}
+                  style={{ cursor: "pointer", border: url === card.url ? "2px solid var(--info-color)" : "2px solid transparent", borderRadius: "var(--radius-sm)", overflow: "hidden" }}
                 >
                   <img src={getProxyImageUrl(card.url)} alt={card.name} loading="lazy" style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", display: "block" }} />
                   <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)", margin: "2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.name}</p>
@@ -240,13 +240,13 @@ export default function CardRegister({ onRegister, existingTags }) {
       <div style={{ marginBottom: "15px" }}>
         <button
           onClick={() => setShowFaces(!showFaces)}
-          style={{ fontSize: "0.8rem", background: "none", border: "1px solid var(--info-color)", color: "var(--info-color)", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}
+          style={{ fontSize: "0.8rem", background: "none", border: "1px solid var(--info-color)", color: "var(--info-color)", padding: "4px 10px", borderRadius: "var(--radius-sm)", cursor: "pointer" }}
         >
           {showFaces ? "▲ 超次元面を閉じる" : "＋ 超次元カード（複数面）"}
         </button>
 
         {showFaces && (
-          <div style={{ marginTop: "10px", padding: "10px", background: "#1a2a3a", borderRadius: "6px", border: "1px solid var(--info-color)" }}>
+          <div style={{ marginTop: "10px", padding: "10px", background: "#1a2a3a", borderRadius: "var(--radius-md)", border: "1px solid var(--info-color)" }}>
             <p style={{ fontSize: "0.8rem", color: "var(--info-color)", margin: "0 0 8px 0" }}>追加面のURL（覚醒・リンク先など）:</p>
             {extraFaces.map((face, i) => (
               <div key={i} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
@@ -265,7 +265,7 @@ export default function CardRegister({ onRegister, existingTags }) {
                 <button
                   onClick={() => openFilePicker(i)}
                   disabled={uploading}
-                  style={{ fontSize: "0.75rem", background: "none", border: "1px solid var(--border-color-dark)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "4px", cursor: "pointer", whiteSpace: "nowrap" }}
+                  style={{ fontSize: "0.75rem", background: "none", border: "1px solid var(--border-color-dark)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: "var(--radius-sm)", cursor: "pointer", whiteSpace: "nowrap" }}
                 >
                   📁
                 </button>
@@ -277,7 +277,7 @@ export default function CardRegister({ onRegister, existingTags }) {
             ))}
             {extraFaces.length < 3 && (
               <button onClick={() => setExtraFaces([...extraFaces, ""])}
-                style={{ fontSize: "0.75rem", background: "none", border: "1px dashed var(--border-color-dark)", color: "var(--text-secondary)", padding: "4px 10px", borderRadius: "4px", cursor: "pointer" }}>
+                style={{ fontSize: "0.75rem", background: "none", border: "1px dashed var(--border-color-dark)", color: "var(--text-secondary)", padding: "4px 10px", borderRadius: "var(--radius-sm)", cursor: "pointer" }}>
                 ＋ 面を追加（最大4面）
               </button>
             )}
@@ -322,9 +322,9 @@ export default function CardRegister({ onRegister, existingTags }) {
         </div>
         
         {selectedTags.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px", padding: "8px", background: "var(--surface-color-dark)", borderRadius: "6px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px", padding: "8px", background: "var(--surface-color-dark)", borderRadius: "var(--radius-md)" }}>
             {selectedTags.map(tag => (
-              <span key={tag} style={{ fontSize: "0.85rem", background: "var(--accent-color)", color: "white", padding: "4px 10px", borderRadius: "15px", display: "flex", alignItems: "center" }}>
+              <span key={tag} style={{ fontSize: "0.85rem", background: "var(--accent-color)", color: "white", padding: "4px 10px", borderRadius: "var(--radius-pill)", display: "flex", alignItems: "center" }}>
                 {tag} <button onClick={() => setSelectedTags(selectedTags.filter(t => t !== tag))} style={{ background: "none", border: "none", color: "white", marginLeft: "6px", fontSize: "1rem", lineHeight: "1" }}>×</button>
               </span>
             ))}
@@ -340,12 +340,12 @@ export default function CardRegister({ onRegister, existingTags }) {
         </div>
 
         {isTagsListOpen && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", animation: "fadeIn 0.2s", background: "#1a1a1a", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", animation: "fadeIn 0.2s", background: "#1a1a1a", padding: "10px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
             {tagCandidates.map(tag => (
               <button
                 key={tag} onClick={() => toggleTag(tag)} disabled={selectedTags.includes(tag)}
                 style={{ 
-                  fontSize: "0.8rem", padding: "6px 10px", borderRadius: "15px", border: "1px solid var(--border-color-light)", 
+                  fontSize: "0.8rem", padding: "6px 10px", borderRadius: "var(--radius-pill)", border: "1px solid var(--border-color-light)", 
                   background: "var(--surface-color-light)", 
                   color: "var(--text-primary)",
                   opacity: selectedTags.includes(tag) ? 0.3 : 1 
