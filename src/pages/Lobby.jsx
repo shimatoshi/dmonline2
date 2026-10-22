@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
-import { collection, addDoc, setDoc, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy } from "firebase/firestore";
+import { collection, addDoc, setDoc, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy, runTransaction } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 export default function Lobby() {
@@ -15,7 +15,7 @@ export default function Lobby() {
 
   // ユーザー名の取得ヘルパー (設定なければメールの@より前を表示)
   const getUserName = () => {
-    return user.displayName || user.email.split("@")[0];
+    return user.displayName || user.email?.split("@")[0] || "Guest";
   };
 
   useEffect(() => {
@@ -148,11 +148,19 @@ export default function Lobby() {
 
     try {
       const roomRef = doc(db, "rooms", roomId);
-      await updateDoc(roomRef, {
-        guestId: user.uid,
-        guestName: getUserName(), // ★名前を使用
-        status: "playing",
-        guestData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedDeckHyperspace() }
+      // 同時参加で先の参加者を上書きしないよう、空き状態をトランザクションで確認する
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(roomRef);
+        if (!snap.exists()) throw new Error("部屋が見つかりません");
+        const d = snap.data();
+        if (d.status !== "waiting" || d.guestId) throw new Error("この部屋はすでに対戦が始まっています");
+        if (d.hostId === user.uid) throw new Error("自分の部屋には参加できません");
+        transaction.update(roomRef, {
+          guestId: user.uid,
+          guestName: getUserName(), // ★名前を使用
+          status: "playing",
+          guestData: { deck: deckCards, hand: [], shields: [], manaZone: [], battleZone: [], graveyard: [], tempZone: [], hyperspace: getSelectedDeckHyperspace() }
+        });
       });
       navigate(`/game/${roomId}`);
     } catch (error) {
