@@ -296,10 +296,13 @@ export const useGameActions = (syncToDB, gameState, generateId, roomId) => {
     log("ゲーム準備(シャッフル・シールド5・手札5)");
   };
 
-  const toggleTempAll = () => {
+  // indices 指定あり: そのカードだけ切り替え(1枚でも公開中なら全部伏せ、全部伏せなら全部公開)
+  // 指定なし: 全カード(同じ基準で揃える)
+  const toggleTempAll = (indices) => {
     if (myTempZone.length === 0) return;
-    const currentStatus = myTempZone[0].isFaceDown;
-    const newZone = myTempZone.map(card => ({ ...card, isFaceDown: !currentStatus }));
+    const target = indices && indices.length ? indices : myTempZone.map((_, i) => i);
+    const anyOpen = target.some((i) => myTempZone[i] && !myTempZone[i].isFaceDown);
+    const newZone = myTempZone.map((card, i) => (target.includes(i) ? { ...card, isFaceDown: anyOpen } : card));
     syncToDB({ tempZone: newZone });
   };
 

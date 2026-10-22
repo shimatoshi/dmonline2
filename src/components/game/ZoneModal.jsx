@@ -36,8 +36,8 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
           <h3 style={{ margin: 0, fontSize: "1rem" }}>{title} ({cards.length})</h3>
           <div style={{ display: "flex", gap: "10px" }}>
             {zoneName === "temp" && (
-              <button className="btn" onClick={onToggleFace} style={{background: "var(--accent-color)", fontSize: "0.75rem", padding: "4px 8px"}}>
-                公開/非公開
+              <button className="btn" onClick={() => { onToggleFace(multi && picked.length ? picked : undefined); setPicked([]); }} style={{background: "var(--accent-color)", fontSize: "0.75rem", padding: "4px 8px"}}>
+                {multi && picked.length ? `選択${picked.length}枚を公開/非公開` : "全て公開/非公開"}
               </button>
             )}
           </div>
@@ -53,7 +53,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
 
             return (
               <div key={i} onClick={(e) => (multi ? togglePick(i) : onCardTap(e, zoneName, i, item))} style={{ position: "relative" }}>
-                 <img src={getProxyImageUrl(url)} style={{
+                 <img src={isFaceDown && String(zoneName).startsWith("opponent") ? CARD_BACK_URL : getProxyImageUrl(url)} style={{
                    width: "100%", borderRadius: "var(--radius-sm)", display: "block",
                    border: picked.includes(i) ? "2px solid var(--accent-color)" : (!multi && selectedCard?.zone === zoneName && selectedCard?.index === i) ? "2px solid yellow" : "1px solid var(--border-color-dark)",
                    filter: isFaceDown ? "grayscale(50%) brightness(0.7)" : "none"
