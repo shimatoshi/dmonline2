@@ -50,7 +50,7 @@ function App() {
           <Link to="/library-new" style={{ color: "var(--text-primary)", textDecoration: "none" }}>図鑑(新)</Link>
           <Link to="/library" style={{ color: "var(--text-primary)", textDecoration: "none" }}>図鑑(旧)</Link>
           <Link to="/bbs" style={{ color: "var(--text-primary)", textDecoration: "none" }}>掲示板</Link>
-          <Link to="/profile" style={{ color: "var(--text-primary)", textDecoration: "none" }}>設定</Link>
+          <Link to="/profile" style={{ color: "var(--text-primary)", textDecoration: "none" }}>プロフィール</Link>
           <button onClick={handleLogout} style={{ background: "var(--border-color)", color: "var(--text-secondary)", border: "1px solid var(--border-color-dark)", padding: "4px 8px", borderRadius: "4px", cursor: "pointer", fontSize: "0.75rem" }}>ログアウト</button>
         </nav>
       </header>

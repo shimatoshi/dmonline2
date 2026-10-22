@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { db, auth } from "../firebase";
 import { collection, addDoc, setDoc, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy, runTransaction } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import Announcements from "../components/Announcements";
 
 export default function Lobby() {
   const [rooms, setRooms] = useState([]);
@@ -9,6 +10,7 @@ export default function Lobby() {
   const [myDecks, setMyDecks] = useState([]);
   const [selectedDeckId, setSelectedDeckId] = useState("");
   const [selectedOpponentDeckId, setSelectedOpponentDeckId] = useState("");
+  const [showSolo, setShowSolo] = useState(false);
   
   const navigate = useNavigate();
   const user = auth.currentUser;
@@ -197,11 +199,11 @@ export default function Lobby() {
   };
 
   return (
-    <div style={{ padding: "15px", maxWidth: "600px", margin: "0 auto", paddingBottom: "80px" }}>
-      <h2 style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "10px", color: "var(--text-primary)" }}>対戦ロビー</h2>
+    <div style={{ padding: "10px 12px", maxWidth: "600px", margin: "0 auto", paddingBottom: "80px" }}>
+      <Announcements />
       
       {activeGames.length > 0 && (
-        <div style={{ marginBottom: "30px" }}>
+        <div style={{ marginBottom: "14px" }}>
           <h3 style={{ color: "var(--danger-light)", borderLeft: "4px solid var(--danger-light)", paddingLeft: "10px" }}>🔴 進行中の対戦</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {activeGames.map(game => (
@@ -222,15 +224,14 @@ export default function Lobby() {
         </div>
       )}
 
-      <div className="card-box" style={{ marginBottom: "30px", background: "var(--surface-color)" }}>
-        <h4 style={{ margin: "0 0 10px 0", color: "#ccc" }}>対戦準備</h4>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "5px" }}>使用デッキ:</label>
-          <select 
+      <div className="card-box" style={{ marginBottom: "14px", padding: "10px", background: "var(--surface-color)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+          <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", flexShrink: 0 }}>使用デッキ</span>
+          <select
             className="input-field"
-            value={selectedDeckId} 
+            value={selectedDeckId}
             onChange={(e) => setSelectedDeckId(e.target.value)}
-            style={{ width: "100%", background: "var(--surface-color-light)", color: "white" }}
+            style={{ flex: 1, minHeight: "44px", background: "var(--surface-color-light)", color: "white" }}
           >
             {myDecks.length === 0 && <option value="">デッキがありません</option>}
             {myDecks.map(deck => (
@@ -238,38 +239,40 @@ export default function Lobby() {
             ))}
           </select>
         </div>
-        
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "5px" }}>1人回し用：相手デッキ:</label>
-          <select 
-            className="input-field"
-            value={selectedOpponentDeckId} 
-            onChange={(e) => setSelectedOpponentDeckId(e.target.value)}
-            style={{ width: "100%", background: "var(--surface-color-light)", color: "white" }}
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            className="btn btn-primary"
+            onClick={createRoom}
+            disabled={myDecks.length === 0}
+            style={{ flex: 2, minHeight: "48px", fontSize: "1rem", fontWeight: "bold", opacity: myDecks.length === 0 ? 0.5 : 1 }}
           >
-            {myDecks.length === 0 && <option value="">デッキがありません</option>}
-            {myDecks.map(deck => (
-              <option key={deck.id} value={deck.id}>{deck.name} ({deck.cards?.length || 0}枚)</option>
-            ))}
-          </select>
+            ＋ 対戦部屋を作る
+          </button>
+          <button
+            className="btn btn-outline"
+            onClick={() => setShowSolo(!showSolo)}
+            disabled={myDecks.length === 0}
+            style={{ flex: 1, minHeight: "48px", borderColor: "var(--text-secondary)", color: "#ddd" }}
+          >
+            一人回し {showSolo ? "▲" : "▼"}
+          </button>
         </div>
-
-        <button 
-          className="btn btn-primary"
-          onClick={createRoom}
-          disabled={myDecks.length === 0}
-          style={{ width: "100%", padding: "12px", fontSize: "1.1rem", fontWeight: "bold", opacity: myDecks.length === 0 ? 0.5 : 1 }}
-        >
-          ＋ 新しく対戦部屋を作る
-        </button>
-        <button 
-          className="btn btn-outline"
-          onClick={createSoloRoom}
-          disabled={myDecks.length === 0}
-          style={{ width: "100%", padding: "12px", fontSize: "1.1rem", fontWeight: "bold", marginTop: "10px", borderColor: "var(--text-secondary)", color: "#ddd" }}
-        >
-          一人回し（練習）
-        </button>
+        {showSolo && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px" }}>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", flexShrink: 0 }}>相手デッキ</span>
+            <select
+              className="input-field"
+              value={selectedOpponentDeckId}
+              onChange={(e) => setSelectedOpponentDeckId(e.target.value)}
+              style={{ flex: 1, minHeight: "44px", background: "var(--surface-color-light)", color: "white" }}
+            >
+              {myDecks.map(deck => (
+                <option key={deck.id} value={deck.id}>{deck.name} ({deck.cards?.length || 0}枚)</option>
+              ))}
+            </select>
+            <button className="btn btn-success" onClick={createSoloRoom} style={{ minHeight: "44px", padding: "0 14px" }}>開始</button>
+          </div>
+        )}
       </div>
 
       <h3 style={{ color: "var(--text-primary)" }}>対戦待ちの部屋</h3>
