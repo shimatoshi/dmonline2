@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { emitCardZoom } from "./CardZoomOverlay";
 import { getProxyImageUrl } from "../../utils/apiConfig";
 
 const CARD_BACK_URL = "/card_back.jpg";
@@ -22,8 +23,25 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
     setPicked([]);
   };
 
+  // 長押し中だけカードを拡大する(離したときのタップは無効)
+  const holdTimer = useRef(null);
+  const held = useRef(false);
+  const holdStart = (item) => {
+    held.current = false;
+    const url = typeof item === "object" ? item.url : item;
+    const hidden = typeof item === "object" && item.isFaceDown && String(zoneName).startsWith("opponent");
+    if (!url || hidden) return;
+    holdTimer.current = setTimeout(() => { held.current = true; emitCardZoom({ url }); }, 500);
+  };
+  const holdEnd = () => {
+    clearTimeout(holdTimer.current);
+    if (held.current) { emitCardZoom(null); setTimeout(() => { held.current = false; }, 0); }
+  };
+
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 3000, pointerEvents: "none" }}>
+      {/* 外側をタップすると閉じる(一時ゾーンは盤面からカードを足すため除く) */}
+      {zoneName !== "temp" && <div onClick={onClose} style={{ position: "absolute", inset: 0, pointerEvents: "auto" }} />}
       
       <div style={{ 
         position: "absolute", top: "10%", left: "5%", right: "5%", bottom: "35%", 
@@ -52,7 +70,11 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
             const hasFaces = faces && Array.isArray(faces) && faces.length > 1;
 
             return (
-              <div key={i} onClick={(e) => (multi ? togglePick(i) : onCardTap(e, zoneName, i, item))} style={{ position: "relative" }}>
+              <div key={i}
+                onPointerDown={() => holdStart(item)} onPointerUp={holdEnd} onPointerCancel={holdEnd} onPointerLeave={holdEnd}
+                onContextMenu={(e) => e.preventDefault()}
+                onClick={(e) => { if (held.current) return; multi ? togglePick(i) : onCardTap(e, zoneName, i, item); }}
+                style={{ position: "relative", WebkitTouchCallout: "none", userSelect: "none" }}>
                  <img src={isFaceDown && String(zoneName).startsWith("opponent") ? CARD_BACK_URL : getProxyImageUrl(url)} style={{
                    width: "100%", borderRadius: "var(--radius-sm)", display: "block",
                    border: picked.includes(i) ? "2px solid var(--accent-color)" : (!multi && selectedCard?.zone === zoneName && selectedCard?.index === i) ? "2px solid yellow" : "1px solid var(--border-color-dark)",
@@ -107,7 +129,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
           </div>
         ) : (
           <div style={{ marginTop: "8px", color: "var(--text-secondary)", fontSize: "0.75rem", textAlign: "center" }}>
-            {zoneName === "temp" ? "山札タップで追加 / 公開ボタンで切替" : "カードを選択 → 移動先をタップ"}
+            {zoneName === "temp" ? "山札タップで追加 / 公開ボタンで切替" : "タップ・長押しで拡大 / 複数選択で移動"}
           </div>
         )}
 

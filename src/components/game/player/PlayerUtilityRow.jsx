@@ -76,7 +76,7 @@ export const PlayerUtilityRow = ({
         <div data-zone-id="deckTop" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
            <DraggableCard {...getDragProps("deck", 0, deck.length > 0 ? { url: deck[0] } : {})} style={{ height: "50px" }}>
              <div 
-               onClick={onDeckTap}
+               onClick={() => onViewMode("deck")}
                style={{ 
                  width: "36px", height: "50px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative",
                  boxShadow: selectedCard?.zone === "deck" ? "0 0 8px 2px cyan" : "none"
@@ -106,7 +106,7 @@ export const PlayerUtilityRow = ({
         <div data-zone-id="hyperspace" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
           <DraggableCard {...getDragProps("hyperspace", hyperspace.length-1, hyperspace.length > 0 ? { url: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].url : hyperspace[hyperspace.length-1], faces: typeof hyperspace[hyperspace.length-1] === 'object' ? hyperspace[hyperspace.length-1].faces : null } : {})} style={{ height: "50px" }}>
             <div
-              onClick={() => onZoneTap("hyperspace")}
+              onClick={() => onViewMode("hyperspace")}
               style={{ width: "36px", height: "50px", border: "1px dashed var(--info-color)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {hyperspace.length > 0 ?
@@ -126,7 +126,7 @@ export const PlayerUtilityRow = ({
         <div data-zone-id="grave" style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
           <DraggableCard {...getDragProps("grave", graveyard.length-1, graveyard.length > 0 ? { url: graveyard[graveyard.length-1] } : {})} style={{ height: "50px" }}>
             <div 
-              onClick={() => onZoneTap("grave")} 
+              onClick={() => onViewMode("grave")} 
               style={{ width: "36px", height: "50px", border: "1px dashed var(--border-color-light)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative" }}
             >
               {graveyard.length > 0 ? 

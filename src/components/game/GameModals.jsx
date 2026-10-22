@@ -21,6 +21,10 @@ export const GameModals = ({
   moveMany,
   moveOpponentMany
 }) => {
+  const zoomTap = (e, z, i, item) => {
+    const u = typeof item === "object" ? item.url : item;
+    if (u) setZoomedUrl(u);
+  };
   return (
     <>
       {zoomedUrl && (
@@ -29,13 +33,13 @@ export const GameModals = ({
         </div>
       )}
 
-      {viewMode === "hand" && <ZoneModal title="手札一覧" cards={myHand} zoneName="hand" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
-      {viewMode === "mana" && <ZoneModal title="マナ一覧" cards={myManaZone} zoneName="mana" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
-      {viewMode === "shield" && <ZoneModal title="シールド一覧" cards={myShields} zoneName="shield" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
-      {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
-      {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
-      {viewMode === "hyperspace" && <ZoneModal title="超次元ゾーン" cards={myHyperspace} zoneName="hyperspace" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} />}
-      {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={handleCardTap} onToggleFace={toggleTempAll} />}
+      {viewMode === "hand" && <ZoneModal title="手札一覧" cards={myHand} zoneName="hand" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} />}
+      {viewMode === "mana" && <ZoneModal title="マナ一覧" cards={myManaZone} zoneName="mana" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} />}
+      {viewMode === "shield" && <ZoneModal title="シールド一覧" cards={myShields} zoneName="shield" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} />}
+      {viewMode === "deck" && <ZoneModal title="山札確認" cards={myDeck} zoneName="deck" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} />}
+      {viewMode === "grave" && <ZoneModal title="墓地確認" cards={myGraveyard} zoneName="grave" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} />}
+      {viewMode === "hyperspace" && <ZoneModal title="超次元ゾーン" cards={myHyperspace} zoneName="hyperspace" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} />}
+      {viewMode === "temp" && <ZoneModal title="一時ゾーン" cards={myTempZone} zoneName="temp" onMoveMany={moveMany} selectedCard={selectedCard} onClose={() => setViewMode(null)} onCardTap={zoomTap} onToggleFace={toggleTempAll} />}
       
       {viewMode === "opponentHand" && (
         <ZoneModal title="相手の手札" cards={opponent?.hand || []} zoneName="hand" selectedCard={null} onMoveMany={moveOpponentMany} alwaysClose onClose={() => setViewMode(null)} onCardTap={(e, z, i, cardUrl) => setZoomedUrl(typeof cardUrl === 'object' ? cardUrl.url : cardUrl)} />
