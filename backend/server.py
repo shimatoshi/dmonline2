@@ -293,9 +293,15 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             if not re.fullmatch(r'[\w\-.%]+', fname):
                 fname = f"official_{card_id}.jpg"
             dest = os.path.join(UPLOAD_DIR, fname)
-            if not os.path.exists(dest):
-                with open(dest, 'wb') as f:
-                    f.write(self._official_get(self.OFFICIAL_BASE + imgs[0]))
+            # 取得に失敗した空ファイルを残さない(0バイトの既存ファイルは取り直す)
+            if not os.path.exists(dest) or os.path.getsize(dest) == 0:
+                data_img = self._official_get(self.OFFICIAL_BASE + imgs[0])
+                if not data_img:
+                    raise ValueError("画像を取得できませんでした")
+                tmp_img = dest + '.tmp'
+                with open(tmp_img, 'wb') as f:
+                    f.write(data_img)
+                os.replace(tmp_img, dest)
             card["img"] = f"/api/uploads/{fname}"
 
             with self._store_lock:
