@@ -156,8 +156,8 @@ export default function NewCardLibraryPage() {
             </ul>
             <b>登録したカード</b>
             <ul style={{ margin: "2px 0 10px", paddingLeft: "1.2em" }}>
-              <li>登録したカードは自分のアカウント専用で、一覧の先頭に並びます。デッキ作成でも使えます。</li>
-              <li>詳細画面の「登録を削除」で消せます。</li>
+              <li>登録したカードは全員の図鑑に共有され、一覧の先頭に並びます。デッキ作成でも使えます。</li>
+              <li>自分が登録したカードは、詳細画面の「登録を削除」で消せます(他の人のカードは消せません)。</li>
               <li>「ログ」ボタンで、登録・重複検出・キャンセル・削除の履歴を確認できます。</li>
             </ul>
             <button onClick={() => setHelpOpen(false)} className="btn btn-outline" style={{ width: "100%" }}>閉じる</button>
@@ -192,7 +192,7 @@ export default function NewCardLibraryPage() {
             </div>
             <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 8px" }}>{sel.pack} {sel.rarelity}{sel.version ? ` / 別バージョン${sel.version}` : ""}</div>
             <div style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>{sel.text}</div>
-            {sel.custom && (
+            {sel.custom && sel.mine && (
               <button onClick={() => { if (window.confirm("この登録カードを削除しますか？")) { deleteCustom(sel.id).then(() => showToast("削除しました")); setSel(null); } }}
                 className="btn btn-danger" style={{ marginTop: "12px", width: "100%" }}>登録を削除</button>
             )}

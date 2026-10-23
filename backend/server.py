@@ -232,7 +232,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             if c.get("img") and (c.get("id") == card["id"] or nm(c.get("name")) == key):
                 if all(o["img"] != c["img"] for o in out):
                     out.append({"id": c["id"], "name": c["name"], "pack": c.get("pack"), "img": c["img"], "source": "official"})
-        for c in self._load_custom().get(uid, []):
+        for c in [x for cs in self._load_custom().values() for x in cs]:
             if c.get("img") and (c.get("card_id") == card["id"] or nm(c.get("name")) == key):
                 if all(o["img"] != c["img"] for o in out):
                     out.append({"id": c["id"], "name": c["name"], "pack": c.get("pack"), "img": c["img"], "source": "custom"})
@@ -299,7 +299,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
                 mine = store.setdefault(uid, [])
                 card["card_id"] = card_id
                 # 同じIDを別バージョンとして登録する場合は連番を付けて区別する
-                n = sum(1 for c in mine if c.get("card_id") == card_id)
+                n = sum(1 for cs in store.values() for c in cs if c.get("card_id") == card_id)
                 card["id"] = card_id if n == 0 else f"{card_id}~v{n + 1}"
                 if n:
                     card["version"] = n + 1
@@ -348,7 +348,13 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         if not uid:
             self._json({"error": "bad uid"}, 400)
             return
-        self._json({"cards": self._load_custom().get(uid, [])})
+        # 登録カードは全員で共有する。自分が登録したものには mine=true を付ける(削除できるのは本人のみ)
+        out = []
+        for owner, cards in self._load_custom().items():
+            for c in cards:
+                out.append({**c, "mine": owner == uid})
+        out.sort(key=lambda c: c.get("createdAt", 0), reverse=True)
+        self._json({"cards": out})
 
     def handle_register_log(self):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
