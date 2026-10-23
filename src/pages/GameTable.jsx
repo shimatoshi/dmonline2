@@ -275,7 +275,7 @@ export default function GameTable() {
         shieldCount={opponent?.shields?.length || 0}
         onAttackPlayer={() => chooseTarget({ type: "player" })}
         onCancel={() => setAttack(null)} onAnswer={answerResolve}
-        onFinishResolve={afterResolve} onSetCount={setBreakCount}
+        onFinishResolve={afterResolve} onSetCount={setBreakCount} onTogglePick={toggleBreakPick}
         onBreak={doBreak} onSkipBreak={() => setAttack(null)}
         onPreBreak={preBreak} onEndPreBreak={endPreBreak}
       />

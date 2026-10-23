@@ -42,7 +42,7 @@ const bar = {
 
 export const AttackUI = ({
   attack, draggingCard, dragPos, shieldCount,
-  onAttackPlayer, onCancel, onAnswer, onFinishResolve, onSetCount, onBreak, onSkipBreak, onPreBreak, onEndPreBreak,
+  onAttackPlayer, onCancel, onAnswer, onFinishResolve, onSetCount, onTogglePick, onBreak, onSkipBreak, onPreBreak, onEndPreBreak,
 }) => {
   // ドラッグ中(上スワイプ中)の点線
   let line = null;
@@ -108,23 +108,38 @@ export const AttackUI = ({
       )}
 
       {attack.phase === "break" && (
-        <div style={bar}>
-          <div style={{ width: "100%" }}>
-            ブレイク数(カードの文章に合わせて選択)
-            <div style={{ display: "flex", gap: "6px", marginTop: "6px", flexWrap: "wrap" }}>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} style={btn(attack.count === n ? "var(--danger-color)" : "var(--border-color)")} onClick={() => onSetCount(n)}>{n}</button>
-              ))}
+        <div style={{ position: "fixed", inset: 0, zIndex: 8200, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "var(--surface-color-dark)", border: "1px solid var(--danger-color)", borderRadius: "var(--radius-lg)", padding: "12px", color: "#fff", width: "min(92%, 460px)", maxHeight: "88vh", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+              <b>シールドブレイク</b>
+              <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>ブレイク数</span>
+                <button style={btn()} disabled={attack.count <= 1} onClick={() => onSetCount(attack.count - 1)}>−</button>
+                <b style={{ minWidth: "24px", textAlign: "center", fontSize: "1.1rem" }}>{attack.count}</b>
+                <button style={btn()} disabled={attack.count >= shieldCount} onClick={() => onSetCount(attack.count + 1)}>＋</button>
+              </span>
             </div>
-            <div style={{ marginTop: "6px", color: "var(--text-secondary)" }}>
-              相手のシールドをタップして選択({attack.picks.length}/{Math.min(attack.count, shieldCount)}枚)
+            <div style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+              ブレイクするシールドをタップ({attack.picks.length}/{Math.min(attack.count, shieldCount)}枚)
             </div>
+            <div style={{ overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px", alignContent: "start" }}>
+              {Array.from({ length: shieldCount }, (_, i) => {
+                const n = attack.picks.indexOf(i);
+                return (
+                  <div key={i} onClick={() => onTogglePick(i)} style={{ position: "relative", cursor: "pointer" }}>
+                    <img src="/card_back.jpg" style={{ width: "100%", display: "block", borderRadius: "var(--radius-sm)", border: n >= 0 ? "3px solid var(--danger-color)" : "1px solid var(--border-color-dark)", opacity: n >= 0 ? 1 : 0.85 }} />
+                    <span style={{ position: "absolute", left: 2, bottom: 2, fontSize: "0.65rem", background: "rgba(0,0,0,0.7)", borderRadius: "8px", padding: "0 5px" }}>{i + 1}</span>
+                    {n >= 0 && <span style={{ position: "absolute", top: 2, right: 2, minWidth: "18px", height: "18px", borderRadius: "9px", background: "var(--danger-color)", fontSize: "0.7rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>{n + 1}</span>}
+                  </div>
+                );
+              })}
+            </div>
+            <span style={{ display: "flex", gap: "6px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+              <button style={btn("var(--warning-color)")} onClick={onPreBreak}>ブレイク前効果</button>
+              <button style={btn("var(--danger-color)")} disabled={!attack.picks.length} onClick={onBreak}>ブレイク</button>
+              <button style={btn("var(--border-color-dark)")} onClick={onSkipBreak}>ブレイクしない</button>
+            </span>
           </div>
-          <span style={{ display: "flex", gap: "6px", width: "100%", justifyContent: "flex-end" }}>
-            <button style={btn("var(--warning-color)")} onClick={onPreBreak}>ブレイク前効果</button>
-            <button style={btn("var(--danger-color)")} disabled={!attack.picks.length} onClick={onBreak}>ブレイク</button>
-            <button style={btn("var(--border-color-dark)")} onClick={onSkipBreak}>ブレイクしない</button>
-          </span>
         </div>
       )}
     </>
