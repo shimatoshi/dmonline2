@@ -24,6 +24,7 @@ import { MultiSelectContext } from "../components/game/MultiSelectContext";
 import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
+import { InterruptUI } from "../components/game/InterruptUI";
 import { CountPanel } from "../components/game/CountPanel";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -194,8 +195,35 @@ export default function GameTable() {
     updateDoc(doc(db, "rooms", roomId), { shieldFlow: null }).catch(() => {});
   };
 
-  // 攻撃・シールド処理の解決中は、自動で相手に干渉できる
-  const autoInteract = (!!attack && attack.phase !== "target") || (shieldFlow?.phase === "resolving" && shieldFlow.defenderSide === mySide);
+  // 割り込み効果(相手ターン中に出せる効果)の宣言フロー。双方で共有
+  const interrupt = roomData?.interrupt || null;
+  const otherSide = (s) => (s === "host" ? "guest" : "host");
+  const setInterrupt = (patch) => updateDoc(doc(db, "rooms", roomId), patch).catch((e) => console.error("interrupt failed:", e));
+  const startInterrupt = () => {
+    setInterrupt({ interrupt: { id: generateId(), side: mySide, phase: "pick", trigger: "" } });
+    addLog && addLog("割り込み効果を宣言しようとしています");
+  };
+  const pickInterruptTrigger = (text) => {
+    setInterrupt({ "interrupt.phase": "ask", "interrupt.trigger": text });
+    addLog && addLog(`割り込み宣言:「${text}」に対して`);
+  };
+  const cancelInterrupt = () => setInterrupt({ interrupt: null });
+  const answerInterrupt = (yes) => {
+    if (yes) setInterrupt({ "interrupt.phase": "resolving" });
+    else { setInterrupt({ interrupt: null }); addLog && addLog("割り込みを拒否"); }
+  };
+  const finishInterrupt = () => { setInterrupt({ interrupt: null }); addLog && addLog("割り込み効果の解決終了"); };
+  // 1人回しは、答える側・解決する側の視点へ自動で切り替える
+  const interruptKey = interrupt ? `${interrupt.id}-${interrupt.phase}` : null;
+  useEffect(() => {
+    if (!isSolo || !interrupt) return;
+    setSoloSide(interrupt.phase === "ask" ? otherSide(interrupt.side) : interrupt.side);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interruptKey]);
+
+  // 攻撃・シールド処理・割り込み効果の解決中は、自動で相手に干渉できる
+  const autoInteract = (!!attack && attack.phase !== "target") || (shieldFlow?.phase === "resolving" && shieldFlow.defenderSide === mySide)
+    || (interrupt?.phase === "resolving" && interrupt.side === mySide);
   const effInteraction = interactionMode || autoInteract;
 
   const {
@@ -285,6 +313,7 @@ export default function GameTable() {
         onBreak={doBreak} onSkipBreak={() => setAttack(null)}
         onPreBreak={preBreak} onEndPreBreak={endPreBreak}
       />
+      <InterruptUI flow={interrupt} mySide={mySide} logs={logs} onPick={pickInterruptTrigger} onCancel={cancelInterrupt} onAnswer={answerInterrupt} onFinish={finishInterrupt} />
       <ShieldFlowUI flow={shieldFlow} mySide={mySide} onAnswer={answerShieldFlow} onFinish={finishShieldFlow} />
       <CardZoomOverlay />
 
@@ -350,7 +379,7 @@ export default function GameTable() {
       )}
 
       <ActionBar
-        onHelp={() => setShowHint(true)} onEndRoom={endRoom} onLog={() => setShowLog(true)} onCount={() => setShowCount(true)} onChat={() => setShowChat(true)}
+        onHelp={() => setShowHint(true)} onEndRoom={endRoom} onInterrupt={startInterrupt} interruptBusy={!!interrupt} onLog={() => setShowLog(true)} onCount={() => setShowCount(true)} onChat={() => setShowChat(true)}
         isSolo={isSolo} onSwitchSide={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
         onStartTurn={startTurn} onEndTurn={handleEndTurn} onDraw={drawCard} onShuffle={shuffleDeck}
         onUndo={undo} canUndo={canUndo} onSetup={setupGame}
