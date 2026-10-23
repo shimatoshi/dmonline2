@@ -8,8 +8,9 @@ const call = async (path, body) => {
   const res = await fetch(`${getApiBaseUrl()}${path}`, body && {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error((await res.text().catch(() => "")) || `通信に失敗しました (${res.status})`);
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `通信に失敗しました (${res.status})`);
+  return data;
 };
 
 export const fetchCustomCards = (uid) => call(`/api/custom-cards?uid=${encodeURIComponent(uid)}`).then((d) => d.cards);

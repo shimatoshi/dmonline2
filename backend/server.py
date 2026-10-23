@@ -158,7 +158,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
     # 対象は dm.takaratomy.co.jp のカード詳細(?id=...)のみ(オープンプロキシ化を防ぐ)。
     # 登録データ・ログはサーバー側(storage/custom_cards.json, register_log.jsonl)に保存する。
     OFFICIAL_BASE = "https://dm.takaratomy.co.jp"
-    UID_RE = re.compile(r'[A-Za-z0-9_\-]{1,128}')
+    UID_RE = re.compile(r'[^\s/\\]{1,128}')
     _store_lock = threading.Lock()
 
     @staticmethod
@@ -259,20 +259,20 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             data = self._read_body()
             uid = self._uid(data.get('uid'))
             if not uid:
-                self.send_error(400, "ログインが必要です")
+                self._json({"error": "ログインが必要です"}, 400)
                 return
             u = urllib.parse.urlparse((data.get('url') or '').strip())
             card_id = urllib.parse.parse_qs(u.query).get('id', [''])[0]
             if u.hostname != 'dm.takaratomy.co.jp' or not re.fullmatch(r'[A-Za-z0-9_\-]{1,40}', card_id):
-                self.send_error(400, "公式カード詳細ページのURLではありません")
+                self._json({"error": "公式カード詳細ページのURLではありません"}, 400)
                 return
 
             card, imgs = self._scrape_official(card_id)
             if not card:
-                self.send_error(404, "カード情報を取得できませんでした")
+                self._json({"error": "カード情報を取得できませんでした"}, 404)
                 return
             if not imgs:
-                self.send_error(404, "カード画像を取得できませんでした")
+                self._json({"error": "カード画像を取得できませんでした"}, 404)
                 return
 
             # 重複確認: 既存があり、かつ「別バージョンとして登録」(force)でなければ確認を返す
@@ -308,7 +308,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             print(f"[RegisterOfficial] {uid[:6]} {card['id']} {card['name']}")
         except Exception as e:
             print(f"[RegisterOfficial Error] {e}")
-            self.send_error(502, str(e))
+            self._json({"error": str(e)}, 502)
 
     def handle_register_cancel(self):
         try:
@@ -318,14 +318,14 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
                 self._log(uid, 'cancel', {"id": data.get('id'), "name": data.get('name')})
             self._json({"ok": True})
         except Exception as e:
-            self.send_error(400, str(e))
+            self._json({"error": str(e)}, 400)
 
     def handle_custom_delete(self):
         try:
             data = self._read_body()
             uid = self._uid(data.get('uid'))
             if not uid:
-                self.send_error(400, "bad uid")
+                self._json({"error": "bad uid"}, 400)
                 return
             with self._store_lock:
                 store = self._load_custom()
@@ -337,13 +337,13 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
                 self._log(uid, 'delete', c)
             self._json({"ok": True})
         except Exception as e:
-            self.send_error(400, str(e))
+            self._json({"error": str(e)}, 400)
 
     def handle_custom_list(self):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         uid = self._uid(q.get('uid', [''])[0])
         if not uid:
-            self.send_error(400, "bad uid")
+            self._json({"error": "bad uid"}, 400)
             return
         self._json({"cards": self._load_custom().get(uid, [])})
 
@@ -351,7 +351,7 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         uid = self._uid(q.get('uid', [''])[0])
         if not uid:
-            self.send_error(400, "bad uid")
+            self._json({"error": "bad uid"}, 400)
             return
         rows = []
         try:
