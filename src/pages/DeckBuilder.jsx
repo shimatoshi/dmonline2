@@ -66,6 +66,26 @@ export default function DeckBuilder() {
     return () => { alive = false; };
   }, []);
 
+  // 新図鑑でユーザーが独自登録したカードも一覧に加える
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    getDocs(collection(db, "users", user.uid, "customCards"))
+      .then((snap) => {
+        if (!alive) return;
+        const mine = snap.docs.map((d) => d.data()).filter((c) => c.img).map((c) => ({
+          id: c.id, url: c.img, name: c.name, cost: c.cost, text: c.text, type: c.type, civil: c.civil,
+          tags: c.civil ? String(c.civil).split(/[/・]/).filter(Boolean) : [],
+        }));
+        setLibrary((prev) => {
+          const urls = new Set(prev.map((c) => c.url));
+          return [...mine.filter((c) => !urls.has(c.url)), ...prev];
+        });
+      })
+      .catch((e) => console.error("custom cards load failed:", e));
+    return () => { alive = false; };
+  }, [user]);
+
   // マイ図鑑に登録済みの「裏面つきカード(超次元・サイキック等)」は公式データに裏面が無いため、一覧に加える
   useEffect(() => {
     if (!user) return;

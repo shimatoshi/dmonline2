@@ -9,6 +9,8 @@ import sys
 import uuid
 import json
 import base64
+import re
+import html
 
 # Termux bionic DNSが外部ホストを引けない環境向けのフォールバック
 try:
@@ -47,6 +49,9 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             return
         if self.path == '/api/fetch-image':
             self.handle_fetch_image()
+            return
+        if self.path == '/api/register-official':
+            self.handle_register_official()
             return
         self.send_error(404)
 
@@ -130,6 +135,66 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
 
         except Exception as e:
             print(f"[FetchImage Error] {e}")
+            self.send_error(502, str(e))
+
+    # 公式カード詳細ページのURLからカード情報を取得し、画像を自サーバーに保存して返す。
+    # 対象は dm.takaratomy.co.jp のカード詳細(?id=...)のみ(オープンプロキシ化を防ぐ)。
+    OFFICIAL_BASE = "https://dm.takaratomy.co.jp"
+
+    @staticmethod
+    def _official_text(s):
+        s = re.sub(r'<br\s*/?>|</li>', '\n', s)
+        return html.unescape(re.sub(r'<[^>]+>', '', s)).strip()
+
+    def _official_get(self, url):
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=20) as res:
+            return res.read(10 * 1024 * 1024)
+
+    def handle_register_official(self):
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            data = json.loads(self.rfile.read(length).decode('utf-8'))
+            raw = (data.get('url') or '').strip()
+            u = urllib.parse.urlparse(raw)
+            card_id = urllib.parse.parse_qs(u.query).get('id', [''])[0]
+            if u.hostname != 'dm.takaratomy.co.jp' or not re.fullmatch(r'[A-Za-z0-9_\-]{1,40}', card_id):
+                self.send_error(400, "公式カード詳細ページのURLではありません")
+                return
+
+            h = self._official_get(f"{self.OFFICIAL_BASE}/card/detail/?id={card_id}").decode('utf-8', 'replace')
+            h = h[h.find("class='cardDetail'"):]
+            t = self._official_text
+            m = re.search(r"<h3 class='card-name'>(.*?)(?:<span class='packname'>\((.*?)\)</span>)?</h3>", h, re.S)
+            if not m or not t(m.group(1)):
+                self.send_error(404, "カード情報を取得できませんでした")
+                return
+            card = {"id": card_id, "name": t(m.group(1)), "pack": t(m.group(2)) if m.group(2) else None}
+            for k in ("type", "civil", "rarelity", "power", "cost", "race"):
+                x = re.search(r"<td[^>]*class='%s'[^>]*>(.*?)</td>" % k, h, re.S)
+                card[k] = t(x.group(1)) if x else None
+            x = re.search(r"class='skills full'>(.*?)</td>", h, re.S)
+            card["text"] = t(x.group(1)) if x else None
+
+            imgs = list(dict.fromkeys(re.findall(r'src="(/wp-content/card/cardimage/[^"]+)"', h)))
+            card["img"] = ""
+            if imgs:
+                fname = os.path.basename(urllib.parse.urlparse(imgs[0]).path)
+                if not re.fullmatch(r'[\w\-.%]+', fname):
+                    fname = f"official_{card_id}.jpg"
+                dest = os.path.join(UPLOAD_DIR, fname)
+                if not os.path.exists(dest):
+                    with open(dest, 'wb') as f:
+                        f.write(self._official_get(self.OFFICIAL_BASE + imgs[0]))
+                card["img"] = f"/api/uploads/{fname}"
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(card, ensure_ascii=False).encode('utf-8'))
+            print(f"[RegisterOfficial] {card_id} {card['name']}")
+        except Exception as e:
+            print(f"[RegisterOfficial Error] {e}")
             self.send_error(502, str(e))
 
     def handle_upload_json(self):
