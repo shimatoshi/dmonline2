@@ -29,7 +29,7 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { ShieldFlowUI } from "../components/game/ShieldFlowUI";
 import { AttackUI } from "../components/game/AttackUI";
-import { ensureCardNames } from "../utils/cardNames";
+import { ensureCardNames, ensureCardTexts, getBreakCount } from "../utils/cardNames";
 
 export default function GameTable() {
   const { roomId } = useParams();
@@ -120,7 +120,7 @@ export default function GameTable() {
     return out;
   })();
 
-  useEffect(() => { ensureCardNames(); }, []);
+  useEffect(() => { ensureCardNames(); ensureCardTexts(); }, []);
 
   // 相手がターンを終えたら、自分のターン開始処理(アンタップ+ドロー)を自動で行う
   const autoStartedTurn = useRef(0);
@@ -148,15 +148,21 @@ export default function GameTable() {
   };
   const afterResolve = () => {
     if (attack?.target?.type === "player" && (opponent?.shields?.length || 0) > 0) {
-      setAttack((a) => ({ ...a, phase: "break", picks: [] }));
+      setAttack((a) => enterBreak(a));
     } else setAttack(null);
   };
   const answerResolve = (yes) => {
     if (yes) setAttack((a) => ({ ...a, phase: "resolving" })); else afterResolve();
   };
   const preBreak = () => setAttack((a) => ({ ...a, phase: "prebreak" }));
-  const endPreBreak = () => setAttack((a) => ({ ...a, phase: "break" }));
-  const setBreakCount = (n) => setAttack((a) => ({ ...a, count: n, picks: a.picks.slice(0, n) }));
+  // ブレイク画面へ入るとき、攻撃クリーチャーの文章(W/T/Q・ブレイカー等)から初期ブレイク数を決める
+  const enterBreak = (a) => {
+    const c = myBattleZone[a.idx];
+    const shields = opponent?.shields?.length || 0;
+    return { ...a, phase: "break", picks: [], count: Math.max(1, Math.min(getBreakCount(typeof c === "object" ? c?.url : c), shields)) };
+  };
+  const endPreBreak = () => setAttack((a) => (a.touched ? { ...a, phase: "break" } : { ...enterBreak(a), picks: a.picks }));
+  const setBreakCount = (n) => setAttack((a) => ({ ...a, count: n, touched: true, picks: a.picks.slice(0, n) }));
   const toggleBreakPick = (i) => setAttack((a) => {
     if (a.picks.includes(i)) return { ...a, picks: a.picks.filter((x) => x !== i) };
     if (a.picks.length >= a.count) return a;
