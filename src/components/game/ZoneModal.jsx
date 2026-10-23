@@ -12,7 +12,9 @@ const MULTI_TARGETS = [
 ];
 
 export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCardTap, onToggleFace, onMoveMany, alwaysClose }) => {
-  const [multi, setMulti] = useState(false);
+  const [multiState, setMulti] = useState(false);
+  // 一時ゾーンは常に選択モード(1枚タップ→移動先を選ぶだけで動かせる)
+  const multi = multiState || zoneName === "temp";
   const [picked, setPicked] = useState([]); // 触った順のインデックス
 
   const togglePick = (i) => setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
@@ -54,8 +56,8 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
           <h3 style={{ margin: 0, fontSize: "1rem" }}>{title} ({cards.length})</h3>
           <div style={{ display: "flex", gap: "10px" }}>
             {zoneName === "temp" && (
-              <button className="btn" onClick={() => { onToggleFace(multi && picked.length ? picked : undefined); setPicked([]); }} style={{background: "var(--accent-color)", fontSize: "0.75rem", padding: "4px 8px"}}>
-                {multi && picked.length ? `選択${picked.length}枚を公開/非公開` : "全て公開/非公開"}
+              <button className="btn" onClick={() => { onToggleFace(picked.length ? picked : undefined); setPicked([]); }} style={{background: "var(--accent-color)", fontSize: "0.75rem", padding: "4px 8px"}}>
+                {picked.length ? `選択${picked.length}枚を公開/非公開` : "全て公開/非公開"}
               </button>
             )}
           </div>
@@ -119,7 +121,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
         {multi ? (
           <div style={{ marginTop: "8px" }}>
             <div style={{ color: "var(--text-secondary)", fontSize: "0.75rem", textAlign: "center", marginBottom: "6px" }}>
-              触った順に番号が付きます({picked.length}枚) → 移動先をタップ
+              {zoneName === "temp" ? "カードをタップして選択" : "触った順に番号が付きます"}({picked.length}枚) → 移動先をタップ
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center" }}>
               {MULTI_TARGETS.filter((t) => t.id !== zoneName).map((t) => (
@@ -139,14 +141,14 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
           </div>
         )}
 
-        {onMoveMany && alwaysClose && (
+        {onMoveMany && (alwaysClose || zoneName === "temp") && (
           <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
         )}
-        {onMoveMany ? (
+        {onMoveMany && zoneName !== "temp" ? (
           <button className="btn" onClick={toggleMulti} style={{ marginTop: "8px", minHeight: "44px", flexShrink: 0, color: "#fff", background: multi ? "var(--accent-color)" : "var(--border-color)" }}>
             {multi ? "複数選択中(タップで解除)" : "複数選択"}
           </button>
-        ) : (
+        ) : !onMoveMany && (
           <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
         )}
       </div>

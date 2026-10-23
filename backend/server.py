@@ -31,6 +31,7 @@ CACHE_DIR = os.path.join(STORAGE_DIR, 'images')
 UPLOAD_DIR = os.path.join(STORAGE_DIR, 'uploads')
 CUSTOM_FILE = os.path.join(STORAGE_DIR, 'custom_cards.json')
 LOG_FILE = os.path.join(STORAGE_DIR, 'register_log.jsonl')
+INQUIRY_FILE = os.path.join(STORAGE_DIR, 'inquiries.jsonl')
 
 for d in [CACHE_DIR, UPLOAD_DIR]:
     if not os.path.exists(d):
@@ -56,6 +57,9 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             return
         if self.path == '/api/register-official':
             self.handle_register_official()
+            return
+        if self.path == '/api/inquiry':
+            self.handle_inquiry()
             return
         if self.path == '/api/register-cancel':
             self.handle_register_cancel()
@@ -312,6 +316,23 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"[RegisterOfficial Error] {e}")
             self._json({"error": str(e)}, 502)
+
+    def handle_inquiry(self):
+        # お問い合わせ・苦情の受付。storage/inquiries.jsonl に1行1件で追記する
+        try:
+            data = self._read_body()
+            text = str(data.get('text') or '').strip()
+            if not text:
+                self._json({"error": "内容を入力してください"}, 400)
+                return
+            rec = {"ts": int(time.time()), "uid": self._uid(data.get('uid')) or '',
+                   "name": str(data.get('name') or '')[:50], "text": text[:2000]}
+            with self._store_lock, open(INQUIRY_FILE, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+            print(f"[Inquiry] {rec['name']} {text[:30]}")
+            self._json({"ok": True})
+        except Exception as e:
+            self._json({"error": str(e)}, 400)
 
     def handle_register_cancel(self):
         try:

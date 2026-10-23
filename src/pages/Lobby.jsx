@@ -3,8 +3,28 @@ import { db, auth } from "../firebase";
 import { collection, addDoc, setDoc, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy, runTransaction } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import Announcements from "../components/Announcements";
+import { getApiBaseUrl, resolveApiBase } from "../utils/apiConfig";
+import { showToast } from "../utils/toast";
 
 export default function Lobby() {
+  const [inqOpen, setInqOpen] = useState(false);
+  const [inqText, setInqText] = useState("");
+  const [inqBusy, setInqBusy] = useState(false);
+  const sendInquiry = async () => {
+    if (!inqText.trim() || inqBusy) return;
+    setInqBusy(true);
+    try {
+      await resolveApiBase();
+      const res = await fetch(`${getApiBaseUrl()}/api/inquiry`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: inqText, uid: auth.currentUser?.uid, name: auth.currentUser?.displayName || auth.currentUser?.email || "" }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error || `通信に失敗しました (${res.status})`);
+      setInqText(""); setInqOpen(false); showToast("送信しました。ご意見ありがとうございます", 2500);
+    } catch (e) { showToast("送信に失敗しました: " + e.message, 3000); }
+    setInqBusy(false);
+  };
   const [rooms, setRooms] = useState([]);
   const [activeGames, setActiveGames] = useState([]);
   const [myDecks, setMyDecks] = useState([]);
@@ -303,6 +323,22 @@ export default function Lobby() {
           );
         })}
       </div>
+
+      <button className="btn btn-outline" onClick={() => setInqOpen(true)} style={{ width: "100%", marginTop: "16px", minHeight: "44px" }}>お問い合わせ・ご意見</button>
+
+      {inqOpen && (
+        <div onClick={() => setInqOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, overflowY: "auto", padding: "16px" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", borderRadius: "var(--radius-md)", padding: "12px", maxWidth: "420px", margin: "0 auto" }}>
+            <h3 style={{ margin: "0 0 8px" }}>お問い合わせ・ご意見</h3>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "6px" }}>不具合・要望・苦情などをご自由にどうぞ。</div>
+            <textarea value={inqText} onChange={(e) => setInqText(e.target.value)} maxLength={2000} rows={7} className="input-field" placeholder="内容を入力" style={{ width: "100%", boxSizing: "border-box" }} />
+            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+              <button className="btn btn-outline" onClick={() => setInqOpen(false)} style={{ flex: 1 }}>閉じる</button>
+              <button className="btn" onClick={sendInquiry} disabled={inqBusy || !inqText.trim()} style={{ flex: 1 }}>{inqBusy ? "送信中..." : "送信"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
