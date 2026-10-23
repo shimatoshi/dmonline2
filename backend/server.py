@@ -370,9 +370,9 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
                         r = json.loads(line)
                     except ValueError:
                         continue
-                    if r.get("uid") == uid:
-                        r.pop("uid", None)
-                        rows.append(r)
+                    # カードは全員共有なので、ログも全員分を返す(他人のuidは伏せて mine のみ付与)
+                    r["mine"] = r.pop("uid", None) == uid
+                    rows.append(r)
         except FileNotFoundError:
             pass
         self._json({"log": rows[-200:][::-1]})

@@ -173,6 +173,7 @@ export default function NewCardLibraryPage() {
             {logRows.map((r, i) => (
               <div key={i} style={{ fontSize: "0.8rem", padding: "4px 0", borderBottom: "1px solid var(--border-color)" }}>
                 <span style={{ color: "var(--text-muted)" }}>{new Date(r.ts * 1000).toLocaleString("ja-JP")}</span>{" "}
+                <span style={{ color: r.mine ? "var(--accent-color, #4af)" : "var(--text-muted)" }}>[{r.mine ? "自分" : "他の人"}]</span>{" "}
                 <b>{{ register: r.variant ? "別バージョン登録" : "登録", duplicate: "重複を検出", cancel: "キャンセル", delete: "削除" }[r.action] || r.action}</b>{" "}
                 {r.name} <span style={{ color: "var(--text-muted)" }}>({r.id})</span>
               </div>
