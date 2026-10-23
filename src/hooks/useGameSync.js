@@ -10,6 +10,7 @@ export const useGameSync = (roomId, user) => {
   const [roomData, setRoomData] = useState(null);
   const [firstPlayerId, setFirstPlayerId] = useState(null);
   const [soloSide, setSoloSide] = useState("host"); // "host" or "guest"
+  const [roomGone, setRoomGone] = useState(false); // 部屋が削除された(相手が終了した)
   
   // 自分のデータ
   const [myHand, setMyHand] = useState([]);
@@ -29,7 +30,7 @@ export const useGameSync = (roomId, user) => {
   useEffect(() => {
     if (!user || !roomId) return;
     const unsubscribe = onSnapshot(doc(db, "rooms", roomId), (docSnap) => {
-      if (!docSnap.exists()) return;
+      if (!docSnap.exists()) { if (!docSnap.metadata.fromCache) setRoomGone(true); return; }
       const data = docSnap.data();
       setRoomData(data);
       setFirstPlayerId(data.firstPlayerId);
@@ -180,6 +181,7 @@ export const useGameSync = (roomId, user) => {
     generateId, // ID生成器もエクスポートしておく
     normalizeZone, // ★追加
     setSoloSide, // ★追加: 視点切り替え用
+    roomGone,
     isSolo: roomData?.guestId === "solo" // ★追加: 1人回しモード判定
   };
 };

@@ -24,7 +24,7 @@ const Divider = () => <div style={{ height: "1px", background: "var(--border-col
 export const ActionBar = ({
   onStartTurn, onEndTurn, onDraw, onShuffle, onUndo, canUndo, onSetup,
   counts, multiMode, onToggleMulti, interactionMode, onToggleInteract, revealHand, onToggleRevealHand,
-  onHelp, onLog, onChat, onCount, onSwitchSide, isSolo,
+  onHelp, onLog, onChat, onCount, onEndRoom, onSwitchSide, isSolo,
 }) => {
   // 入りきらないときも、基本操作のある下側が見える状態から始める
   const ref = useRef(null);
@@ -60,6 +60,8 @@ export const ActionBar = ({
     <Divider />
     <Item icon="⚡" label="開始" bg="var(--accent-color)" onClick={onStartTurn} />
     <Item icon="🛑" label="終了" bg="var(--danger-color)" onClick={onEndTurn} />
+    <Divider />
+    <Item icon="🚪" label="部屋終了" bg="var(--danger-color)" onClick={onEndRoom} />
   </div>
   );
 };

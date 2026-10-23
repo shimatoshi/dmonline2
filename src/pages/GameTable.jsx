@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 
 import { GameModals } from "../components/game/GameModals";
@@ -25,7 +25,7 @@ import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
 import { CountPanel } from "../components/game/CountPanel";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { ShieldFlowUI } from "../components/game/ShieldFlowUI";
 import { AttackUI } from "../components/game/AttackUI";
@@ -34,6 +34,7 @@ import { ensureCardNames } from "../utils/cardNames";
 export default function GameTable() {
   const { roomId } = useParams();
   const user = auth.currentUser;
+  const navigate = useNavigate();
 
   // --- フック ---
   const gameState = useGameSync(roomId, user);
@@ -41,7 +42,7 @@ export default function GameTable() {
     isHost, roomData, firstPlayerId,
     myHand, myBattleZone, myManaZone, myShields, myGraveyard, myDeck, myTempZone, myHyperspace,
     syncToDB, generateId, normalizeZone,
-    setSoloSide, isSolo, undo, canUndo
+    setSoloSide, isSolo, undo, canUndo, roomGone
   } = gameState;
 
   const { logs, addLog } = useGameLog(roomId, user, gameState.mySide);
@@ -59,6 +60,18 @@ export default function GameTable() {
     performOpponentActionDirect, moveOpponentMany,
     revealOpponentHand
   } = useOpponentActions(roomId, isHost, roomData, generateId);
+
+  // 部屋を終了(削除)してロビーへ。相手側は部屋が消えたことを検知して戻る
+  const leaving = useRef(false);
+  const endRoom = async () => {
+    if (!window.confirm(isSolo ? "1人回しの部屋を終了しますか？" : "部屋を終了しますか？(相手も退出します)")) return;
+    leaving.current = true;
+    try { await deleteDoc(doc(db, "rooms", roomId)); } catch (e) { console.error(e); }
+    navigate("/");
+  };
+  useEffect(() => {
+    if (roomGone && !leaving.current) { alert("部屋が終了しました"); navigate("/"); }
+  }, [roomGone]);
 
   // UI State
   const [zoomedUrl, setZoomedUrl] = useState(null);
@@ -331,7 +344,7 @@ export default function GameTable() {
       )}
 
       <ActionBar
-        onHelp={() => setShowHint(true)} onLog={() => setShowLog(true)} onCount={() => setShowCount(true)} onChat={() => setShowChat(true)}
+        onHelp={() => setShowHint(true)} onEndRoom={endRoom} onLog={() => setShowLog(true)} onCount={() => setShowCount(true)} onChat={() => setShowChat(true)}
         isSolo={isSolo} onSwitchSide={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
         onStartTurn={startTurn} onEndTurn={handleEndTurn} onDraw={drawCard} onShuffle={shuffleDeck}
         onUndo={undo} canUndo={canUndo} onSetup={setupGame}
