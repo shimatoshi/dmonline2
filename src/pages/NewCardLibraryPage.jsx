@@ -26,6 +26,7 @@ export default function NewCardLibraryPage() {
 
   const [dup, setDup] = useState(null); // 重複確認ダイアログ {card, existing}
   const [logRows, setLogRows] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const doRegister = async (force = false) => {
     if (!regUrl.trim() || regBusy) return;
@@ -70,6 +71,7 @@ export default function NewCardLibraryPage() {
             style={{ flex: 1, minWidth: 0, padding: "8px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color-light)", background: "var(--surface-color-dark)", color: "#fff" }} />
           <button onClick={() => doRegister(false)} disabled={regBusy || !regUrl.trim()} className="btn">{regBusy ? "取得中..." : "登録"}</button>
           <button onClick={openLog} className="btn btn-outline">ログ</button>
+          <button onClick={() => setHelpOpen(true)} className="btn btn-outline" aria-label="使い方">？</button>
         </div>
         {regMsg && <div style={{ fontSize: "0.8rem", color: regMsg.startsWith("登録に失敗") ? "#ff8080" : "#42a5f5" }}>{regMsg}</div>}
         <input value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} placeholder="カード名・種族・テキストで検索"
@@ -122,6 +124,43 @@ export default function NewCardLibraryPage() {
               <button onClick={cancelDup} className="btn btn-outline" style={{ flex: 1 }}>登録をキャンセル</button>
               <button onClick={() => doRegister(true)} disabled={regBusy} className="btn" style={{ flex: 1 }}>{regBusy ? "登録中..." : "別バージョンとして登録"}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {helpOpen && (
+        <div onClick={() => setHelpOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2100, overflowY: "auto", padding: "16px" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", borderRadius: "var(--radius-md)", padding: "14px", maxWidth: "420px", margin: "0 auto", fontSize: "0.85rem", lineHeight: 1.6 }}>
+            <h3 style={{ margin: "0 0 8px" }}>新図鑑の使い方</h3>
+            <b>カードを探す</b>
+            <ul style={{ margin: "2px 0 10px", paddingLeft: "1.2em" }}>
+              <li>検索欄にカード名・種族・テキストの一部を入れると絞り込めます。</li>
+              <li>文明のボタンで、文明ごとに絞り込めます。</li>
+              <li>カードをタップすると、画像と詳細(コスト・パワー・能力)を表示します。</li>
+              <li>再録の多いカードは、1カードにまとめて表示しています。</li>
+            </ul>
+            <b>カードを新規登録する</b>
+            <ol style={{ margin: "2px 0 10px", paddingLeft: "1.4em" }}>
+              <li>公式サイト(dm.takaratomy.co.jp)でカード詳細ページを開き、URLをコピーします。</li>
+              <li>図鑑上部の入力欄にURLを貼り付けて「登録」を押します。</li>
+              <li>カード情報と画像を自動で取得し、「登録が完了しました」と表示されたら図鑑に追加されます。</li>
+            </ol>
+            <div style={{ color: "var(--text-secondary)", marginBottom: "10px" }}>
+              例: dm.takaratomy.co.jp/card/detail/?id=dm01-008<br />
+              ※「https://」が付いていなくても登録できます。
+            </div>
+            <b>すでにあるカードを登録したとき</b>
+            <ul style={{ margin: "2px 0 10px", paddingLeft: "1.2em" }}>
+              <li>同じカードが図鑑にある場合は確認が出ます。登録済みの画像を見比べて決められます。</li>
+              <li>「別バージョンとして登録」で追加、「登録をキャンセル」で取りやめです。</li>
+            </ul>
+            <b>登録したカード</b>
+            <ul style={{ margin: "2px 0 10px", paddingLeft: "1.2em" }}>
+              <li>登録したカードは自分のアカウント専用で、一覧の先頭に並びます。デッキ作成でも使えます。</li>
+              <li>詳細画面の「登録を削除」で消せます。</li>
+              <li>「ログ」ボタンで、登録・重複検出・キャンセル・削除の履歴を確認できます。</li>
+            </ul>
+            <button onClick={() => setHelpOpen(false)} className="btn btn-outline" style={{ width: "100%" }}>閉じる</button>
           </div>
         </div>
       )}
