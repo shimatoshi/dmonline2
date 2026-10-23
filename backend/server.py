@@ -261,9 +261,12 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             if not uid:
                 self._json({"error": "ログインが必要です"}, 400)
                 return
-            u = urllib.parse.urlparse((data.get('url') or '').strip())
+            raw = (data.get('url') or '').strip()
+            if not re.match(r'^https?://', raw, re.I):
+                raw = 'https://' + raw.lstrip('/')  # https:// 無しで貼られた場合も受け付ける
+            u = urllib.parse.urlparse(raw)
             card_id = urllib.parse.parse_qs(u.query).get('id', [''])[0]
-            if u.hostname != 'dm.takaratomy.co.jp' or not re.fullmatch(r'[A-Za-z0-9_\-]{1,40}', card_id):
+            if u.hostname not in ('dm.takaratomy.co.jp', 'www.dm.takaratomy.co.jp') or not re.fullmatch(r'[A-Za-z0-9_\-]{1,40}', card_id):
                 self._json({"error": "公式カード詳細ページのURLではありません"}, 400)
                 return
 
