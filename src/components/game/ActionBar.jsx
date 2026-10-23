@@ -24,7 +24,7 @@ const Divider = () => <div style={{ height: "1px", background: "var(--border-col
 export const ActionBar = ({
   onStartTurn, onEndTurn, onDraw, onShuffle, onUndo, canUndo, onSetup,
   counts, multiMode, onToggleMulti, interactionMode, onToggleInteract, revealHand, onToggleRevealHand,
-  onHelp, onLog, onChat, onSwitchSide, isSolo,
+  onHelp, onLog, onChat, onCount, onSwitchSide, isSolo,
 }) => {
   // 入りきらないときも、基本操作のある下側が見える状態から始める
   const ref = useRef(null);
@@ -39,13 +39,14 @@ export const ActionBar = ({
       background: "var(--surface-color-dark)", borderLeft: "1px solid var(--border-color-light)",
     }}
   >
-    {/* 上: たまに使うもの / 下: 基本操作(親指が届く位置) */}
+    {/* すべて下寄せ(親指が届く位置)。入りきらないときはスクロール */}
+    <Item icon="🔢" label="カウント" onClick={onCount} style={{ marginTop: "auto" }} />
     <Item icon="❓" label="ヘルプ" onClick={onHelp} />
     <Item icon="📜" label="ログ" onClick={onLog} />
     <Item icon="💬" label="チャット" onClick={onChat} />
     {isSolo && <Item icon="👥" label="視点切替" bg="var(--accent-color)" onClick={onSwitchSide} />}
     <Divider />
-    <Item icon="🔄" label="開始前" bg="var(--success-color)" onClick={onSetup} style={{ marginTop: "auto" }} />
+    <Item icon="🔄" label="開始前" bg="var(--success-color)" onClick={onSetup} />
     <Divider />
     <Item icon="☑" label={multiMode ? "選択中" : "複数選択"} active={multiMode} onClick={onToggleMulti} />
     <Item icon="⚡" label={interactionMode ? "干渉中" : "干渉"} bg={interactionMode ? "var(--danger-color)" : "var(--border-color)"} onClick={onToggleInteract} />

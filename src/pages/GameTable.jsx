@@ -24,6 +24,7 @@ import { MultiSelectContext } from "../components/game/MultiSelectContext";
 import { ActionBar } from "../components/game/ActionBar";
 import { CardZoomOverlay } from "../components/game/CardZoomOverlay";
 import { GameLogPanel } from "../components/game/GameLogPanel";
+import { CountPanel } from "../components/game/CountPanel";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { ShieldFlowUI } from "../components/game/ShieldFlowUI";
@@ -80,6 +81,7 @@ export default function GameTable() {
   const [showHint, setShowHint] = useState(shouldShowHintFirst);
   const closeHint = () => { markHintSeen(); setShowHint(false); };
   const [showLog, setShowLog] = useState(false);
+  const [showCount, setShowCount] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
   // 直近で手札に加わったカードの印(ターンが変わるか、手札から出ると消える)
@@ -231,6 +233,13 @@ export default function GameTable() {
       </div>
 
       {showHint && <GameHint onClose={closeHint} />}
+      {showCount && (
+        <CountPanel
+          turn={turn} onClose={() => setShowCount(false)}
+          mine={{ hand: myHand.length, mana: myManaZone.length, deck: myDeck.length, grave: myGraveyard.length, shield: myShields.length }}
+          theirs={{ hand: opponent?.hand?.length || 0, mana: opponent?.manaZone?.length || 0, deck: opponent?.deck?.length || 0, grave: opponent?.graveyard?.length || 0, shield: opponent?.shields?.length || 0 }}
+        />
+      )}
       {showLog && <GameLogPanel logs={logs} mySide={mySide} onClose={() => setShowLog(false)} />}
 
       <GameModals
@@ -322,7 +331,7 @@ export default function GameTable() {
       )}
 
       <ActionBar
-        onHelp={() => setShowHint(true)} onLog={() => setShowLog(true)} onChat={() => setShowChat(true)}
+        onHelp={() => setShowHint(true)} onLog={() => setShowLog(true)} onCount={() => setShowCount(true)} onChat={() => setShowChat(true)}
         isSolo={isSolo} onSwitchSide={() => setSoloSide(prev => prev === "host" ? "guest" : "host")}
         onStartTurn={startTurn} onEndTurn={handleEndTurn} onDraw={drawCard} onShuffle={shuffleDeck}
         onUndo={undo} canUndo={canUndo} onSetup={setupGame}
