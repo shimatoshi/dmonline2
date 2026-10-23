@@ -209,7 +209,10 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             f.write(json.dumps(rec, ensure_ascii=False) + '\n')
 
     def _official_cards(self):
-        path = os.path.join(WEB_ROOT, 'data', 'official_cards.json')
+        # distはgit管理外で古い場合があるため、リポジトリ管理の public/data を優先する
+        path = os.path.join(os.path.dirname(__file__), '..', 'public', 'data', 'official_cards.json')
+        if not os.path.exists(path):
+            path = os.path.join(WEB_ROOT, 'data', 'official_cards.json')
         try:
             mt = os.path.getmtime(path)
             if SPAHandler._oc_cache is None or SPAHandler._oc_cache[0] != mt:
