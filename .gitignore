@@ -10,3 +10,5 @@ scrape/official_cards/images/
 __pycache__/
 
 scrape/official_cards/images_gh/
+backend/github_token
+backend/storage/

@@ -21,7 +21,7 @@ export default function Lobby() {
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.error || `通信に失敗しました (${res.status})`);
-      setInqText(""); setInqOpen(false); showToast("送信しました。ご意見ありがとうございます", 2500);
+      setInqText(""); setInqOpen(false); showToast("送信しました。ご意見ありがとうございます(公開のissueになります)", 2500);
     } catch (e) { showToast("送信に失敗しました: " + e.message, 3000); }
     setInqBusy(false);
   };
@@ -330,7 +330,7 @@ export default function Lobby() {
         <div onClick={() => setInqOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, overflowY: "auto", padding: "16px" }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", borderRadius: "var(--radius-md)", padding: "12px", maxWidth: "420px", margin: "0 auto" }}>
             <h3 style={{ margin: "0 0 8px" }}>お問い合わせ・ご意見</h3>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "6px" }}>不具合・要望・苦情などをご自由にどうぞ。</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "6px" }}>不具合・要望・苦情などをご自由にどうぞ。内容はGitHubのissue(公開)になります。個人情報は書かないでください。名前は載りません。</div>
             <textarea value={inqText} onChange={(e) => setInqText(e.target.value)} maxLength={2000} rows={7} className="input-field" placeholder="内容を入力" style={{ width: "100%", boxSizing: "border-box" }} />
             <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
               <button className="btn btn-outline" onClick={() => setInqOpen(false)} style={{ flex: 1 }}>閉じる</button>

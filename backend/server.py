@@ -32,6 +32,8 @@ UPLOAD_DIR = os.path.join(STORAGE_DIR, 'uploads')
 CUSTOM_FILE = os.path.join(STORAGE_DIR, 'custom_cards.json')
 LOG_FILE = os.path.join(STORAGE_DIR, 'register_log.jsonl')
 INQUIRY_FILE = os.path.join(STORAGE_DIR, 'inquiries.jsonl')
+GH_TOKEN_FILE = os.path.join(os.path.dirname(__file__), 'github_token')
+GH_REPO = 'shimatoshi/dmonline2'
 
 for d in [CACHE_DIR, UPLOAD_DIR]:
     if not os.path.exists(d):
@@ -323,6 +325,22 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             print(f"[RegisterOfficial Error] {e}")
             self._json({"error": str(e)}, 502)
 
+    def _create_issue(self, text):
+        # お問い合わせをGitHub issueにする(公開リポジトリなので投稿者名・IDは載せない)。失敗しても受付自体は成功扱い
+        try:
+            with open(GH_TOKEN_FILE) as f:
+                token = f.read().strip()
+            first = text.splitlines()[0][:50] if text.splitlines() else text[:50]
+            body = json.dumps({"title": f"[お問い合わせ] {first}", "body": text, "labels": ["inquiry"]}).encode('utf-8')
+            req = urllib.request.Request(f"https://api.github.com/repos/{GH_REPO}/issues", data=body, method='POST',
+                headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json',
+                         'Content-Type': 'application/json; charset=utf-8', 'User-Agent': 'dmonline2'})
+            with urllib.request.urlopen(req, timeout=15) as res:
+                return json.loads(res.read().decode('utf-8')).get('number')
+        except Exception as e:
+            print(f"[Inquiry] issue作成失敗: {e}")
+            return None
+
     def handle_inquiry(self):
         # お問い合わせ・苦情の受付。storage/inquiries.jsonl に1行1件で追記する
         try:
@@ -336,7 +354,8 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             with self._store_lock, open(INQUIRY_FILE, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + '\n')
             print(f"[Inquiry] {rec['name']} {text[:30]}")
-            self._json({"ok": True})
+            issue = self._create_issue(text)
+            self._json({"ok": True, "issue": issue})
         except Exception as e:
             self._json({"error": str(e)}, 400)
 
