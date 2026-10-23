@@ -11,6 +11,8 @@ import json
 import base64
 import re
 import html
+import time
+import threading
 
 # Termux bionic DNSが外部ホストを引けない環境向けのフォールバック
 try:
@@ -27,6 +29,8 @@ WEB_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dist')
 STORAGE_DIR = os.path.join(os.path.dirname(__file__), 'storage')
 CACHE_DIR = os.path.join(STORAGE_DIR, 'images')
 UPLOAD_DIR = os.path.join(STORAGE_DIR, 'uploads')
+CUSTOM_FILE = os.path.join(STORAGE_DIR, 'custom_cards.json')
+LOG_FILE = os.path.join(STORAGE_DIR, 'register_log.jsonl')
 
 for d in [CACHE_DIR, UPLOAD_DIR]:
     if not os.path.exists(d):
@@ -53,9 +57,22 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/api/register-official':
             self.handle_register_official()
             return
+        if self.path == '/api/register-cancel':
+            self.handle_register_cancel()
+            return
+        if self.path == '/api/custom-cards/delete':
+            self.handle_custom_delete()
+            return
         self.send_error(404)
 
     def do_GET(self):
+        if self.path.startswith('/api/custom-cards'):
+            self.handle_custom_list()
+            return
+        if self.path.startswith('/api/register-log'):
+            self.handle_register_log()
+            return
+
         # 1. 画像プロキシ処理 (/api/image?url=...)
         if self.path.startswith('/api/image'):
             self.handle_image_proxy()
@@ -137,9 +154,12 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
             print(f"[FetchImage Error] {e}")
             self.send_error(502, str(e))
 
-    # 公式カード詳細ページのURLからカード情報を取得し、画像を自サーバーに保存して返す。
+    # ---- 新図鑑: ユーザー独自カードの登録(公式カード詳細URL) ----
     # 対象は dm.takaratomy.co.jp のカード詳細(?id=...)のみ(オープンプロキシ化を防ぐ)。
+    # 登録データ・ログはサーバー側(storage/custom_cards.json, register_log.jsonl)に保存する。
     OFFICIAL_BASE = "https://dm.takaratomy.co.jp"
+    UID_RE = re.compile(r'[A-Za-z0-9_\-]{1,128}')
+    _store_lock = threading.Lock()
 
     @staticmethod
     def _official_text(s):
@@ -151,51 +171,199 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         with urllib.request.urlopen(req, timeout=20) as res:
             return res.read(10 * 1024 * 1024)
 
+    def _json(self, obj, code=200):
+        body = json.dumps(obj, ensure_ascii=False).encode('utf-8')
+        self.send_response(code)
+        self.send_header('Content-type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _read_body(self):
+        n = int(self.headers.get('Content-Length', 0))
+        return json.loads(self.rfile.read(n).decode('utf-8')) if n else {}
+
+    def _uid(self, v):
+        v = v or ''
+        return v if self.UID_RE.fullmatch(v) else None
+
+    def _load_custom(self):
+        try:
+            with open(CUSTOM_FILE, encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    def _save_custom(self, data):
+        tmp = CUSTOM_FILE + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False)
+        os.replace(tmp, CUSTOM_FILE)
+
+    def _log(self, uid, action, card, extra=None):
+        rec = {"ts": int(time.time()), "uid": uid, "action": action,
+               "id": card.get("id"), "name": card.get("name")}
+        if extra:
+            rec.update(extra)
+        with self._store_lock, open(LOG_FILE, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + '\n')
+
+    def _official_cards(self):
+        path = os.path.join(WEB_ROOT, 'data', 'official_cards.json')
+        try:
+            mt = os.path.getmtime(path)
+            if SPAHandler._oc_cache is None or SPAHandler._oc_cache[0] != mt:
+                with open(path, encoding='utf-8') as f:
+                    SPAHandler._oc_cache = (mt, json.load(f))
+            return SPAHandler._oc_cache[1]
+        except Exception:
+            return []
+    _oc_cache = None
+
+    def _find_existing(self, uid, card):
+        # 同じカードID、または同名のカードを、公式データ + 本人の登録済みから探す
+        nm = lambda x: (x or '').replace(' ', '').replace('\u3000', '')
+        key = nm(card["name"])
+        out = []
+        for c in self._official_cards():
+            if c.get("img") and (c.get("id") == card["id"] or nm(c.get("name")) == key):
+                if all(o["img"] != c["img"] for o in out):
+                    out.append({"id": c["id"], "name": c["name"], "pack": c.get("pack"), "img": c["img"], "source": "official"})
+        for c in self._load_custom().get(uid, []):
+            if c.get("img") and (c.get("card_id") == card["id"] or nm(c.get("name")) == key):
+                if all(o["img"] != c["img"] for o in out):
+                    out.append({"id": c["id"], "name": c["name"], "pack": c.get("pack"), "img": c["img"], "source": "custom"})
+        return out[:8]
+
+    def _scrape_official(self, card_id):
+        h = self._official_get(f"{self.OFFICIAL_BASE}/card/detail/?id={card_id}").decode('utf-8', 'replace')
+        h = h[h.find("class='cardDetail'"):]
+        t = self._official_text
+        m = re.search(r"<h3 class='card-name'>(.*?)(?:<span class='packname'>\((.*?)\)</span>)?</h3>", h, re.S)
+        if not m or not t(m.group(1)):
+            return None, None
+        card = {"id": card_id, "name": t(m.group(1)), "pack": t(m.group(2)) if m.group(2) else None}
+        for k in ("type", "civil", "rarelity", "power", "cost", "race"):
+            x = re.search(r"<td[^>]*class='%s'[^>]*>(.*?)</td>" % k, h, re.S)
+            card[k] = t(x.group(1)) if x else None
+        x = re.search(r"class='skills full'>(.*?)</td>", h, re.S)
+        card["text"] = t(x.group(1)) if x else None
+        imgs = list(dict.fromkeys(re.findall(r'src="(/wp-content/card/cardimage/[^"]+)"', h)))
+        return card, imgs
+
     def handle_register_official(self):
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            data = json.loads(self.rfile.read(length).decode('utf-8'))
-            raw = (data.get('url') or '').strip()
-            u = urllib.parse.urlparse(raw)
+            data = self._read_body()
+            uid = self._uid(data.get('uid'))
+            if not uid:
+                self.send_error(400, "ログインが必要です")
+                return
+            u = urllib.parse.urlparse((data.get('url') or '').strip())
             card_id = urllib.parse.parse_qs(u.query).get('id', [''])[0]
             if u.hostname != 'dm.takaratomy.co.jp' or not re.fullmatch(r'[A-Za-z0-9_\-]{1,40}', card_id):
                 self.send_error(400, "公式カード詳細ページのURLではありません")
                 return
 
-            h = self._official_get(f"{self.OFFICIAL_BASE}/card/detail/?id={card_id}").decode('utf-8', 'replace')
-            h = h[h.find("class='cardDetail'"):]
-            t = self._official_text
-            m = re.search(r"<h3 class='card-name'>(.*?)(?:<span class='packname'>\((.*?)\)</span>)?</h3>", h, re.S)
-            if not m or not t(m.group(1)):
+            card, imgs = self._scrape_official(card_id)
+            if not card:
                 self.send_error(404, "カード情報を取得できませんでした")
                 return
-            card = {"id": card_id, "name": t(m.group(1)), "pack": t(m.group(2)) if m.group(2) else None}
-            for k in ("type", "civil", "rarelity", "power", "cost", "race"):
-                x = re.search(r"<td[^>]*class='%s'[^>]*>(.*?)</td>" % k, h, re.S)
-                card[k] = t(x.group(1)) if x else None
-            x = re.search(r"class='skills full'>(.*?)</td>", h, re.S)
-            card["text"] = t(x.group(1)) if x else None
+            if not imgs:
+                self.send_error(404, "カード画像を取得できませんでした")
+                return
 
-            imgs = list(dict.fromkeys(re.findall(r'src="(/wp-content/card/cardimage/[^"]+)"', h)))
-            card["img"] = ""
-            if imgs:
-                fname = os.path.basename(urllib.parse.urlparse(imgs[0]).path)
-                if not re.fullmatch(r'[\w\-.%]+', fname):
-                    fname = f"official_{card_id}.jpg"
-                dest = os.path.join(UPLOAD_DIR, fname)
-                if not os.path.exists(dest):
-                    with open(dest, 'wb') as f:
-                        f.write(self._official_get(self.OFFICIAL_BASE + imgs[0]))
-                card["img"] = f"/api/uploads/{fname}"
+            # 重複確認: 既存があり、かつ「別バージョンとして登録」(force)でなければ確認を返す
+            existing = self._find_existing(uid, card)
+            if existing and not data.get('force'):
+                self._log(uid, 'duplicate', card, {"existing": len(existing)})
+                self._json({"status": "duplicate", "card": {k: card[k] for k in ("id", "name", "pack")}, "existing": existing})
+                return
 
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(card, ensure_ascii=False).encode('utf-8'))
-            print(f"[RegisterOfficial] {card_id} {card['name']}")
+            fname = os.path.basename(urllib.parse.urlparse(imgs[0]).path)
+            if not re.fullmatch(r'[\w\-.%]+', fname):
+                fname = f"official_{card_id}.jpg"
+            dest = os.path.join(UPLOAD_DIR, fname)
+            if not os.path.exists(dest):
+                with open(dest, 'wb') as f:
+                    f.write(self._official_get(self.OFFICIAL_BASE + imgs[0]))
+            card["img"] = f"/api/uploads/{fname}"
+
+            with self._store_lock:
+                store = self._load_custom()
+                mine = store.setdefault(uid, [])
+                card["card_id"] = card_id
+                # 同じIDを別バージョンとして登録する場合は連番を付けて区別する
+                n = sum(1 for c in mine if c.get("card_id") == card_id)
+                card["id"] = card_id if n == 0 else f"{card_id}~v{n + 1}"
+                if n:
+                    card["version"] = n + 1
+                card["createdAt"] = int(time.time())
+                mine.append(card)
+                self._save_custom(store)
+            self._log(uid, 'register', card, {"variant": bool(existing)})
+            self._json({"status": "registered", "card": card})
+            print(f"[RegisterOfficial] {uid[:6]} {card['id']} {card['name']}")
         except Exception as e:
             print(f"[RegisterOfficial Error] {e}")
             self.send_error(502, str(e))
+
+    def handle_register_cancel(self):
+        try:
+            data = self._read_body()
+            uid = self._uid(data.get('uid'))
+            if uid:
+                self._log(uid, 'cancel', {"id": data.get('id'), "name": data.get('name')})
+            self._json({"ok": True})
+        except Exception as e:
+            self.send_error(400, str(e))
+
+    def handle_custom_delete(self):
+        try:
+            data = self._read_body()
+            uid = self._uid(data.get('uid'))
+            if not uid:
+                self.send_error(400, "bad uid")
+                return
+            with self._store_lock:
+                store = self._load_custom()
+                mine = store.get(uid, [])
+                gone = [c for c in mine if c.get("id") == data.get('id')]
+                store[uid] = [c for c in mine if c.get("id") != data.get('id')]
+                self._save_custom(store)
+            for c in gone:
+                self._log(uid, 'delete', c)
+            self._json({"ok": True})
+        except Exception as e:
+            self.send_error(400, str(e))
+
+    def handle_custom_list(self):
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        uid = self._uid(q.get('uid', [''])[0])
+        if not uid:
+            self.send_error(400, "bad uid")
+            return
+        self._json({"cards": self._load_custom().get(uid, [])})
+
+    def handle_register_log(self):
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        uid = self._uid(q.get('uid', [''])[0])
+        if not uid:
+            self.send_error(400, "bad uid")
+            return
+        rows = []
+        try:
+            with open(LOG_FILE, encoding='utf-8') as f:
+                for line in f:
+                    try:
+                        r = json.loads(line)
+                    except ValueError:
+                        continue
+                    if r.get("uid") == uid:
+                        r.pop("uid", None)
+                        rows.append(r)
+        except FileNotFoundError:
+            pass
+        self._json({"log": rows[-200:][::-1]})
 
     def handle_upload_json(self):
         try:

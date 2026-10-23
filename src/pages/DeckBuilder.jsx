@@ -4,6 +4,7 @@ import { doc, getDoc, getDocs, setDoc, collection, updateDoc } from "firebase/fi
 import { useParams, useNavigate } from "react-router-dom";
 
 import DeckCardPicker from "../components/DeckCardPicker";
+import { fetchCustomCards } from "../hooks/useCustomCards";
 import { dedupeByName } from "../utils/dedupeCards";
 import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
 
@@ -70,10 +71,10 @@ export default function DeckBuilder() {
   useEffect(() => {
     if (!user) return;
     let alive = true;
-    getDocs(collection(db, "users", user.uid, "customCards"))
-      .then((snap) => {
+    resolveApiBase().catch(() => {}).then(() => fetchCustomCards(user.uid))
+      .then((cards) => {
         if (!alive) return;
-        const mine = snap.docs.map((d) => d.data()).filter((c) => c.img).map((c) => ({
+        const mine = cards.filter((c) => c.img).map((c) => ({
           id: c.id, url: c.img, name: c.name, cost: c.cost, text: c.text, type: c.type, civil: c.civil,
           tags: c.civil ? String(c.civil).split(/[/・]/).filter(Boolean) : [],
         }));

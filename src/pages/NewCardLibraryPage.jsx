@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { dedupeByName } from "../utils/dedupeCards";
 import MigrationBanner from "../components/MigrationBanner";
 import { getProxyImageUrl, resolveApiBase } from "../utils/apiConfig";
+import { showToast } from "../utils/toast";
 import { useCustomCards } from "../hooks/useCustomCards";
 
 const CIVILS = ["火", "水", "自然", "光", "闇", "ゼロ"];
@@ -18,19 +19,28 @@ export default function NewCardLibraryPage() {
   const [limit, setLimit] = useState(PAGE);
   const [sel, setSel] = useState(null);
   const [, setReady] = useState(false);
-  const { customCards, registerByUrl, deleteCustom } = useCustomCards();
+  const { customCards, registerByUrl, cancelRegister, deleteCustom, fetchLog } = useCustomCards();
   const [regUrl, setRegUrl] = useState("");
   const [regBusy, setRegBusy] = useState(false);
   const [regMsg, setRegMsg] = useState("");
 
-  const doRegister = async () => {
+  const [dup, setDup] = useState(null); // 重複確認ダイアログ {card, existing}
+  const [logRows, setLogRows] = useState(null);
+
+  const doRegister = async (force = false) => {
     if (!regUrl.trim() || regBusy) return;
     setRegBusy(true); setRegMsg("");
     try {
-      const c = await registerByUrl(regUrl.trim());
-      setRegMsg(`「${c.name}」を登録しました`); setRegUrl("");
-    } catch (e) { setRegMsg("登録に失敗しました: " + e.message); }
+      const r = await registerByUrl(regUrl.trim(), force);
+      if (r.status === "duplicate") setDup(r);
+      else { setDup(null); setRegUrl(""); showToast(`登録が完了しました：${r.card.name}`, 2500); }
+    } catch (e) { setDup(null); setRegMsg("登録に失敗しました: " + e.message); }
     setRegBusy(false);
+  };
+  const cancelDup = () => { cancelRegister(dup.card); setDup(null); };
+  const openLog = async () => {
+    setLogRows([]);
+    try { setLogRows(await fetchLog()); } catch (e) { setLogRows(null); setRegMsg("ログの取得に失敗しました: " + e.message); }
   };
 
   useEffect(() => {
@@ -45,8 +55,7 @@ export default function NewCardLibraryPage() {
   const filtered = useMemo(() => {
     if (!cards) return [];
     const k = norm(q);
-    const names = new Set(cards.map((c) => c.name));
-    return [...customCards.filter((c) => !names.has(c.name)), ...cards].filter((c) =>
+    return [...customCards, ...cards].filter((c) =>
       (!k || norm(c.name).includes(k) || norm(c.race).includes(k) || norm(c.text).includes(k)) &&
       (!civil || (c.civil || "").includes(civil))
     );
@@ -59,7 +68,8 @@ export default function NewCardLibraryPage() {
         <div style={{ display: "flex", gap: "6px" }}>
           <input value={regUrl} onChange={(e) => setRegUrl(e.target.value)} placeholder="公式カード詳細ページのURLで新規登録"
             style={{ flex: 1, minWidth: 0, padding: "8px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color-light)", background: "var(--surface-color-dark)", color: "#fff" }} />
-          <button onClick={doRegister} disabled={regBusy || !regUrl.trim()} className="btn">{regBusy ? "取得中..." : "登録"}</button>
+          <button onClick={() => doRegister(false)} disabled={regBusy || !regUrl.trim()} className="btn">{regBusy ? "取得中..." : "登録"}</button>
+          <button onClick={openLog} className="btn btn-outline">ログ</button>
         </div>
         {regMsg && <div style={{ fontSize: "0.8rem", color: regMsg.startsWith("登録に失敗") ? "#ff8080" : "#42a5f5" }}>{regMsg}</div>}
         <input value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} placeholder="カード名・種族・テキストで検索"
@@ -91,6 +101,48 @@ export default function NewCardLibraryPage() {
         </div>
       )}
 
+      {dup && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2100, overflowY: "auto", padding: "16px" }}>
+          <div style={{ background: "var(--surface-color)", borderRadius: "var(--radius-md)", padding: "12px", maxWidth: "420px", margin: "0 auto" }}>
+            <h3 style={{ margin: "0 0 6px" }}>すでに登録されているカードです</h3>
+            <div style={{ fontSize: "0.85rem", marginBottom: "8px" }}>
+              「{dup.card.name}」{dup.card.pack ? `(${dup.card.pack})` : ""} と同じカードが図鑑にあります。別バージョンとして登録しますか？
+            </div>
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "6px" }}>
+              {dup.existing.map((c) => (
+                <div key={c.id + c.img} style={{ flex: "0 0 110px", textAlign: "center", fontSize: "0.7rem" }}>
+                  <img src={getProxyImageUrl(c.img)} alt={c.name} referrerPolicy="no-referrer"
+                    style={{ width: "100%", aspectRatio: "63 / 88", objectFit: "cover", borderRadius: "var(--radius-sm)", background: "var(--surface-color-dark)" }} />
+                  <div>{c.pack || ""}</div>
+                  <div style={{ color: "var(--text-muted)" }}>{c.source === "custom" ? "登録済み" : "公式データ"}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+              <button onClick={cancelDup} className="btn btn-outline" style={{ flex: 1 }}>登録をキャンセル</button>
+              <button onClick={() => doRegister(true)} disabled={regBusy} className="btn" style={{ flex: 1 }}>{regBusy ? "登録中..." : "別バージョンとして登録"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logRows && (
+        <div onClick={() => setLogRows(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2100, overflowY: "auto", padding: "16px" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", borderRadius: "var(--radius-md)", padding: "12px", maxWidth: "420px", margin: "0 auto" }}>
+            <h3 style={{ margin: "0 0 8px" }}>登録ログ</h3>
+            {logRows.length === 0 && <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>ログはありません</div>}
+            {logRows.map((r, i) => (
+              <div key={i} style={{ fontSize: "0.8rem", padding: "4px 0", borderBottom: "1px solid var(--border-color)" }}>
+                <span style={{ color: "var(--text-muted)" }}>{new Date(r.ts * 1000).toLocaleString("ja-JP")}</span>{" "}
+                <b>{{ register: r.variant ? "別バージョン登録" : "登録", duplicate: "重複を検出", cancel: "キャンセル", delete: "削除" }[r.action] || r.action}</b>{" "}
+                {r.name} <span style={{ color: "var(--text-muted)" }}>({r.id})</span>
+              </div>
+            ))}
+            <button onClick={() => setLogRows(null)} className="btn btn-outline" style={{ marginTop: "12px", width: "100%" }}>閉じる</button>
+          </div>
+        </div>
+      )}
+
       {sel && (
         <div onClick={() => setSel(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, overflowY: "auto", padding: "16px" }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface-color)", borderRadius: "var(--radius-md)", padding: "12px", maxWidth: "420px", margin: "0 auto" }}>
@@ -99,10 +151,10 @@ export default function NewCardLibraryPage() {
             <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
               {[sel.civil, sel.type, sel.cost && `コスト${sel.cost}`, sel.power && `パワー${sel.power}`, sel.race].filter(Boolean).join(" / ")}
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 8px" }}>{sel.pack} {sel.rarelity}</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 8px" }}>{sel.pack} {sel.rarelity}{sel.version ? ` / 別バージョン${sel.version}` : ""}</div>
             <div style={{ fontSize: "0.85rem", whiteSpace: "pre-wrap" }}>{sel.text}</div>
             {sel.custom && (
-              <button onClick={() => { if (window.confirm("この登録カードを削除しますか？")) { deleteCustom(sel.id); setSel(null); } }}
+              <button onClick={() => { if (window.confirm("この登録カードを削除しますか？")) { deleteCustom(sel.id).then(() => showToast("削除しました")); setSel(null); } }}
                 className="btn btn-danger" style={{ marginTop: "12px", width: "100%" }}>登録を削除</button>
             )}
             <button onClick={() => setSel(null)} className="btn btn-outline" style={{ marginTop: "12px", width: "100%" }}>閉じる</button>
