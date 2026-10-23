@@ -17,7 +17,9 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
   const multi = multiState || zoneName === "temp";
   const [picked, setPicked] = useState([]); // 触った順のインデックス
 
-  const togglePick = (i) => setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+  // 一時ゾーンは複数選択OFFなら1枚だけ選択(別のカードをタップすると選択が切り替わる)
+  const single = zoneName === "temp" && !multiState;
+  const togglePick = (i) => setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : single ? [i] : [...p, i]));
   const toggleMulti = () => { setMulti((m) => !m); setPicked([]); };
   const moveMany = (target) => {
     if (!picked.length) return;
@@ -121,7 +123,7 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
         {multi ? (
           <div style={{ marginTop: "8px" }}>
             <div style={{ color: "var(--text-secondary)", fontSize: "0.75rem", textAlign: "center", marginBottom: "6px" }}>
-              {zoneName === "temp" ? "カードをタップして選択" : "触った順に番号が付きます"}({picked.length}枚) → 移動先をタップ
+              {single ? "カードを1枚タップ" : "触った順に番号が付きます"}({picked.length}枚) → 移動先をタップ
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center" }}>
               {MULTI_TARGETS.filter((t) => t.id !== zoneName).map((t) => (
@@ -144,9 +146,9 @@ export const ZoneModal = ({ title, cards, zoneName, selectedCard, onClose, onCar
         {onMoveMany && (alwaysClose || zoneName === "temp") && (
           <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
         )}
-        {onMoveMany && zoneName !== "temp" ? (
-          <button className="btn" onClick={toggleMulti} style={{ marginTop: "8px", minHeight: "44px", flexShrink: 0, color: "#fff", background: multi ? "var(--accent-color)" : "var(--border-color)" }}>
-            {multi ? "複数選択中(タップで解除)" : "複数選択"}
+        {onMoveMany ? (
+          <button className="btn" onClick={toggleMulti} style={{ marginTop: "8px", minHeight: "44px", flexShrink: 0, color: "#fff", background: multiState ? "var(--accent-color)" : "var(--border-color)" }}>
+            {multiState ? "複数選択中(タップで解除)" : "複数選択"}
           </button>
         ) : !onMoveMany && (
           <button className="btn" onClick={onClose} style={{ marginTop: "8px", minHeight: "44px", background: "var(--border-color-dark)", color: "#fff", flexShrink: 0 }}>閉じる</button>
